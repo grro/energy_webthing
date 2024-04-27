@@ -1,0 +1,2 @@
+requests
+webthing>=0.15.0
