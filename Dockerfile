@@ -1,4 +1,4 @@
-FROM python:3.10-alpine
+FROM python:3-alpine
 
 ENV meter_addr_pv http://192.168.1.11:8873
 ENV meter_addr_provider  http://192.168.1.11:8875
