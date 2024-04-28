@@ -4,4 +4,4 @@
 
 ## example
 
-sudo docker run --name energy --network host -e meter_addr_pv='http://10.1.11.1' -e meter_addr_provider='http://10.1.11.2'  grro/energy_webthing:0.0.10
+sudo docker run --name energy --network host -e port=8877 -e meter_addr_pv='http://10.1.11.91' -e meter_addr_provider='http://10.1.11.92'  grro/energy_webthing:0.0.11

@@ -1,11 +1,10 @@
-import random
-from random import randint
-from requests import request, Session
+from requests import Session
 import logging
 from threading import Thread
 from datetime import datetime, timedelta
 from time import sleep
 from typing import Tuple, List
+
 
 
 def query_3em(meter_addr: str, s: Session) -> Tuple[int, int, int, int]:
@@ -69,6 +68,7 @@ class WattRecorder:
 
 
 
+
 class Energy:
 
     def __init__(self, meter_addr_provider: str, meter_addr_pv: str):
@@ -77,15 +77,20 @@ class Energy:
         self.__session = Session()
         self.meter_addr_provider = meter_addr_provider
         self.meter_addr_pv = meter_addr_pv
+
+        self.current_power_provider_updated = datetime.now()
         self.current_power_provider = 0
         self.current_power_phase_a_provider = 0
         self.current_power_phase_b_provider = 0
         self.current_power_phase_c_provider = 0
+
+        self.current_power_pv_updated = datetime.now()
         self.current_power_pv = 0
         self.__current_power_pv_smoothen_recorder = WattRecorder()
         self.__current_power_provider_smoothen_recorder = WattRecorder()
         self.__current_power_consumption_smoothen_recorder = WattRecorder()
         self.__current_power_pv_surplus_smoothen_recorder = WattRecorder()
+
 
     def set_listener(self, listener):
         self.listener = listener
@@ -106,6 +111,15 @@ class Energy:
             return self.current_power_provider * -1
 
     @property
+    def current_power_provider_smoothen_1m(self) -> int:
+        return self.__current_power_provider_smoothen_recorder.watt_per_hour(minute_range=1)
+
+    @property
+    def current_power_provider_smoothen_60m(self) -> int:
+        return self.__current_power_provider_smoothen_recorder.watt_per_hour(minute_range=60)
+
+
+    @property
     def current_power_pv_surplus_smoothen_5s(self) -> int:
         return self.__current_power_pv_surplus_smoothen_recorder.watt_per_hour(second_range=5)
 
@@ -116,6 +130,10 @@ class Energy:
     @property
     def current_power_pv_surplus_smoothen_3m(self) -> int:
         return self.__current_power_pv_surplus_smoothen_recorder.watt_per_hour(minute_range=3)
+
+    @property
+    def current_power_pv_surplus_smoothen_60m(self) -> int:
+        return self.__current_power_pv_surplus_smoothen_recorder.watt_per_hour(minute_range=60)
 
     @property
     def current_power_pv_surplus_smoothen_5m(self) -> int:
@@ -130,12 +148,21 @@ class Energy:
         return self.__current_power_pv_smoothen_recorder.watt_per_hour(minute_range=3)
 
     @property
+    def current_power_pv_smoothen_60m(self) -> int:
+        return self.__current_power_pv_smoothen_recorder.watt_per_hour(minute_range=60)
+
+    @property
     def current_power_consumption_smoothen_1m(self) -> int:
         return self.__current_power_consumption_smoothen_recorder.watt_per_hour(minute_range=1)
 
     @property
     def current_power_consumption_smoothen_3m(self) -> int:
         return self.__current_power_consumption_smoothen_recorder.watt_per_hour(minute_range=3)
+
+    @property
+    def current_power_consumption_smoothen_60m(self) -> int:
+        return self.__current_power_consumption_smoothen_recorder.watt_per_hour(minute_range=60)
+
 
     def start(self):
         Thread(target=self.__measure, daemon=True).start()
@@ -146,9 +173,14 @@ class Energy:
     def __measure(self):
         while self.__is_running:
             self.__refresh_provider_values()
+            self.current_power_provider_updated = datetime.now()
+
             self.__refresh_pv_values()
+            self.current_power_pv_updated = datetime.now()
+
             self.__current_power_provider_smoothen_recorder.put(self.current_power_provider)
             self.__current_power_pv_smoothen_recorder.put(self.current_power_pv_surplus)
+
             self.__current_power_consumption_smoothen_recorder.put(self.current_power_consumption)
             self.__current_power_pv_surplus_smoothen_recorder.put(self.current_power_pv_surplus)
             self.listener()
@@ -175,3 +207,4 @@ class Energy:
             except Exception as e2:
                 logging.warning(str(e2))
             self.__session = Session()
+

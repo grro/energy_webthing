@@ -1,4 +1,4 @@
-FROM python:3-alpine
+FROM python:3.10-alpine
 
 ENV port 8343
 ENV meter_addr_pv http://example.org

@@ -16,13 +16,67 @@ class EnergyThing(Thing):
         Thing.__init__(
             self,
             'urn:dev:ops:energy-1',
-            'Energy Sensor',
+            'EnergySensor',
             ['MultiLevelSensor'],
             description
         )
         self.ioloop = tornado.ioloop.IOLoop.current()
         self.energy = energy
         self.energy.set_listener(self.on_value_changed)
+
+        self.current_power_provider_updated = Value(energy.current_power_provider_updated.strftime("%Y-%m-%dT%H:%M:%S"))
+        self.add_property(
+            Property(self,
+                     'current_power_provider_updated',
+                     self.current_power_provider_updated,
+                     metadata={
+                         'title': 'current_power_provider_updated',
+                         "type": "string",
+                         'unit': 'ISO8601 datetime',
+                         'description': 'the datetime when the provider values has been updated',
+                         'readOnly': True,
+                     }))
+
+
+        self.current_power_provider = Value(energy.current_power_provider)
+        self.add_property(
+            Property(self,
+                     'current_power_provider',
+                     self.current_power_provider,
+                     metadata={
+                         'title': 'current_power_provider',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the current power of the provider (may be negative)',
+                         'readOnly': True,
+                     }))
+
+        self.current_power_provider_smoothen_1m = Value(energy.current_power_provider_smoothen_1m)
+        self.add_property(
+            Property(self,
+                     'current_power_provider_smoothen_1m',
+                     self.current_power_provider_smoothen_1m,
+                     metadata={
+                         'title': 'current_power_provider_smoothen_1m',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the power provider  (smoothen 1 min)',
+                         'readOnly': True,
+                     }))
+
+
+        self.current_power_provider_smoothen_60m = Value(energy.current_power_provider_smoothen_60m)
+        self.add_property(
+            Property(self,
+                     'current_power_provider_smoothen_60m',
+                     self.current_power_provider_smoothen_60m,
+                     metadata={
+                         'title': 'current_power_provider_smoothen_60m',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the power provider  (smoothen 60 min)',
+                         'readOnly': True,
+                     }))
 
         self.current_power_consumption = Value(energy.current_power_consumption)
         self.add_property(
@@ -63,16 +117,16 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.current_power_provider = Value(energy.current_power_provider)
+        self.current_power_consumption_smoothen_60m = Value(energy.current_power_consumption_smoothen_60m)
         self.add_property(
             Property(self,
-                     'current_power_provider',
-                     self.current_power_provider,
+                     'current_power_consumption_smoothen_60m',
+                     self.current_power_consumption_smoothen_60m,
                      metadata={
-                         'title': 'current_power_provider',
+                         'title': 'current_power_consumption_smoothen_60m',
                          "type": "integer",
                          'unit': 'watt',
-                         'description': 'the current power of the provider (may be negative)',
+                         'description': 'the power currently consumed (smoothen 60 min)',
                          'readOnly': True,
                      }))
 
@@ -86,6 +140,19 @@ class EnergyThing(Thing):
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the current pv power produced',
+                         'readOnly': True,
+                     }))
+
+        self.current_power_pv_updated = Value(energy.current_power_pv_updated.strftime("%Y-%m-%dT%H:%M:%S"))
+        self.add_property(
+            Property(self,
+                     'current_power_pv_updated',
+                     self.current_power_pv_updated,
+                     metadata={
+                         'title': 'current_power_pv_updated',
+                         "type": "string",
+                         'unit': 'ISO8601 datetime',
+                         'description': 'the datetime when the pv values has been updated',
                          'readOnly': True,
                      }))
 
@@ -113,6 +180,19 @@ class EnergyThing(Thing):
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the current pv power produced (smoothen 3 min)',
+                         'readOnly': True,
+                     }))
+
+        self.current_power_pv_smoothen_60m = Value(energy.current_power_pv_smoothen_60m)
+        self.add_property(
+            Property(self,
+                     'current_power_pv_smoothen_60m',
+                     self.current_power_pv_smoothen_60m,
+                     metadata={
+                         'title': 'current_power_pv_smoothen_60m',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the current pv power produced (smoothen 60 min)',
                          'readOnly': True,
                      }))
 
@@ -182,18 +262,36 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
+        self.current_power_pv_surplus_smoothen_60m = Value(energy.current_power_pv_surplus_smoothen_60m)
+        self.add_property(
+            Property(self,
+                     'current_power_pv_surplus_smoothen_60m',
+                     self.current_power_pv_surplus_smoothen_60m,
+                     metadata={
+                         'title': 'current_power_pv_surplus_smoothen_60m',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the current pv power not consumed (smoothen 60 min)',
+                         'readOnly': True,
+                     }))
 
 
     def on_value_changed(self):
         self.ioloop.add_callback(self._on_value_changed)
 
     def _on_value_changed(self):
+        self.current_power_provider_updated.notify_of_external_update(self.energy.current_power_provider_updated.strftime("%Y-%m-%dT%H:%M:%S"))
         self.current_power_provider.notify_of_external_update(self.energy.current_power_provider)
+        self.current_power_provider_smoothen_1m.notify_of_external_update(self.energy.current_power_provider_smoothen_1m)
+        self.current_power_provider_smoothen_60m.notify_of_external_update(self.energy.current_power_provider_smoothen_60m)
 
         self.current_power_consumption.notify_of_external_update(self.energy.current_power_consumption)
         self.current_power_consumption_smoothen_1m.notify_of_external_update(self.energy.current_power_consumption_smoothen_1m)
         self.current_power_consumption_smoothen_3m.notify_of_external_update(self.energy.current_power_consumption_smoothen_3m)
+        self.current_power_consumption_smoothen_60m.notify_of_external_update(self.energy.current_power_consumption_smoothen_60m)
 
+
+        self.current_power_pv_updated.notify_of_external_update(self.energy.current_power_pv_updated.strftime("%Y-%m-%dT%H:%M:%S"))
         self.current_power_pv.notify_of_external_update(self.energy.current_power_pv)
         self.current_power_pv_smoothen_1m.notify_of_external_update(self.energy.current_power_pv_smoothen_1m)
         self.current_power_pv_smoothen_3m.notify_of_external_update(self.energy.current_power_pv_smoothen_3m)
