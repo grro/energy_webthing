@@ -175,4 +175,3 @@ class Energy:
             except Exception as e2:
                 logging.warning(str(e2))
             self.__session = Session()
-
