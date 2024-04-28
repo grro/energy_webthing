@@ -8,7 +8,6 @@ RUN mkdir app
 WORKDIR /etc/app
 ADD *.py /etc/app/
 ADD requirements.txt /etc/app/.
-RUN ls
 RUN pip install -r requirements.txt
 
 CMD python /etc/app/energy_webthing.py 8800  $meter_addr_pv $meter_addr_provider
