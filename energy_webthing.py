@@ -209,7 +209,7 @@ def run_server(description: str, port: int, meter_addr_provider: str, meter_addr
     energy = Energy(meter_addr_provider, meter_addr_pv)
     server = WebThingServer(SingleThing(EnergyThing(description, energy)), port=port, disable_host_validation=True)
     try:
-        logging.info('starting the server http://localhost:' + str(port))
+        logging.info('starting the server http://localhost:' + str(port) + " (provider meter=" + meter_addr_provider + "; pv meter=" + meter_addr_pv + ")")
         energy.start()
         server.start()
     except KeyboardInterrupt:
@@ -223,5 +223,4 @@ if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s %(name)-20s: %(levelname)-8s %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
     logging.getLogger('tornado.access').setLevel(logging.ERROR)
     logging.getLogger('urllib3.connectionpool').setLevel(logging.WARNING)
-    logging.info(sys.argv)
     run_server("description", int(sys.argv[1]), sys.argv[2], sys.argv[3])
