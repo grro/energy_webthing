@@ -125,10 +125,12 @@ class Energy:
         self.pv_measures_updated = datetime.now()
         self.pv_power = 0
         self.__pv_aggregated_power = AggregatedPower("pv", directory)
+        self.__pv_effective_aggregated_power = AggregatedPower("pv_effective", directory)
         self.__consumption_aggregated_power = AggregatedPower("consumption", directory)
         self.__surplus_aggregated_power = AggregatedPower("surplus", directory)
 
-        self.__current_power_pv_smoothen_recorder = WattRecorder()
+        self.__pv_power_smoothen_recorder = WattRecorder()
+        self.__pv_effective_power_smoothen_recorder = WattRecorder()
         self.__provider_power_smoothen_recorder = WattRecorder()
         self.__consumption_power_smoothen_recorder = WattRecorder()
         self.__pv_surplus_power_smoothen_recorder = WattRecorder()
@@ -138,8 +140,14 @@ class Energy:
         self.listener = listener
 
     @property
-    def debug(self) -> str:
-        return ""
+    def pv_effective_power(self) -> int:
+        if self.provider_power >= 0:
+            return self.pv_power
+        else:
+            effective = self.pv_power - abs(self.provider_power)
+            if effective > 0:
+                return effective
+        return 0
 
     @property
     def pv_surplus_power(self) -> int:
@@ -147,6 +155,7 @@ class Energy:
             return 0
         else:
             return self.provider_power * -1
+
 
     @property
     def consumption_power(self) -> int:
@@ -221,12 +230,16 @@ class Energy:
         return self.__surplus_aggregated_power.power_current_hour
 
     @property
+    def pv_effective_power_1m(self) -> int:
+        return self.__pv_effective_power_smoothen_recorder.watt_per_hour(minute_range=1)
+
+    @property
     def pv_power_1m(self) -> int:
-        return self.__current_power_pv_smoothen_recorder.watt_per_hour(minute_range=1)
+        return self.__pv_power_smoothen_recorder.watt_per_hour(minute_range=1)
 
     @property
     def pv_power_3m(self) -> int:
-        return self.__current_power_pv_smoothen_recorder.watt_per_hour(minute_range=3)
+        return self.__pv_power_smoothen_recorder.watt_per_hour(minute_range=3)
 
     @property
     def pv_power_current_hour(self) -> int:
@@ -240,6 +253,9 @@ class Energy:
     def pv_power_estimated_year(self) -> int:
         return self.__pv_aggregated_power.power_estimated_year
 
+    @property
+    def pv_effective_power_estimated_year(self) -> int:
+        return self.__pv_effective_aggregated_power.power_estimated_year
 
     def start(self):
         Thread(target=self.__measure, daemon=True).start()
@@ -253,8 +269,9 @@ class Energy:
             self.__refresh_pv_values()
             self.__provider_power_smoothen_recorder.put(self.provider_power)
             self.__consumption_power_smoothen_recorder.put(self.consumption_power)
-            self.__current_power_pv_smoothen_recorder.put(self.pv_power)
+            self.__pv_power_smoothen_recorder.put(self.pv_power)
             self.__pv_surplus_power_smoothen_recorder.put(self.pv_surplus_power)
+            self.__pv_effective_power_smoothen_recorder.put(self.pv_effective_power)
             self.__measure_daily_values()
             self.listener()
             sleep(1)
@@ -262,6 +279,7 @@ class Energy:
     def __measure_daily_values(self):
         self.__provider_aggregated_power.measure(self.provider_power_1m)
         self.__pv_aggregated_power.measure(self.pv_power_1m)
+        self.__pv_effective_aggregated_power.measure(self.pv_effective_power_1m)
         self.__consumption_aggregated_power.measure(self.consumption_power_1m)
         self.__surplus_aggregated_power.measure(self.pv_surplus_power_1m)
 
@@ -296,4 +314,5 @@ class Energy:
             except Exception as e2:
                 logging.warning(str(e2))
             self.__session = Session()
+
 
