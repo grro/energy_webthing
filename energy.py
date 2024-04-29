@@ -57,16 +57,47 @@ class WattRecorder:
         power_per_sec = 0
         for measure in reversed(self.__minute_measures):
             start_time = measure[0]
+            power = measure[1]
             if start_time < offset:
                 start_time = offset
             timerange = (now - start_time).total_seconds()
-            power_per_sec += measure[1] * timerange
-            now = measure[0]
+            power_per_sec += power * timerange
+            now = start_time
             if start_time == offset:
-                return int(power_per_sec / second_range)
+                break
+        return int(power_per_sec / second_range)
 
-        return 0
 
+class PowerOfDay:
+
+    def __init__(self, name: str, directory : str):
+        self.__power_per_minute = SimpleDB(name+ "_per_minute", sync_period_sec=1*60, directory=directory)
+        self.__power_per_hour = SimpleDB(name+ "_per_hour", sync_period_sec=1*60, directory=directory)
+        self.__power_day_of_year = SimpleDB(name+ "_per_day", sync_period_sec=2*60, directory=directory)
+
+    def measure(self, power_1m: int):
+        current_minute = str(datetime.now().minute)
+        current_hour = str(datetime.now().hour)
+        self.__power_per_minute.put(current_minute, power_1m, ttl_sec=61*60)
+        self.__power_per_hour.put(current_hour, self.__hourly_summary(self.__power_per_minute), ttl_sec=25*60*60)
+        self.__power_day_of_year.put(self.__current_day_of_year(), self.__daily_summary(self.__power_per_hour), ttl_sec=366*24*60*60)
+
+    @property
+    def power_current_day(self) -> int:
+        return int(self.__power_day_of_year.get(self.__current_day_of_year(), "0"))
+
+    @property
+    def power_60m(self) -> int:
+        return self.__hourly_summary(self.__power_per_minute)
+
+    def __current_day_of_year(self) -> str:
+        return str(datetime.now().strftime('%j'))
+
+    def __hourly_summary(self, db: SimpleDB) -> int:
+        return int(sum([db.get(str(minute), 0) for minute in range(0, 60)]) / 60)
+
+    def __daily_summary(self, db: SimpleDB) -> int:
+        return sum([db.get(str(hour), 0) for hour in range(0, 24)])
 
 
 
@@ -84,19 +115,17 @@ class Energy:
         self.provider_power_phase_a = 0
         self.provider_power_phase_b = 0
         self.provider_power_phase_c = 0
-        self.__provider_power_per_hour = {}
-        self.__provider_power_per_day = SimpleDB("provider_per_day", sync_period_sec=5*60, directory=directory)
+        self.__provider_power_of_day = PowerOfDay("provider", directory)
 
         self.pv_measures_updated = datetime.now()
         self.pv_power = 0
-        self.__pv_power_per_hour = {}
-        self.__pv_power_per_day = SimpleDB("pv_per_day", sync_period_sec=5*60, directory=directory)
+        self.__pv_power_of_day = PowerOfDay("pv", directory)
 
         self.consumption_power_current_day = 0
         self.consumption_current_day = 0
-        self.__consumption_power_per_hour = {}
-        self.__consumption_power_per_day = SimpleDB("consumption_per_day", sync_period_sec=5*60, directory=directory)
+        self.__consumption_power_of_day = PowerOfDay("consumption", directory)
 
+        self.__surplus_power_of_day = PowerOfDay("surplus", directory)
 
         self.__current_power_pv_smoothen_recorder = WattRecorder()
         self.__provider_power_smoothen_recorder = WattRecorder()
@@ -109,7 +138,7 @@ class Energy:
 
     @property
     def debug(self) -> str:
-        return ", ".join([day + ":" + str(self.__provider_power_per_day.get(day)) for day in self.__provider_power_per_day.keys()])
+        return ""
 
     @property
     def pv_surplus_power(self) -> int:
@@ -136,7 +165,7 @@ class Energy:
 
     @property
     def consumption_power_60m(self) -> int:
-        return self.__consumption_power_smoothen_recorder.watt_per_hour(minute_range=60)
+        return self.__consumption_power_of_day.power_60m
 
     @property
     def provider_power_1m(self) -> int:
@@ -148,8 +177,7 @@ class Energy:
 
     @property
     def provider_power_60m(self) -> int:
-        return self.__provider_power_smoothen_recorder.watt_per_hour(minute_range=60)
-
+        return self.__provider_power_of_day.power_60m
 
     @property
     def pv_surplus_power_5s(self) -> int:
@@ -169,7 +197,7 @@ class Energy:
 
     @property
     def pv_surplus_power_60m(self) -> int:
-        return self.__pv_surplus_power_smoothen_recorder.watt_per_hour(minute_range=60)
+        return self.__surplus_power_of_day.power_60m
 
     @property
     def pv_power_1m(self) -> int:
@@ -181,8 +209,7 @@ class Energy:
 
     @property
     def pv_power_60m(self) -> int:
-        return self.__current_power_pv_smoothen_recorder.watt_per_hour(minute_range=60)
-
+        return self.__pv_power_of_day.power_60m
 
     def start(self):
         Thread(target=self.__measure, daemon=True).start()
@@ -203,26 +230,22 @@ class Energy:
             sleep(1)
 
     def __measure_daily_values(self):
-        self.__provider_power_per_hour[datetime.now().hour] = self.provider_power_60m
-        self.__provider_power_per_day.put(str(datetime.now().day), sum(list(self.__provider_power_per_hour.values())), ttl_sec=8*60*60)
-
-        self.__pv_power_per_hour[datetime.now().hour] = self.pv_power_60m
-        self.__pv_power_per_day.put(str(datetime.now().day), sum(list(self.__pv_power_per_hour.values())), ttl_sec=8*60*60)
-
-        self.__consumption_power_per_hour[datetime.now().hour] = self.consumption_power_60m
-        self.__consumption_power_per_day.put(str(datetime.now().day), sum(list(self.__consumption_power_per_hour.values())), ttl_sec=7*60*60)
+        self.__provider_power_of_day.measure(self.provider_power_1m)
+        self.__pv_power_of_day.measure(self.pv_power_1m)
+        self.__consumption_power_of_day.measure(self.consumption_power_1m)
+        self.__surplus_power_of_day.measure(self.pv_surplus_power_1m)
 
     @property
     def provider_power_current_day(self) -> int:
-        return int(self.__provider_power_per_day.get(str((datetime.now().day)), "0"))
+        return self.__provider_power_of_day.power_current_day
 
     @property
     def pv_power_current_day(self) -> int:
-        return int(self.__pv_power_per_day.get(str((datetime.now().day)), "0"))
+        return self.__pv_power_of_day.power_current_day
 
     @property
-    def consumption_power_previous_day(self) -> int:
-        return self.__consumption_power_per_day.get(str((datetime.now() - timedelta(days=1)).day), "0")
+    def consumption_power_day(self) -> int:
+        return self.__consumption_power_of_day.power_current_day
 
     def __refresh_provider_values(self):
         try:
