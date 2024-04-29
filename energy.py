@@ -108,6 +108,10 @@ class Energy:
         self.listener = listener
 
     @property
+    def debug(self) -> str:
+        return ", ".join([day + ":" + str(self.__provider_power_per_day.get(day)) for day in self.__provider_power_per_day.keys()])
+
+    @property
     def pv_surplus_power(self) -> int:
         if self.provider_power > 0:
             return 0

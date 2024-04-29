@@ -329,7 +329,16 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
-
+        self.debug = Value(energy.debug)
+        self.add_property(
+            Property(self,
+                     'debug',
+                     self.debug,
+                     metadata={
+                         'title': 'debug',
+                         'description': 'debug',
+                         'readOnly': True,
+                     }))
 
     def on_value_changed(self):
         self.ioloop.add_callback(self._on_value_changed)
@@ -361,6 +370,8 @@ class EnergyThing(Thing):
         self.pv_surplus_power_3m.notify_of_external_update(self.energy.pv_surplus_power_3m)
         self.pv_surplus_power_5m.notify_of_external_update(self.energy.pv_surplus_power_5m)
         self.pv_surplus_power_60m.notify_of_external_update(self.energy.pv_surplus_power_60m)
+
+        self.debug.notify_of_external_update(self.energy.debug)
 
 
 def run_server(description: str, port: int, meter_addr_provider: str, meter_addr_pv: str, directory: str):
