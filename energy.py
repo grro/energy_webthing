@@ -54,50 +54,43 @@ class WattRecorder:
             second_range = minute_range * 60
         offset = now - timedelta(seconds=second_range)
 
-        power_per_sec = 0
+        watt_sec = 0
         for measure in reversed(self.__minute_measures):
             start_time = measure[0]
-            power = measure[1]
+            watt = measure[1]
             if start_time < offset:
                 start_time = offset
-            timerange = (now - start_time).total_seconds()
-            power_per_sec += power * timerange
+            elapsed_seconds = (now - start_time).total_seconds()
+            watt_sec += watt * elapsed_seconds
             now = start_time
             if start_time == offset:
                 break
-        return int(power_per_sec / second_range)
+        return int(watt_sec / second_range)
 
 
-class PowerOfDay:
+class AggregatedPower:
 
     def __init__(self, name: str, directory : str):
-        self.__power_per_minute = SimpleDB(name+ "_per_minute", sync_period_sec=1*60, directory=directory)
-        self.__power_per_hour = SimpleDB(name+ "_per_hour", sync_period_sec=1*60, directory=directory)
-        self.__power_day_of_year = SimpleDB(name+ "_per_day", sync_period_sec=2*60, directory=directory)
+        self.__power_per_minute = SimpleDB(name+ "_per_minute", sync_period_sec=60, directory=directory)
+        self.__power_per_hour = SimpleDB(name+ "_per_hour", sync_period_sec=70, directory=directory)
+        self.__power_day_of_year = SimpleDB(name+ "_per_day", sync_period_sec=80, directory=directory)
 
     def measure(self, power_1m: int):
-        current_minute = str(datetime.now().minute)
-        current_hour = str(datetime.now().hour)
-        self.__power_per_minute.put(current_minute, power_1m, ttl_sec=61*60)
-        self.__power_per_hour.put(current_hour, self.__hourly_summary(self.__power_per_minute), ttl_sec=25*60*60)
-        self.__power_day_of_year.put(self.__current_day_of_year(), self.__daily_summary(self.__power_per_hour), ttl_sec=366*24*60*60)
+        self.__power_per_minute.put(str(datetime.now().minute), power_1m, ttl_sec=61*60)
+        # hourly value
+        power_60min = int(sum([self.__power_per_minute.get(str(minute), 0) for minute in range(0, 60)]) / 60)
+        self.__power_per_hour.put(str(datetime.now().hour), power_60min, ttl_sec=25*60*60)
+        # daily value
+        power_24hour =  sum([self.__power_per_hour.get(str(hour), 0) for hour in range(0, 24)])
+        self.__power_day_of_year.put(str(datetime.now().strftime('%j')), power_24hour, ttl_sec=366*24*60*60)
 
     @property
     def power_current_day(self) -> int:
-        return int(self.__power_day_of_year.get(self.__current_day_of_year(), "0"))
+        return int(self.__power_day_of_year.get(str(datetime.now().strftime('%j')), 0))
 
     @property
-    def power_60m(self) -> int:
-        return self.__hourly_summary(self.__power_per_minute)
-
-    def __current_day_of_year(self) -> str:
-        return str(datetime.now().strftime('%j'))
-
-    def __hourly_summary(self, db: SimpleDB) -> int:
-        return int(sum([db.get(str(minute), 0) for minute in range(0, 60)]) / 60)
-
-    def __daily_summary(self, db: SimpleDB) -> int:
-        return sum([db.get(str(hour), 0) for hour in range(0, 24)])
+    def power_current_hour(self) -> int:
+        return self.__power_per_hour.get(str(datetime.now().hour), 0)
 
 
 
@@ -115,17 +108,15 @@ class Energy:
         self.provider_power_phase_a = 0
         self.provider_power_phase_b = 0
         self.provider_power_phase_c = 0
-        self.__provider_power_of_day = PowerOfDay("provider", directory)
+        self.__provider_power_of_day = AggregatedPower("provider", directory)
 
         self.pv_measures_updated = datetime.now()
         self.pv_power = 0
-        self.__pv_power_of_day = PowerOfDay("pv", directory)
+        self.__pv_power_of_day = AggregatedPower("pv", directory)
 
-        self.consumption_power_current_day = 0
-        self.consumption_current_day = 0
-        self.__consumption_power_of_day = PowerOfDay("consumption", directory)
+        self.__consumption_power_of_day = AggregatedPower("consumption", directory)
 
-        self.__surplus_power_of_day = PowerOfDay("surplus", directory)
+        self.__surplus_power_of_day = AggregatedPower("surplus", directory)
 
         self.__current_power_pv_smoothen_recorder = WattRecorder()
         self.__provider_power_smoothen_recorder = WattRecorder()
@@ -164,8 +155,12 @@ class Energy:
         return self.__consumption_power_smoothen_recorder.watt_per_hour(minute_range=3)
 
     @property
-    def consumption_power_60m(self) -> int:
-        return self.__consumption_power_of_day.power_60m
+    def consumption_power_current_hour(self) -> int:
+        return self.__consumption_power_of_day.power_current_hour
+
+    @property
+    def consumption_power_current_day(self) -> int:
+        return self.__consumption_power_of_day.power_current_day
 
     @property
     def provider_power_1m(self) -> int:
@@ -176,8 +171,8 @@ class Energy:
         return self.__provider_power_smoothen_recorder.watt_per_hour(minute_range=3)
 
     @property
-    def provider_power_60m(self) -> int:
-        return self.__provider_power_of_day.power_60m
+    def provider_power_current_hour(self) -> int:
+        return self.__provider_power_of_day.power_current_hour
 
     @property
     def pv_surplus_power_5s(self) -> int:
@@ -196,8 +191,8 @@ class Energy:
         return self.__pv_surplus_power_smoothen_recorder.watt_per_hour(minute_range=5)
 
     @property
-    def pv_surplus_power_60m(self) -> int:
-        return self.__surplus_power_of_day.power_60m
+    def pv_surplus_power_current_hour(self) -> int:
+        return self.__surplus_power_of_day.power_current_hour
 
     @property
     def pv_power_1m(self) -> int:
@@ -208,8 +203,8 @@ class Energy:
         return self.__current_power_pv_smoothen_recorder.watt_per_hour(minute_range=3)
 
     @property
-    def pv_power_60m(self) -> int:
-        return self.__pv_power_of_day.power_60m
+    def pv_power_current_hour(self) -> int:
+        return self.__pv_power_of_day.power_current_hour
 
     def start(self):
         Thread(target=self.__measure, daemon=True).start()
