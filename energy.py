@@ -73,7 +73,7 @@ class AggregatedPower:
     def __init__(self, name: str, directory : str):
         self.__power_per_minute = SimpleDB(name+ "_per_minute", sync_period_sec=60, directory=directory)
         self.__power_per_hour = SimpleDB(name+ "_per_hour", sync_period_sec=70, directory=directory)
-        self.__power_day_of_year = SimpleDB(name+ "_per_day", sync_period_sec=80, directory=directory)
+        self.__power_per_day = SimpleDB(name + "_per_day", sync_period_sec=80, directory=directory)
 
     def measure(self, power_1m: int):
         self.__power_per_minute.put(str(datetime.now().minute), power_1m, ttl_sec=61*60)
@@ -82,15 +82,27 @@ class AggregatedPower:
         self.__power_per_hour.put(str(datetime.now().hour), power_60min, ttl_sec=25*60*60)
         # daily value
         power_24hour =  sum([self.__power_per_hour.get(str(hour), 0) for hour in range(0, 24)])
-        self.__power_day_of_year.put(str(datetime.now().strftime('%j')), power_24hour, ttl_sec=366*24*60*60)
+        self.__power_per_day.put(datetime.now().strftime('%j'), power_24hour, ttl_sec=366 * 24 * 60 * 60)
 
     @property
     def power_current_day(self) -> int:
-        return int(self.__power_day_of_year.get(str(datetime.now().strftime('%j')), 0))
+        return int(self.__power_per_day.get(str(datetime.now().strftime('%j')), 0))
 
     @property
     def power_current_hour(self) -> int:
         return self.__power_per_hour.get(str(datetime.now().hour), 0)
+
+    @property
+    def power_current_year(self) -> int:
+        return sum([self.__power_per_day.get(str(day), 0) for day in range(0, int(datetime.now().strftime('%j'))+1)])
+
+    @property
+    def power_estimated_year(self) -> int:
+        current_day = int(datetime.now().strftime('%j'))
+        watt_current_year = sum([self.__power_per_day.get(str(day), 0) for day in range(0, current_day+1)])
+        return int(365*watt_current_year/current_day)
+
+
 
 
 
@@ -108,15 +120,13 @@ class Energy:
         self.provider_power_phase_a = 0
         self.provider_power_phase_b = 0
         self.provider_power_phase_c = 0
-        self.__provider_power_of_day = AggregatedPower("provider", directory)
+        self.__provider_aggregated_power = AggregatedPower("provider", directory)
 
         self.pv_measures_updated = datetime.now()
         self.pv_power = 0
-        self.__pv_power_of_day = AggregatedPower("pv", directory)
-
-        self.__consumption_power_of_day = AggregatedPower("consumption", directory)
-
-        self.__surplus_power_of_day = AggregatedPower("surplus", directory)
+        self.__pv_aggregated_power = AggregatedPower("pv", directory)
+        self.__consumption_aggregated_power = AggregatedPower("consumption", directory)
+        self.__surplus_aggregated_power = AggregatedPower("surplus", directory)
 
         self.__current_power_pv_smoothen_recorder = WattRecorder()
         self.__provider_power_smoothen_recorder = WattRecorder()
@@ -156,11 +166,19 @@ class Energy:
 
     @property
     def consumption_power_current_hour(self) -> int:
-        return self.__consumption_power_of_day.power_current_hour
+        return self.__consumption_aggregated_power.power_current_hour
 
     @property
     def consumption_power_current_day(self) -> int:
-        return self.__consumption_power_of_day.power_current_day
+        return self.__consumption_aggregated_power.power_current_day
+
+    @property
+    def consumption_power_current_year(self) -> int:
+        return self.__consumption_aggregated_power.power_current_year
+
+    @property
+    def consumption_power_estimated_year(self) -> int:
+        return self.__consumption_aggregated_power.power_estimated_year
 
     @property
     def provider_power_1m(self) -> int:
@@ -172,7 +190,15 @@ class Energy:
 
     @property
     def provider_power_current_hour(self) -> int:
-        return self.__provider_power_of_day.power_current_hour
+        return self.__provider_aggregated_power.power_current_hour
+
+    @property
+    def provider_power_current_day(self) -> int:
+        return self.__provider_aggregated_power.power_current_day
+
+    @property
+    def provider_power_current_year(self) -> int:
+        return self.__provider_aggregated_power.power_current_year
 
     @property
     def pv_surplus_power_5s(self) -> int:
@@ -192,7 +218,7 @@ class Energy:
 
     @property
     def pv_surplus_power_current_hour(self) -> int:
-        return self.__surplus_power_of_day.power_current_hour
+        return self.__surplus_aggregated_power.power_current_hour
 
     @property
     def pv_power_1m(self) -> int:
@@ -204,7 +230,16 @@ class Energy:
 
     @property
     def pv_power_current_hour(self) -> int:
-        return self.__pv_power_of_day.power_current_hour
+        return self.__pv_aggregated_power.power_current_hour
+
+    @property
+    def pv_power_current_year(self) -> int:
+        return self.__pv_aggregated_power.power_current_year
+
+    @property
+    def pv_power_estimated_year(self) -> int:
+        return self.__pv_aggregated_power.power_estimated_year
+
 
     def start(self):
         Thread(target=self.__measure, daemon=True).start()
@@ -225,22 +260,18 @@ class Energy:
             sleep(1)
 
     def __measure_daily_values(self):
-        self.__provider_power_of_day.measure(self.provider_power_1m)
-        self.__pv_power_of_day.measure(self.pv_power_1m)
-        self.__consumption_power_of_day.measure(self.consumption_power_1m)
-        self.__surplus_power_of_day.measure(self.pv_surplus_power_1m)
-
-    @property
-    def provider_power_current_day(self) -> int:
-        return self.__provider_power_of_day.power_current_day
+        self.__provider_aggregated_power.measure(self.provider_power_1m)
+        self.__pv_aggregated_power.measure(self.pv_power_1m)
+        self.__consumption_aggregated_power.measure(self.consumption_power_1m)
+        self.__surplus_aggregated_power.measure(self.pv_surplus_power_1m)
 
     @property
     def pv_power_current_day(self) -> int:
-        return self.__pv_power_of_day.power_current_day
+        return self.__pv_aggregated_power.power_current_day
 
     @property
     def consumption_power_day(self) -> int:
-        return self.__consumption_power_of_day.power_current_day
+        return self.__consumption_aggregated_power.power_current_day
 
     def __refresh_provider_values(self):
         try:
