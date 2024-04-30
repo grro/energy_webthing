@@ -10,7 +10,7 @@ from redzoo.database.simple import SimpleDB
 
 def query_3em(meter_addr: str, s: Session) -> Tuple[int, int, int, int]:
     uri = meter_addr + '/rpc/EM.GetStatus?id=0'
-    data = s.get(uri, timeout=10).json()
+    data = s.get(uri, timeout=7).json()
     current_power = round(data['total_act_power'])
     current_power_phase_a = round(data['a_act_power'])
     current_power_phase_b = round(data['b_act_power'])
@@ -20,7 +20,7 @@ def query_3em(meter_addr: str, s: Session) -> Tuple[int, int, int, int]:
 
 def query_pro1(meter_addr: str, s: Session) -> int:
     uri = meter_addr + '/rpc/switch.GetStatus?id=0'
-    data = s.get(uri, timeout=10).json()
+    data = s.get(uri, timeout=7).json()
     return round(data['apower'])
 
 
@@ -297,22 +297,23 @@ class Energy:
             self.provider_measures_updated = datetime.now()
         except Exception as e:
             logging.warning(str(e))
-            try:
-                self.__session.close()
-            except Exception as e2:
-                logging.warning(str(e2))
-            self.__session = Session()
+            self.__renew_session()
 
     def __refresh_pv_values(self):
         try:
-            self.pv_power = query_pro1(self.meter_addr_pv, self.__session)
+            pv_power = query_pro1(self.meter_addr_pv, self.__session)
+            if pv_power > 0:
+                self.pv_power = pv_power
+            else:
+                self.pv_power = 0
             self.pv_measures_updated = datetime.now()
         except Exception as e:
             logging.warning(str(e))
-            try:
-                self.__session.close()
-            except Exception as e2:
-                logging.warning(str(e2))
-            self.__session = Session()
+            self.__renew_session()
 
-
+    def __renew_session(self):
+        try:
+            self.__session.close()
+        except Exception as e:
+            logging.warning(str(e))
+        self.__session = Session()

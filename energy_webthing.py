@@ -77,33 +77,6 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.consumption_power = Value(energy.consumption_power)
-        self.add_property(
-            Property(self,
-                     'consumption_power',
-                     self.consumption_power,
-                     metadata={
-                         'title': 'consumption_power',
-                         "type": "integer",
-                         'unit': 'watt',
-                         'description': 'the power currently consumed',
-                         'readOnly': True,
-                     }))
-
-        self.consumption_power = Value(energy.consumption_power)
-        self.add_property(
-            Property(self,
-                     'consumption_power',
-                     self.consumption_power,
-                     metadata={
-                         'title': 'consumption_power',
-                         "type": "integer",
-                         'unit': 'watt',
-                         'description': 'the power currently consumed',
-                         'readOnly': True,
-                     }))
-
-
         self.pv_effective_power = Value(energy.pv_effective_power)
         self.add_property(
             Property(self,
@@ -116,6 +89,21 @@ class EnergyThing(Thing):
                          'description': 'the current effective pv power',
                          'readOnly': True,
                      }))
+
+        self.consumption_power = Value(energy.consumption_power)
+        self.add_property(
+            Property(self,
+                     'consumption_power',
+                     self.consumption_power,
+                     metadata={
+                         'title': 'consumption_power',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the power currently consumed',
+                         'readOnly': True,
+                     }))
+
+
 
         self.pv_surplus_power = Value(energy.pv_surplus_power)
         self.add_property(
