@@ -312,6 +312,7 @@ class Energy:
             self.__renew_session()
 
     def __renew_session(self):
+        logging.info("renew session")
         try:
             self.__session.close()
         except Exception as e:

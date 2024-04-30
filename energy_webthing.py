@@ -54,10 +54,10 @@ class EnergyThing(Thing):
         self.provider_power = Value(energy.provider_power)
         self.add_property(
             Property(self,
-                     'provider_power',
+                     'provider',
                      self.provider_power,
                      metadata={
-                         'title': 'provider_power',
+                         'title': 'provider',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the current power of the provider (may be negative)',
@@ -67,10 +67,10 @@ class EnergyThing(Thing):
         self.pv_power = Value(energy.pv_power)
         self.add_property(
             Property(self,
-                     'pv_power',
+                     'pv',
                      self.pv_power,
                      metadata={
-                         'title': 'pv_power',
+                         'title': 'pv',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the current pv power produced',
@@ -80,10 +80,10 @@ class EnergyThing(Thing):
         self.pv_effective_power = Value(energy.pv_effective_power)
         self.add_property(
             Property(self,
-                     'pv_effective_power',
+                     'pv_effective',
                      self.pv_effective_power,
                      metadata={
-                         'title': 'pv_effective_power',
+                         'title': 'pv_effective',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the current effective pv power',
@@ -93,10 +93,10 @@ class EnergyThing(Thing):
         self.consumption_power = Value(energy.consumption_power)
         self.add_property(
             Property(self,
-                     'consumption_power',
+                     'consumption',
                      self.consumption_power,
                      metadata={
-                         'title': 'consumption_power',
+                         'title': 'consumption',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the power currently consumed',
@@ -108,10 +108,10 @@ class EnergyThing(Thing):
         self.pv_surplus_power = Value(energy.pv_surplus_power)
         self.add_property(
             Property(self,
-                     'pv_surplus_power',
+                     'pv_surplus',
                      self.pv_surplus_power,
                      metadata={
-                         'title': 'pv_surplus_power',
+                         'title': 'pv_surplus',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the current pv power not consumed',
@@ -121,10 +121,10 @@ class EnergyThing(Thing):
         self.consumption_power_estimated_year = Value(energy.consumption_power_estimated_year)
         self.add_property(
             Property(self,
-                     'consumption_power_estimated_year',
+                     'consumption_estimated_year',
                      self.consumption_power_estimated_year,
                      metadata={
-                         'title': 'consumption_power_estimated_year',
+                         'title': 'consumption_estimated_year',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the estimated power consumption year',
@@ -134,10 +134,10 @@ class EnergyThing(Thing):
         self.pv_power_estimated_year = Value(energy.pv_power_estimated_year)
         self.add_property(
             Property(self,
-                     'pv_power_estimated_year',
+                     'pv_estimated_year',
                      self.pv_power_estimated_year,
                      metadata={
-                         'title': 'pv_power_estimated_year',
+                         'title': 'pv_estimated_year',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the estimated pv power current year',
@@ -147,10 +147,10 @@ class EnergyThing(Thing):
         self.pv_effective_power_estimated_year = Value(energy.pv_effective_power_estimated_year)
         self.add_property(
             Property(self,
-                     'pv_effective_power_estimated_year',
+                     'pv_effective_estimated_year',
                      self.pv_effective_power_estimated_year,
                      metadata={
-                         'title': 'pv_effective_power_estimated_year',
+                         'title': 'pv_effective_estimated_year',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the estimated effective pv power current year',
@@ -161,10 +161,10 @@ class EnergyThing(Thing):
         self.provider_power_1m = Value(energy.provider_power_1m)
         self.add_property(
             Property(self,
-                     'provider_power_1m',
+                     'provider_1m',
                      self.provider_power_1m,
                      metadata={
-                         'title': 'provider_power_1m',
+                         'title': 'provider_1m',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the power provider  (smoothen 1 min)',
@@ -174,10 +174,10 @@ class EnergyThing(Thing):
         self.provider_power_3m = Value(energy.provider_power_3m)
         self.add_property(
             Property(self,
-                     'provider_power_3m',
+                     'provider_3m',
                      self.provider_power_3m,
                      metadata={
-                         'title': 'provider_power_3m',
+                         'title': 'provider_3m',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the power provider  (smoothen 3 min)',
@@ -188,10 +188,10 @@ class EnergyThing(Thing):
         self.provider_power_current_hour = Value(energy.provider_power_current_hour)
         self.add_property(
             Property(self,
-                     'provider_power_current_hour',
+                     'provider_current_hour',
                      self.provider_power_current_hour,
                      metadata={
-                         'title': 'provider_power_current_hour',
+                         'title': 'provider_current_hour',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the power provider  (current hour)',
@@ -201,10 +201,10 @@ class EnergyThing(Thing):
         self.provider_power_current_day = Value(energy.provider_power_current_day)
         self.add_property(
             Property(self,
-                     'provider_power_current_day',
+                     'provider_current_day',
                      self.provider_power_current_day,
                      metadata={
-                         'title': 'provider_power_current_day',
+                         'title': 'provider_current_day',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the power provider current day',
@@ -214,10 +214,10 @@ class EnergyThing(Thing):
         self.provider_power_current_year = Value(energy.provider_power_current_year)
         self.add_property(
             Property(self,
-                     'provider_power_current_year',
+                     'provider_current_year',
                      self.provider_power_current_year,
                      metadata={
-                         'title': 'provider_power_current_year',
+                         'title': 'provider_current_year',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the power provider current day',
@@ -228,10 +228,10 @@ class EnergyThing(Thing):
         self.pv_power_1m = Value(energy.pv_power_1m)
         self.add_property(
             Property(self,
-                     'pv_power_1m',
+                     'pv_1m',
                      self.pv_power_1m,
                      metadata={
-                         'title': 'pv_power_1m',
+                         'title': 'pv_1m',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the current pv power produced (smoothen 1 min)',
@@ -242,10 +242,10 @@ class EnergyThing(Thing):
         self.pv_power_3m = Value(energy.pv_power_3m)
         self.add_property(
             Property(self,
-                     'pv_power_3m',
+                     'pv_3m',
                      self.pv_power_3m,
                      metadata={
-                         'title': 'pv_power_3m',
+                         'title': 'pv_3m',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the current pv power produced (smoothen 3 min)',
@@ -255,10 +255,10 @@ class EnergyThing(Thing):
         self.pv_power_current_hour = Value(energy.pv_power_current_hour)
         self.add_property(
             Property(self,
-                     'pv_power_current_hour',
+                     'pv_current_hour',
                      self.pv_power_current_hour,
                      metadata={
-                         'title': 'pv_power_current_hour',
+                         'title': 'pv_current_hour',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the current pv power produced (current hour)',
@@ -268,10 +268,10 @@ class EnergyThing(Thing):
         self.pv_power_current_day = Value(energy.pv_power_current_day)
         self.add_property(
             Property(self,
-                     'pv_power_current_day',
+                     'pv_current_day',
                      self.pv_power_current_day,
                      metadata={
-                         'title': 'pv_power_current_day',
+                         'title': 'pv_current_day',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the pv power current day',
@@ -281,10 +281,10 @@ class EnergyThing(Thing):
         self.pv_power_current_year = Value(energy.pv_power_current_year)
         self.add_property(
             Property(self,
-                     'pv_power_current_year',
+                     'pv_current_year',
                      self.pv_power_current_year,
                      metadata={
-                         'title': 'pv_power_current_year',
+                         'title': 'pv_current_year',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the pv power current year',
@@ -294,10 +294,10 @@ class EnergyThing(Thing):
         self.consumption_power_1m = Value(energy.consumption_power_1m)
         self.add_property(
             Property(self,
-                     'consumption_power_1m',
+                     'consumption_1m',
                      self.consumption_power_1m,
                      metadata={
-                         'title': 'consumption_power_1m',
+                         'title': 'consumption_1m',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the power currently consumed (smoothen 1 min)',
@@ -307,10 +307,10 @@ class EnergyThing(Thing):
         self.consumption_power_3m = Value(energy.consumption_power_3m)
         self.add_property(
             Property(self,
-                     'consumption_power_3m',
+                     'consumption_3m',
                      self.consumption_power_3m,
                      metadata={
-                         'title': 'consumption_power_3m',
+                         'title': 'consumption_3m',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the power currently consumed (smoothen 3 min)',
@@ -320,10 +320,10 @@ class EnergyThing(Thing):
         self.consumption_power_current_hour = Value(energy.consumption_power_current_hour)
         self.add_property(
             Property(self,
-                     'consumption_power_current_hour',
+                     'consumption_current_hour',
                      self.consumption_power_current_hour,
                      metadata={
-                         'title': 'consumption_power_current_hour',
+                         'title': 'consumption_current_hour',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the power currently consumed (current hour)',
@@ -335,10 +335,10 @@ class EnergyThing(Thing):
         self.consumption_power_current_day = Value(energy.consumption_power_current_day)
         self.add_property(
             Property(self,
-                     'consumption_power_current_day',
+                     'consumption_current_day',
                      self.consumption_power_current_day,
                      metadata={
-                         'title': 'consumption_power_current_day',
+                         'title': 'consumption_current_day',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the consumption provider current day',
@@ -348,10 +348,10 @@ class EnergyThing(Thing):
         self.pv_surplus_power_5s = Value(energy.pv_surplus_power_5s)
         self.add_property(
             Property(self,
-                     'pv_surplus_power_5s',
+                     'pv_surplus_5s',
                      self.pv_surplus_power_5s,
                      metadata={
-                         'title': 'pv_surplus_power_5s',
+                         'title': 'pv_surplus_5s',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the current pv power not consumed (smoothen 5 sec)',
@@ -361,10 +361,10 @@ class EnergyThing(Thing):
         self.pv_surplus_power_1m = Value(energy.pv_surplus_power_1m)
         self.add_property(
             Property(self,
-                     'pv_surplus_power_1m',
+                     'pv_surplus_1m',
                      self.pv_surplus_power_1m,
                      metadata={
-                         'title': 'pv_surplus_power_1m',
+                         'title': 'pv_surplus_1m',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the current pv power not consumed (smoothen 1 min)',
@@ -374,10 +374,10 @@ class EnergyThing(Thing):
         self.pv_surplus_power_3m = Value(energy.pv_surplus_power_3m)
         self.add_property(
             Property(self,
-                     'pv_surplus_power_3m',
+                     'pv_surplus_3m',
                      self.pv_surplus_power_3m,
                      metadata={
-                         'title': 'pv_surplus_power_3m',
+                         'title': 'pv_surplus_3m',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the current pv power not consumed (smoothen 3 min)',
@@ -387,10 +387,10 @@ class EnergyThing(Thing):
         self.pv_surplus_power_5m = Value(energy.pv_surplus_power_5m)
         self.add_property(
             Property(self,
-                     'pv_surplus_power_5m',
+                     'pv_surplus_5m',
                      self.pv_surplus_power_5m,
                      metadata={
-                         'title': 'pv_surplus_power_5m',
+                         'title': 'pv_surplus_5m',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the current pv power not consumed (smoothen 5 min)',
@@ -400,10 +400,10 @@ class EnergyThing(Thing):
         self.pv_surplus_power_current_hour = Value(energy.pv_surplus_power_current_hour)
         self.add_property(
             Property(self,
-                     'pv_surplus_power_current_hour',
+                     'pv_surplus_current_hour',
                      self.pv_surplus_power_current_hour,
                      metadata={
-                         'title': 'pv_surplus_power_current_hour',
+                         'title': 'pv_surplus_current_hour',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the current pv power not consumed (current hour)',
