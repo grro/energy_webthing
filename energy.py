@@ -10,18 +10,28 @@ from redzoo.database.simple import SimpleDB
 
 def query_3em(meter_addr: str, s: Session) -> Tuple[int, int, int, int]:
     uri = meter_addr + '/rpc/EM.GetStatus?id=0'
-    data = s.get(uri, timeout=7).json()
-    current_power = round(data['total_act_power'])
-    current_power_phase_a = round(data['a_act_power'])
-    current_power_phase_b = round(data['b_act_power'])
-    current_power_phase_c = round(data['c_act_power'])
-    return current_power, current_power_phase_a, current_power_phase_b, current_power_phase_c
+    resp = s.get(uri, timeout=7)
+    data = resp.json()
+    try:
+        current_power = round(data['total_act_power'])
+        current_power_phase_a = round(data['a_act_power'])
+        current_power_phase_b = round(data['b_act_power'])
+        current_power_phase_c = round(data['c_act_power'])
+        return current_power, current_power_phase_a, current_power_phase_b, current_power_phase_c
+    except Exception as e:
+        raise Exception("got " + str(resp.status_code) + " " + resp.text + " " + str(e))
+
 
 
 def query_pro1(meter_addr: str, s: Session) -> int:
     uri = meter_addr + '/rpc/switch.GetStatus?id=0'
-    data = s.get(uri, timeout=7).json()
-    return round(data['apower'])
+    resp = s.get(uri, timeout=7)
+    data = resp.json()
+    try:
+        return round(data['apower'])
+    except Exception as e:
+        raise Exception("got " + str(resp.status_code) + " " + resp.text + " " + str(e))
+
 
 
 
