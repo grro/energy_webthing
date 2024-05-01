@@ -10,7 +10,7 @@ from redzoo.database.simple import SimpleDB
 
 def query_3em(meter_addr: str, s: Session) -> Tuple[int, int, int, int]:
     uri = meter_addr + '/rpc/EM.GetStatus?id=0'
-    resp = s.get(uri, timeout=7)
+    resp = s.get(uri, timeout=10)
     try:
         data = resp.json()
         current_power = round(data['total_act_power'])
@@ -19,18 +19,18 @@ def query_3em(meter_addr: str, s: Session) -> Tuple[int, int, int, int]:
         current_power_phase_c = round(data['c_act_power'])
         return current_power, current_power_phase_a, current_power_phase_b, current_power_phase_c
     except Exception as e:
-        raise Exception("got " + str(resp.status_code) + " " + resp.text + " " + str(e))
+        raise Exception("called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
 
 
 
 def query_pro1(meter_addr: str, s: Session) -> int:
     uri = meter_addr + '/rpc/switch.GetStatus?id=0'
-    resp = s.get(uri, timeout=7)
+    resp = s.get(uri, timeout=10)
     try:
         data = resp.json()
         return round(data['apower'])
     except Exception as e:
-        raise Exception("got " + str(resp.status_code) + " " + resp.text + " " + str(e))
+        raise Exception("called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
 
 
 
