@@ -42,5 +42,5 @@ curl http://192.168.0.23:8877/properties
 
 ## docker example
 ```
-sudo docker run --restart always --name energy --network host  -v /etc/energy:/app/energy -e port=8877 -e pv='http://10.1.211.91' -e provider='http://10.1.211.92' -e directory='/app/energy ' grro/energy_webthing:0.0.21
+sudo docker run  --restart always --name energy --network host  -v /etc/energy:/app/energy -e port=8877 -e pv='http://10.1.11.91' -e provider='http://10.1.11.92' -e directory='/app/energy ' grro/energy_webthing:0.0.26
 ```
