@@ -109,7 +109,7 @@ class AggregatedPower:
     @property
     def power_estimated_year(self) -> int:
         current_day = int(datetime.now().strftime('%j'))
-        power_per_day = [self.__power_per_day.get(str(day), -0) for day in range(0, current_day+1)]
+        power_per_day = [self.__power_per_day.get(str(day), -1) for day in range(0, current_day+1)]
         power_per_day = [power for power in power_per_day if power > 0]
         return int(sum(power_per_day) * 365 / len(power_per_day))
 
