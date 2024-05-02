@@ -1,4 +1,4 @@
-FROM python:3.10-alpine
+FROM python:3-alpine
 
 ENV port 8343
 ENV pv http://example.org

@@ -8,29 +8,66 @@ from redzoo.database.simple import SimpleDB
 
 
 
-def query_3em(meter_addr: str, s: Session) -> Tuple[int, int, int, int]:
-    uri = meter_addr + '/rpc/EM.GetStatus?id=0'
-    resp = s.get(uri, timeout=10)
-    try:
-        data = resp.json()
-        current_power = round(data['total_act_power'])
-        current_power_phase_a = round(data['a_act_power'])
-        current_power_phase_b = round(data['b_act_power'])
-        current_power_phase_c = round(data['c_act_power'])
-        return current_power, current_power_phase_a, current_power_phase_b, current_power_phase_c
-    except Exception as e:
-        raise Exception("called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
+
+class Shelly3em:
+
+    def __init__(self, addr: str):
+        self.__session = Session()
+        self.addr = addr
+
+    def query(self) -> Tuple[int, int, int, int]:
+        uri = self.addr + '/rpc/EM.GetStatus?id=0'
+        try:
+            resp = self.__session.get(uri, timeout=10)
+            try:
+                data = resp.json()
+                current_power = round(data['total_act_power'])
+                current_power_phase_a = round(data['a_act_power'])
+                current_power_phase_b = round(data['b_act_power'])
+                current_power_phase_c = round(data['c_act_power'])
+                return current_power, current_power_phase_a, current_power_phase_b, current_power_phase_c
+            except Exception as e:
+                raise Exception("called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
+        except Exception as e:
+            self.__renew_session()
+            raise Exception("called " + uri + " got " + str(e))
+
+    def __renew_session(self):
+        logging.info("renew session for " + self.addr)
+        try:
+            self.__session.close()
+        except Exception as e:
+            logging.warning(str(e))
+        self.__session = Session()
 
 
+class Shelly1pro:
 
-def query_pro1(meter_addr: str, s: Session) -> int:
-    uri = meter_addr + '/rpc/switch.GetStatus?id=0'
-    resp = s.get(uri, timeout=10)
-    try:
-        data = resp.json()
-        return round(data['apower'])
-    except Exception as e:
-        raise Exception("called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
+    def __init__(self, addr: str):
+        self.__session = Session()
+        self.addr = addr
+
+    def query(self) -> int:
+        uri = self.addr + '/rpc/switch.GetStatus?id=0'
+        try:
+            resp = self.__session.get(uri, timeout=10)
+            try:
+                data = resp.json()
+                return round(data['apower'])
+            except Exception as e:
+                raise Exception("called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
+        except Exception as e:
+            self.__renew_session()
+            raise Exception("called " + uri + " got " + str(e))
+
+
+    def __renew_session(self):
+        logging.info("renew session for " + self.addr)
+        try:
+            self.__session.close()
+        except Exception as e:
+            logging.warning(str(e))
+        self.__session = Session()
 
 
 
@@ -110,7 +147,7 @@ class AggregatedPower:
     def power_estimated_year(self) -> int:
         current_day = int(datetime.now().strftime('%j'))
         power_per_day = [self.__power_per_day.get(str(day), -1) for day in range(0, current_day+1)]
-        power_per_day = [power for power in power_per_day if power > 0]
+        power_per_day = [power for power in power_per_day if power >= 0]
         return int(sum(power_per_day) * 365 / len(power_per_day))
 
 
@@ -121,10 +158,9 @@ class Energy:
 
     def __init__(self, meter_addr_provider: str, meter_addr_pv: str, directory: str):
         self.__is_running = True
-        self.listener = lambda: None    # "empty" listener
-        self.__session = Session()
-        self.meter_addr_provider = meter_addr_provider
-        self.meter_addr_pv = meter_addr_pv
+        self.__listener = lambda: None    # "empty" listener
+        self.__provider_shelly = Shelly3em(meter_addr_provider)
+        self.__pv_shelly = Shelly1pro(meter_addr_pv)
 
         self.provider_measures_updated = datetime.now()
         self.provider_power = 0
@@ -148,7 +184,7 @@ class Energy:
 
 
     def set_listener(self, listener):
-        self.listener = listener
+        self.__listener = listener
 
     @property
     def pv_effective_power(self) -> int:
@@ -268,6 +304,14 @@ class Energy:
     def pv_effective_power_estimated_year(self) -> int:
         return self.__pv_effective_aggregated_power.power_estimated_year
 
+    @property
+    def pv_power_current_day(self) -> int:
+        return self.__pv_aggregated_power.power_current_day
+
+    @property
+    def consumption_power_day(self) -> int:
+        return self.__consumption_aggregated_power.power_current_day
+
     def start(self):
         Thread(target=self.__measure, daemon=True).start()
 
@@ -278,14 +322,38 @@ class Energy:
         while self.__is_running:
             self.__refresh_provider_values()
             self.__refresh_pv_values()
+
+            # aggregated values
             self.__provider_power_smoothen_recorder.put(self.provider_power)
             self.__consumption_power_smoothen_recorder.put(self.consumption_power)
             self.__pv_power_smoothen_recorder.put(self.pv_power)
             self.__pv_surplus_power_smoothen_recorder.put(self.pv_surplus_power)
             self.__pv_effective_power_smoothen_recorder.put(self.pv_effective_power)
             self.__measure_daily_values()
-            self.listener()
+            self.__listener()
             sleep(1)
+
+    def __refresh_provider_values(self) -> bool:
+        try:
+            self.provider_power, self.provider_power_phase_a, self.provider_power_phase_b, self.provider_power_phase_c = self.__provider_shelly.query()
+            self.provider_measures_updated = datetime.now()
+            return True
+        except Exception as e:
+            logging.warning("error occurred reading provider values " + str(e))
+            return False
+
+    def __refresh_pv_values(self) -> bool:
+        try:
+            pv_power = self.__pv_shelly.query()
+            if pv_power > 0:
+                self.pv_power = pv_power
+            else:
+                self.pv_power = 0
+            self.pv_measures_updated = datetime.now()
+            return True
+        except Exception as e:
+            logging.warning("error occurred reading pv values " + str(e))
+            return False
 
     def __measure_daily_values(self):
         self.__provider_aggregated_power.measure(self.provider_power_1m)
@@ -293,39 +361,3 @@ class Energy:
         self.__pv_effective_aggregated_power.measure(self.pv_effective_power_1m)
         self.__consumption_aggregated_power.measure(self.consumption_power_1m)
         self.__surplus_aggregated_power.measure(self.pv_surplus_power_1m)
-
-    @property
-    def pv_power_current_day(self) -> int:
-        return self.__pv_aggregated_power.power_current_day
-
-    @property
-    def consumption_power_day(self) -> int:
-        return self.__consumption_aggregated_power.power_current_day
-
-    def __refresh_provider_values(self):
-        try:
-            self.provider_power, self.provider_power_phase_a, self.provider_power_phase_b, self.provider_power_phase_c = query_3em(self.meter_addr_provider, self.__session)
-            self.provider_measures_updated = datetime.now()
-        except Exception as e:
-            logging.warning(str(e))
-            self.__renew_session()
-
-    def __refresh_pv_values(self):
-        try:
-            pv_power = query_pro1(self.meter_addr_pv, self.__session)
-            if pv_power > 0:
-                self.pv_power = pv_power
-            else:
-                self.pv_power = 0
-            self.pv_measures_updated = datetime.now()
-        except Exception as e:
-            logging.warning(str(e))
-            self.__renew_session()
-
-    def __renew_session(self):
-        logging.info("renew session")
-        try:
-            self.__session.close()
-        except Exception as e:
-            logging.warning(str(e))
-        self.__session = Session()
