@@ -157,6 +157,32 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
+        self.pv_effective_power_estimated_year = Value(energy.pv_effective_power_estimated_year)
+        self.add_property(
+            Property(self,
+                     'pv_effective_estimated_year',
+                     self.pv_effective_power_estimated_year,
+                     metadata={
+                         'title': 'pv_effective_estimated_year',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the estimated effective pv power current year',
+                         'readOnly': True,
+                     }))
+
+        self.provider_power_estimated_year = Value(energy.provider_power_estimated_year)
+        self.add_property(
+            Property(self,
+                     'provider_power_estimated_year',
+                     self.provider_power_estimated_year,
+                     metadata={
+                         'title': 'provider_power_estimated_year',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the estimated provider power current year',
+                         'readOnly': True,
+                     }))
+
 
         self.provider_power_1m = Value(energy.provider_power_1m)
         self.add_property(
@@ -330,8 +356,6 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
-
-
         self.consumption_power_current_day = Value(energy.consumption_power_current_day)
         self.add_property(
             Property(self,
@@ -342,6 +366,19 @@ class EnergyThing(Thing):
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the consumption provider current day',
+                         'readOnly': True,
+                     }))
+
+        self.consumption_power_current_year = Value(energy.consumption_power_current_year)
+        self.add_property(
+            Property(self,
+                     'consumption_power_current_year',
+                     self.consumption_power_current_year,
+                     metadata={
+                         'title': 'consumption_power_current_year',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the consumption provider current year',
                          'readOnly': True,
                      }))
 
@@ -416,6 +453,7 @@ class EnergyThing(Thing):
     def _on_value_changed(self):
         self.provider_measures_updated.notify_of_external_update(self.energy.provider_measures_updated.strftime("%Y-%m-%dT%H:%M:%S"))
         self.provider_power.notify_of_external_update(self.energy.provider_power)
+        self.provider_power_estimated_year.notify_of_external_update(self.energy.provider_power_estimated_year)
         self.provider_power_1m.notify_of_external_update(self.energy.provider_power_1m)
         self.provider_power_3m.notify_of_external_update(self.energy.provider_power_3m)
         self.provider_power_current_hour.notify_of_external_update(self.energy.provider_power_current_hour)
@@ -427,6 +465,7 @@ class EnergyThing(Thing):
         self.consumption_power_3m.notify_of_external_update(self.energy.consumption_power_3m)
         self.consumption_power_current_hour.notify_of_external_update(self.energy.consumption_power_current_hour)
         self.consumption_power_current_day.notify_of_external_update(self.energy.consumption_power_current_day)
+        self.consumption_power_current_year.notify_of_external_update(self.energy.consumption_power_current_year)
         self.consumption_power_estimated_year.notify_of_external_update(self.energy.consumption_power_estimated_year)
 
         self.pv_measures_updated.notify_of_external_update(self.energy.pv_measures_updated.strftime("%Y-%m-%dT%H:%M:%S"))

@@ -203,7 +203,6 @@ class Energy:
         else:
             return self.provider_power * -1
 
-
     @property
     def consumption_power(self) -> int:
         # e.g:
@@ -255,6 +254,10 @@ class Energy:
     @property
     def provider_power_current_year(self) -> int:
         return self.__provider_aggregated_power.power_current_year
+
+    @property
+    def provider_power_estimated_year(self) -> int:
+        return self.__provider_aggregated_power.power_estimated_year
 
     @property
     def pv_surplus_power_5s(self) -> int:
@@ -356,7 +359,10 @@ class Energy:
             return False
 
     def __measure_daily_values(self):
-        self.__provider_aggregated_power.measure(self.provider_power_1m)
+        provider = self.provider_power_1m
+        if provider < 0:
+            provider = 0
+        self.__provider_aggregated_power.measure(provider)
         self.__pv_aggregated_power.measure(self.pv_power_1m)
         self.__pv_effective_aggregated_power.measure(self.pv_effective_power_1m)
         self.__consumption_aggregated_power.measure(self.consumption_power_1m)
