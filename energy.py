@@ -345,7 +345,7 @@ class Energy:
             self.__pv_effective_power_smoothen_recorder.put(self.pv_effective_power)
             self.__measure_daily_values()
             self.__listener()
-            sleep(1)
+            sleep(1.9)
 
     def __refresh_provider_values(self) -> bool:
         try:
