@@ -91,9 +91,13 @@ class WattRecorder:
 
     def __compact(self):
         if len(self.__minute_measures) > 2:
-            if datetime.now() > self.__minute_measures[1][0] + timedelta(minutes=self.__max_size_minutes):
-                del self.__minute_measures[0]
-                self.__compact()
+            max_datetime = datetime.now() - timedelta(minutes=self.__max_size_minutes)
+            num_elements = len(self.__minute_measures)
+            for i in range(num_elements):
+                if self.__minute_measures[0][0] < max_datetime:
+                    del self.__minute_measures[0]
+                else:
+                    return
 
     def watt_per_hour(self, minute_range: int = None, second_range: int = 60) -> int:
         now = datetime.now()
