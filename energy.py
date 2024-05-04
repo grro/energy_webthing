@@ -345,7 +345,7 @@ class Energy:
             self.__pv_effective_power_smoothen_recorder.put(self.pv_effective_power)
             self.__measure_daily_values()
             self.__listener()
-            sleep(1.9)
+            sleep(1.7)
 
     def __refresh_provider_values(self) -> bool:
         try:
@@ -353,7 +353,6 @@ class Energy:
             self.provider_measures_updated = datetime.now()
             return True
         except Exception as e:
-            logging.warning("error occurred reading provider values " + str(e))
             return False
 
     def __refresh_pv_values(self) -> bool:
