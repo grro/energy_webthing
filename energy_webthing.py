@@ -267,10 +267,10 @@ class EnergyThing(Thing):
         self.pv_power_15s = Value(energy.pv_power_15s)
         self.add_property(
             Property(self,
-                     'pv_15sec',
+                     'pv_15s',
                      self.pv_power_15s,
                      metadata={
-                         'title': 'pv_15sec',
+                         'title': 'pv_15s',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the current pv power produced (smoothen 15 sec)',
