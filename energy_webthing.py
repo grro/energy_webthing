@@ -22,7 +22,7 @@ class EnergyThing(Thing):
         )
         self.ioloop = tornado.ioloop.IOLoop.current()
         self.energy = energy
-        self.energy.set_listener(self.on_value_changed)
+        self.energy.set_listener(self._on_hot_value_changed, self.on_value_changed)
 
         self.pv_measures_updated = Value(energy.pv_measures_updated.strftime("%Y-%m-%dT%H:%M:%S"))
         self.add_property(
@@ -512,6 +512,20 @@ class EnergyThing(Thing):
         self.pv_surplus_power_3m.notify_of_external_update(self.energy.pv_surplus_power_3m)
         self.pv_surplus_power_5m.notify_of_external_update(self.energy.pv_surplus_power_5m)
         self.pv_surplus_power_current_hour.notify_of_external_update(self.energy.pv_surplus_power_current_hour)
+
+    def _on_hot_value_changed(self):
+        self.provider_measures_updated.notify_of_external_update(self.energy.provider_measures_updated.strftime("%Y-%m-%dT%H:%M:%S"))
+        self.provider_power.notify_of_external_update(self.energy.provider_power)
+
+        self.consumption_power.notify_of_external_update(self.energy.consumption_power)
+
+        self.pv_measures_updated.notify_of_external_update(self.energy.pv_measures_updated.strftime("%Y-%m-%dT%H:%M:%S"))
+        self.pv_power.notify_of_external_update(self.energy.pv_power)
+        self.pv_power_15s.notify_of_external_update(self.energy.pv_power_15s)
+
+        self.pv_surplus_power.notify_of_external_update(self.energy.pv_surplus_power)
+        self.pv_surplus_power_5s.notify_of_external_update(self.energy.pv_surplus_power_5s)
+        self.pv_surplus_power_15s.notify_of_external_update(self.energy.pv_surplus_power_15s)
 
 
 def run_server(description: str, port: int, meter_addr_provider: str, meter_addr_pv: str, directory: str):

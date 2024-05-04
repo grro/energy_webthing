@@ -186,7 +186,8 @@ class Energy:
         self.__pv_surplus_power_smoothen_recorder = WattRecorder()
 
 
-    def set_listener(self, listener):
+    def set_listener(self, hot_listener, listener):
+        self.__hot_listener = hot_listener
         self.__listener = listener
 
     @property
@@ -334,18 +335,19 @@ class Energy:
 
     def __measure(self):
         while self.__is_running:
-            self.__refresh_provider_values()
-            self.__refresh_pv_values()
+            for i in range(5):
+                self.__refresh_provider_values()
+                self.__refresh_pv_values()
+                self.__provider_power_smoothen_recorder.put(self.provider_power)
+                self.__consumption_power_smoothen_recorder.put(self.consumption_power)
+                self.__pv_power_smoothen_recorder.put(self.pv_power)
+                self.__pv_surplus_power_smoothen_recorder.put(self.pv_surplus_power)
+                self.__pv_effective_power_smoothen_recorder.put(self.pv_effective_power)
+                self.__hot_listener()
+                sleep(1.1)
 
-            # aggregated values
-            self.__provider_power_smoothen_recorder.put(self.provider_power)
-            self.__consumption_power_smoothen_recorder.put(self.consumption_power)
-            self.__pv_power_smoothen_recorder.put(self.pv_power)
-            self.__pv_surplus_power_smoothen_recorder.put(self.pv_surplus_power)
-            self.__pv_effective_power_smoothen_recorder.put(self.pv_effective_power)
             self.__measure_daily_values()
             self.__listener()
-            sleep(1.9)
 
     def __refresh_provider_values(self) -> bool:
         try:
