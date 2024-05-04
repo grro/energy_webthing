@@ -18,7 +18,7 @@ class Shelly3em:
     def query(self) -> Tuple[int, int, int, int]:
         uri = self.addr + '/rpc/EM.GetStatus?id=0'
         try:
-            resp = self.__session.get(uri, timeout=10)
+            resp = self.__session.get(uri, timeout=30)
             try:
                 data = resp.json()
                 current_power = round(data['total_act_power'])
@@ -50,7 +50,7 @@ class Shelly1pro:
     def query(self) -> int:
         uri = self.addr + '/rpc/switch.GetStatus?id=0'
         try:
-            resp = self.__session.get(uri, timeout=10)
+            resp = self.__session.get(uri, timeout=30)
             try:
                 data = resp.json()
                 return round(data['apower'])
