@@ -76,7 +76,6 @@ class Shelly1pro:
 class WattRecorder:
 
     def __init__(self, max_size_minutes: int = 65):
-        self.last_compaction = datetime.now()
         self.__max_size_minutes = max_size_minutes
         self.__minute_measures: List[Tuple[datetime, float]] = list()
         self.__value = 0
@@ -88,11 +87,9 @@ class WattRecorder:
     def put(self, measure: float):
         if len(self.__minute_measures) == 0 or measure != self.__minute_measures[-1][1]:
             self.__minute_measures.append((datetime.now(), measure))
-            if datetime.now() > self.last_compaction + timedelta(seconds=63):
-                self.__compact()
+            self.__compact()
 
     def __compact(self):
-        self.last_compaction = datetime.now()
         max_datetime = datetime.now() - timedelta(minutes=self.__max_size_minutes)
         num_elements = len(self.__minute_measures)
         for i in range(num_elements):
@@ -348,7 +345,7 @@ class Energy:
             self.__pv_effective_power_smoothen_recorder.put(self.pv_effective_power)
             self.__measure_daily_values()
             self.__listener()
-            sleep(1.7)
+            sleep(1.9)
 
     def __refresh_provider_values(self) -> bool:
         try:
