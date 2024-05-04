@@ -267,6 +267,10 @@ class Energy:
         return self.__pv_surplus_power_smoothen_recorder.watt_per_hour(second_range=5)
 
     @property
+    def pv_surplus_power_15s(self) -> int:
+        return self.__pv_surplus_power_smoothen_recorder.watt_per_hour(second_range=15)
+
+    @property
     def pv_surplus_power_1m(self) -> int:
         return self.__pv_surplus_power_smoothen_recorder.watt_per_hour(minute_range=1)
 
@@ -285,6 +289,10 @@ class Energy:
     @property
     def pv_effective_power_1m(self) -> int:
         return self.__pv_effective_power_smoothen_recorder.watt_per_hour(minute_range=1)
+
+    @property
+    def pv_power_15s(self) -> int:
+        return self.__pv_power_smoothen_recorder.watt_per_hour(second_range=15)
 
     @property
     def pv_power_1m(self) -> int:

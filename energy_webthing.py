@@ -264,6 +264,18 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
+        self.pv_power_15s = Value(energy.pv_power_15s)
+        self.add_property(
+            Property(self,
+                     'pv_15sec',
+                     self.pv_power_15s,
+                     metadata={
+                         'title': 'pv_15sec',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the current pv power produced (smoothen 15 sec)',
+                         'readOnly': True,
+                     }))
 
         self.pv_power_3m = Value(energy.pv_power_3m)
         self.add_property(
@@ -395,6 +407,19 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
+        self.pv_surplus_power_15s = Value(energy.pv_surplus_power_15s)
+        self.add_property(
+            Property(self,
+                     'pv_surplus_15s',
+                     self.pv_surplus_power_15s,
+                     metadata={
+                         'title': 'pv_surplus_15s',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the current pv power not consumed (smoothen 15 sec)',
+                         'readOnly': True,
+                     }))
+
         self.pv_surplus_power_1m = Value(energy.pv_surplus_power_1m)
         self.add_property(
             Property(self,
@@ -470,6 +495,7 @@ class EnergyThing(Thing):
 
         self.pv_measures_updated.notify_of_external_update(self.energy.pv_measures_updated.strftime("%Y-%m-%dT%H:%M:%S"))
         self.pv_power.notify_of_external_update(self.energy.pv_power)
+        self.pv_power_15s.notify_of_external_update(self.energy.pv_power_15s)
         self.pv_power_1m.notify_of_external_update(self.energy.pv_power_1m)
         self.pv_power_3m.notify_of_external_update(self.energy.pv_power_3m)
         self.pv_power_current_hour.notify_of_external_update(self.energy.pv_power_current_hour)
@@ -481,6 +507,7 @@ class EnergyThing(Thing):
 
         self.pv_surplus_power.notify_of_external_update(self.energy.pv_surplus_power)
         self.pv_surplus_power_5s.notify_of_external_update(self.energy.pv_surplus_power_5s)
+        self.pv_surplus_power_15s.notify_of_external_update(self.energy.pv_surplus_power_15s)
         self.pv_surplus_power_1m.notify_of_external_update(self.energy.pv_surplus_power_1m)
         self.pv_surplus_power_3m.notify_of_external_update(self.energy.pv_surplus_power_3m)
         self.pv_surplus_power_5m.notify_of_external_update(self.energy.pv_surplus_power_5m)
