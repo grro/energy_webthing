@@ -285,6 +285,10 @@ class Energy:
         return self.__pv_surplus_power_smoothen_recorder.watt_per_hour(minute_range=1)
 
     @property
+    def pv_surplus_power_5m(self) -> int:
+        return self.__pv_surplus_power_smoothen_recorder.watt_per_hour(minute_range=5)
+
+    @property
     def pv_surplus_power_current_hour(self) -> int:
         return self.__surplus_aggregated_power.power_current_hour
 
