@@ -368,7 +368,7 @@ class EnergyThing(Thing):
         self.pv_surplus_power_5m = Value(energy.pv_surplus_power_5m)
         self.add_property(
             Property(self,
-                     'pv_surplus_5ms',
+                     'pv_surplus_5m',
                      self.pv_surplus_power_5m,
                      metadata={
                          'title': 'pv_surplus_5m',
