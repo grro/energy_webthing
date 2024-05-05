@@ -1,7 +1,7 @@
-from webthing import (SingleThing, Property, Thing, Value, WebThingServer)
 import sys
 import logging
 import tornado.ioloop
+from webthing import (SingleThing, Property, Thing, Value, WebThingServer)
 from energy import Energy
 
 
@@ -22,7 +22,7 @@ class EnergyThing(Thing):
         )
         self.ioloop = tornado.ioloop.IOLoop.current()
         self.energy = energy
-        self.energy.set_listener(self._on_hot_value_changed, self.on_value_changed)
+        self.energy.set_listener(self.on_value_changed)
 
         self.pv_measures_updated = Value(energy.pv_measures_updated.strftime("%Y-%m-%dT%H:%M:%S"))
         self.add_property(
@@ -183,33 +183,33 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
-
-        self.provider_power_1m = Value(energy.provider_power_1m)
+        self.provider_power_5s = Value(energy.provider_power_5s)
         self.add_property(
             Property(self,
-                     'provider_1m',
-                     self.provider_power_1m,
+                     'provider_5s',
+                     self.provider_power_5s,
                      metadata={
-                         'title': 'provider_1m',
+                         'title': 'provider_5s',
                          "type": "integer",
                          'unit': 'watt',
-                         'description': 'the power provider  (smoothen 1 min)',
+                         'description': 'the power provider  (smoothen 5 sec)',
                          'readOnly': True,
                      }))
 
-        self.provider_power_3m = Value(energy.provider_power_3m)
+        '''
+        self.provider_power_15s = Value(energy.provider_power_15s)
         self.add_property(
             Property(self,
-                     'provider_3m',
-                     self.provider_power_3m,
+                     'provider_15s',
+                     self.provider_power_5s,
                      metadata={
-                         'title': 'provider_3m',
+                         'title': 'provider_15s',
                          "type": "integer",
                          'unit': 'watt',
-                         'description': 'the power provider  (smoothen 3 min)',
+                         'description': 'the power provider  (smoothen 15 sec)',
                          'readOnly': True,
                      }))
-
+        '''
 
         self.provider_power_current_hour = Value(energy.provider_power_current_hour)
         self.add_property(
@@ -250,20 +250,20 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
-
-        self.pv_power_1m = Value(energy.pv_power_1m)
+        self.pv_power_5s = Value(energy.pv_power_5s)
         self.add_property(
             Property(self,
-                     'pv_1m',
-                     self.pv_power_1m,
+                     'pv_5s',
+                     self.pv_power_5s,
                      metadata={
-                         'title': 'pv_1m',
+                         'title': 'pv_5s',
                          "type": "integer",
                          'unit': 'watt',
-                         'description': 'the current pv power produced (smoothen 1 min)',
+                         'description': 'the current pv power produced (smoothen 5 sec)',
                          'readOnly': True,
                      }))
 
+        '''
         self.pv_power_15s = Value(energy.pv_power_15s)
         self.add_property(
             Property(self,
@@ -276,19 +276,7 @@ class EnergyThing(Thing):
                          'description': 'the current pv power produced (smoothen 15 sec)',
                          'readOnly': True,
                      }))
-
-        self.pv_power_3m = Value(energy.pv_power_3m)
-        self.add_property(
-            Property(self,
-                     'pv_3m',
-                     self.pv_power_3m,
-                     metadata={
-                         'title': 'pv_3m',
-                         "type": "integer",
-                         'unit': 'watt',
-                         'description': 'the current pv power produced (smoothen 3 min)',
-                         'readOnly': True,
-                     }))
+        '''
 
         self.pv_power_current_hour = Value(energy.pv_power_current_hour)
         self.add_property(
@@ -329,31 +317,33 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.consumption_power_1m = Value(energy.consumption_power_1m)
+        self.consumption_power_5s = Value(energy.consumption_power_5s)
         self.add_property(
             Property(self,
-                     'consumption_1m',
-                     self.consumption_power_1m,
+                     'consumption_5s',
+                     self.consumption_power_5s,
                      metadata={
-                         'title': 'consumption_1m',
+                         'title': 'consumption_5s',
                          "type": "integer",
                          'unit': 'watt',
-                         'description': 'the power currently consumed (smoothen 1 min)',
+                         'description': 'the power currently consumed (smoothen 5 sec)',
                          'readOnly': True,
                      }))
 
-        self.consumption_power_3m = Value(energy.consumption_power_3m)
+        '''
+        self.consumption_power_15s = Value(energy.consumption_power_15s)
         self.add_property(
             Property(self,
-                     'consumption_3m',
-                     self.consumption_power_3m,
+                     'consumption_15s',
+                     self.consumption_power_15s,
                      metadata={
-                         'title': 'consumption_3m',
+                         'title': 'consumption_15s',
                          "type": "integer",
                          'unit': 'watt',
-                         'description': 'the power currently consumed (smoothen 3 min)',
+                         'description': 'the power currently consumed (smoothen 15 sec)',
                          'readOnly': True,
                      }))
+        '''
 
         self.consumption_power_current_hour = Value(energy.consumption_power_current_hour)
         self.add_property(
@@ -420,45 +410,6 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.pv_surplus_power_1m = Value(energy.pv_surplus_power_1m)
-        self.add_property(
-            Property(self,
-                     'pv_surplus_1m',
-                     self.pv_surplus_power_1m,
-                     metadata={
-                         'title': 'pv_surplus_1m',
-                         "type": "integer",
-                         'unit': 'watt',
-                         'description': 'the current pv power not consumed (smoothen 1 min)',
-                         'readOnly': True,
-                     }))
-
-        self.pv_surplus_power_3m = Value(energy.pv_surplus_power_3m)
-        self.add_property(
-            Property(self,
-                     'pv_surplus_3m',
-                     self.pv_surplus_power_3m,
-                     metadata={
-                         'title': 'pv_surplus_3m',
-                         "type": "integer",
-                         'unit': 'watt',
-                         'description': 'the current pv power not consumed (smoothen 3 min)',
-                         'readOnly': True,
-                     }))
-
-        self.pv_surplus_power_5m = Value(energy.pv_surplus_power_5m)
-        self.add_property(
-            Property(self,
-                     'pv_surplus_5m',
-                     self.pv_surplus_power_5m,
-                     metadata={
-                         'title': 'pv_surplus_5m',
-                         "type": "integer",
-                         'unit': 'watt',
-                         'description': 'the current pv power not consumed (smoothen 5 min)',
-                         'readOnly': True,
-                     }))
-
         self.pv_surplus_power_current_hour = Value(energy.pv_surplus_power_current_hour)
         self.add_property(
             Property(self,
@@ -479,15 +430,15 @@ class EnergyThing(Thing):
         self.provider_measures_updated.notify_of_external_update(self.energy.provider_measures_updated.strftime("%Y-%m-%dT%H:%M:%S"))
         self.provider_power.notify_of_external_update(self.energy.provider_power)
         self.provider_power_estimated_year.notify_of_external_update(self.energy.provider_power_estimated_year)
-        self.provider_power_1m.notify_of_external_update(self.energy.provider_power_1m)
-        self.provider_power_3m.notify_of_external_update(self.energy.provider_power_3m)
+        self.provider_power_5s.notify_of_external_update(self.energy.provider_power_5s)
+        #self.provider_power_15s.notify_of_external_update(self.energy.provider_power_15s)
         self.provider_power_current_hour.notify_of_external_update(self.energy.provider_power_current_hour)
         self.provider_power_current_day.notify_of_external_update(self.energy.provider_power_current_day)
         self.provider_power_current_year.notify_of_external_update(self.energy.provider_power_current_year)
 
         self.consumption_power.notify_of_external_update(self.energy.consumption_power)
-        self.consumption_power_1m.notify_of_external_update(self.energy.consumption_power_1m)
-        self.consumption_power_3m.notify_of_external_update(self.energy.consumption_power_3m)
+        self.consumption_power_5s.notify_of_external_update(self.energy.consumption_power_5s)
+        #self.consumption_power_15s.notify_of_external_update(self.energy.consumption_power_15s)
         self.consumption_power_current_hour.notify_of_external_update(self.energy.consumption_power_current_hour)
         self.consumption_power_current_day.notify_of_external_update(self.energy.consumption_power_current_day)
         self.consumption_power_current_year.notify_of_external_update(self.energy.consumption_power_current_year)
@@ -495,9 +446,8 @@ class EnergyThing(Thing):
 
         self.pv_measures_updated.notify_of_external_update(self.energy.pv_measures_updated.strftime("%Y-%m-%dT%H:%M:%S"))
         self.pv_power.notify_of_external_update(self.energy.pv_power)
-        self.pv_power_15s.notify_of_external_update(self.energy.pv_power_15s)
-        self.pv_power_1m.notify_of_external_update(self.energy.pv_power_1m)
-        self.pv_power_3m.notify_of_external_update(self.energy.pv_power_3m)
+        self.pv_power_5s.notify_of_external_update(self.energy.pv_power_5s)
+        #self.pv_power_15s.notify_of_external_update(self.energy.pv_power_15s)
         self.pv_power_current_hour.notify_of_external_update(self.energy.pv_power_current_hour)
         self.pv_power_current_day.notify_of_external_update(self.energy.pv_power_current_day)
         self.pv_power_current_year.notify_of_external_update(self.energy.pv_power_current_year)
@@ -508,25 +458,7 @@ class EnergyThing(Thing):
         self.pv_surplus_power.notify_of_external_update(self.energy.pv_surplus_power)
         self.pv_surplus_power_5s.notify_of_external_update(self.energy.pv_surplus_power_5s)
         self.pv_surplus_power_15s.notify_of_external_update(self.energy.pv_surplus_power_15s)
-        self.pv_surplus_power_1m.notify_of_external_update(self.energy.pv_surplus_power_1m)
-        self.pv_surplus_power_3m.notify_of_external_update(self.energy.pv_surplus_power_3m)
-        self.pv_surplus_power_5m.notify_of_external_update(self.energy.pv_surplus_power_5m)
         self.pv_surplus_power_current_hour.notify_of_external_update(self.energy.pv_surplus_power_current_hour)
-
-    def _on_hot_value_changed(self):
-        self.provider_measures_updated.notify_of_external_update(self.energy.provider_measures_updated.strftime("%Y-%m-%dT%H:%M:%S"))
-        self.provider_power.notify_of_external_update(self.energy.provider_power)
-
-        self.consumption_power.notify_of_external_update(self.energy.consumption_power)
-
-        self.pv_measures_updated.notify_of_external_update(self.energy.pv_measures_updated.strftime("%Y-%m-%dT%H:%M:%S"))
-        self.pv_power.notify_of_external_update(self.energy.pv_power)
-        self.pv_power_15s.notify_of_external_update(self.energy.pv_power_15s)
-
-        self.pv_surplus_power.notify_of_external_update(self.energy.pv_surplus_power)
-        self.pv_surplus_power_5s.notify_of_external_update(self.energy.pv_surplus_power_5s)
-        self.pv_surplus_power_15s.notify_of_external_update(self.energy.pv_surplus_power_15s)
-
 
 def run_server(description: str, port: int, meter_addr_provider: str, meter_addr_pv: str, directory: str):
     energy = Energy(meter_addr_provider, meter_addr_pv, directory)
