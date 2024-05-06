@@ -340,16 +340,20 @@ class Energy:
 
     def __measure(self):
         while self.__is_running:
-            self.__refresh_provider_values()
-            self.__refresh_pv_values()
-            self.__provider_power_smoothen_recorder.put(self.provider_power)
-            self.__consumption_power_smoothen_recorder.put(self.consumption_power)
-            self.__pv_power_smoothen_recorder.put(self.pv_power)
-            self.__pv_surplus_power_smoothen_recorder.put(self.pv_surplus_power)
-            self.__pv_effective_power_smoothen_recorder.put(self.pv_effective_power)
-            self.__measure_daily_values()
-            self.__listener()
-            sleep(1.03)
+            try:
+                self.__refresh_provider_values()
+                self.__refresh_pv_values()
+                self.__provider_power_smoothen_recorder.put(self.provider_power)
+                self.__consumption_power_smoothen_recorder.put(self.consumption_power)
+                self.__pv_power_smoothen_recorder.put(self.pv_power)
+                self.__pv_surplus_power_smoothen_recorder.put(self.pv_surplus_power)
+                self.__pv_effective_power_smoothen_recorder.put(self.pv_effective_power)
+                self.__measure_daily_values()
+                self.__listener()
+                sleep(1.03)
+            except Exception as e:
+                logging.warning("error occurred on sync " + str(e))
+                sleep(3)
 
     def __refresh_provider_values(self) -> bool:
         try:
