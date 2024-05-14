@@ -24,7 +24,7 @@ class EnergyThing(Thing):
         self.energy = energy
         self.energy.set_listener(self.on_value_changed)
 
-        self.pv_measures_updated = Value(energy.pv_measures_updated.strftime("%Y-%m-%dT%H:%M:%S"))
+        self.pv_measures_updated = Value(energy.pv_measures_updated.strftime("%Y-%m-%dT%H:%M:%S+00:00"))
         self.add_property(
             Property(self,
                      'pv_measures_updated',
@@ -37,7 +37,7 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.provider_measures_updated = Value(energy.provider_measures_updated.strftime("%Y-%m-%dT%H:%M:%S"))
+        self.provider_measures_updated = Value(energy.provider_measures_updated.strftime("%Y-%m-%dT%H:%M:%S+00:00"))
         self.add_property(
             Property(self,
                      'provider_measures_updated',
@@ -170,16 +170,16 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.pv_peek_hour = Value(energy.pv_peek_hour)
+        self.pv_peek_hour_utc = Value(energy.pv_peek_hour)
         self.add_property(
             Property(self,
-                     'pv_peek_hour',
-                     self.pv_peek_hour,
+                     'pv_peek_hour_utc',
+                     self.pv_peek_hour_utc,
                      metadata={
-                         'title': 'pv_peek_hour',
+                         'title': 'pv_peek_hour_utc',
                          "type": "integer",
                          'unit': 'hour',
-                         'description': 'the peek pv hour',
+                         'description': 'the peek pv hour (UTC)',
                          'readOnly': True,
                      }))
 
@@ -408,7 +408,7 @@ class EnergyThing(Thing):
         self.ioloop.add_callback(self._on_value_changed)
 
     def _on_value_changed(self):
-        self.provider_measures_updated.notify_of_external_update(self.energy.provider_measures_updated.strftime("%Y-%m-%dT%H:%M:%S"))
+        self.provider_measures_updated.notify_of_external_update(self.energy.provider_measures_updated.strftime("%Y-%m-%dT%H:%M:%S+00.00"))
         self.provider_power.notify_of_external_update(self.energy.provider_power)
         self.provider_power_estimated_year.notify_of_external_update(self.energy.provider_power_estimated_year)
         self.provider_power_5s.notify_of_external_update(self.energy.provider_power_5s)
@@ -424,7 +424,7 @@ class EnergyThing(Thing):
         self.consumption_power_current_year.notify_of_external_update(self.energy.consumption_power_current_year)
         self.consumption_power_estimated_year.notify_of_external_update(self.energy.consumption_power_estimated_year)
 
-        self.pv_measures_updated.notify_of_external_update(self.energy.pv_measures_updated.strftime("%Y-%m-%dT%H:%M:%S"))
+        self.pv_measures_updated.notify_of_external_update(self.energy.pv_measures_updated.strftime("%Y-%m-%dT%H:%M:%S+00.00"))
         self.pv_power.notify_of_external_update(self.energy.pv_power)
         self.pv_power_5s.notify_of_external_update(self.energy.pv_power_5s)
         self.pv_power_current_hour.notify_of_external_update(self.energy.pv_power_current_hour)
@@ -433,7 +433,7 @@ class EnergyThing(Thing):
         self.pv_power_estimated_year.notify_of_external_update(self.energy.pv_power_estimated_year)
         self.pv_effective_power.notify_of_external_update(self.energy.pv_effective_power)
         self.pv_effective_power_estimated_year.notify_of_external_update(self.energy.pv_effective_power_estimated_year)
-        self.pv_peek_hour.notify_of_external_update(self.energy.pv_peek_hour)
+        self.pv_peek_hour_utc.notify_of_external_update(self.energy.pv_peek_hour_utc)
 
         self.pv_surplus_power.notify_of_external_update(self.energy.pv_surplus_power)
         self.pv_surplus_power_5s.notify_of_external_update(self.energy.pv_surplus_power_5s)

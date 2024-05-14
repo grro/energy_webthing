@@ -86,11 +86,11 @@ class WattRecorder:
 
     def put(self, measure: float):
         if len(self.__minute_measures) == 0 or measure != self.__minute_measures[-1][1]:
-            self.__minute_measures.append((datetime.now(), measure))
+            self.__minute_measures.append((datetime.utcnow(), measure))
             self.__compact()
 
     def __compact(self):
-        max_datetime = datetime.now() - timedelta(minutes=self.__max_size_minutes)
+        max_datetime = datetime.utcnow() - timedelta(minutes=self.__max_size_minutes)
         num_elements = len(self.__minute_measures)
         for i in range(num_elements):
             if self.__minute_measures[0][0] < max_datetime:
@@ -99,7 +99,7 @@ class WattRecorder:
                 return
 
     def watt_per_hour(self, minute_range: int = None, second_range: int = 60) -> int:
-        now = datetime.now()
+        now = datetime.utcnow()
         if minute_range is not None:
             second_range = minute_range * 60
         offset = now - timedelta(seconds=second_range)
@@ -126,32 +126,32 @@ class AggregatedPower:
         self.__power_per_day = SimpleDB(name + "_per_day", sync_period_sec=80, directory=directory)
 
     def measure(self, power_1m: int):
-        self.__power_per_minute.put(str(datetime.now().minute), power_1m, ttl_sec=61*60)
+        self.__power_per_minute.put(str(datetime.utcnow().minute), power_1m, ttl_sec=61*60)
         # hourly value
         power_60min = int(sum([self.__power_per_minute.get(str(minute), 0) for minute in range(0, 60)]) / 60)
-        self.__power_per_hour.put(str(datetime.now().hour), power_60min, ttl_sec=25*60*60)
+        self.__power_per_hour.put(str(datetime.utcnow().hour), power_60min, ttl_sec=25*60*60)
         # daily value
         power_24hour =  sum([self.__power_per_hour.get(str(hour), 0) for hour in range(0, 24)])
-        self.__power_per_day.put(datetime.now().strftime('%j'), power_24hour, ttl_sec=366 * 24 * 60 * 60)
+        self.__power_per_day.put(datetime.utcnow().strftime('%j'), power_24hour, ttl_sec=366 * 24 * 60 * 60)
 
     @property
     def power_current_day(self) -> int:
-        return int(self.__power_per_day.get(str(datetime.now().strftime('%j')), 0))
+        return int(self.__power_per_day.get(str(datetime.utcnow().strftime('%j')), 0))
 
     @property
     def power_current_hour(self) -> int:
-        return self.power_by_hour(datetime.now().hour)
+        return self.power_by_hour(datetime.utcnow().hour)
 
     def power_by_hour(self, hour: int) -> int:
         return self.__power_per_hour.get(str(hour), 0)
 
     @property
     def power_current_year(self) -> int:
-        return sum([self.__power_per_day.get(str(day), 0) for day in range(0, int(datetime.now().strftime('%j'))+1)])
+        return sum([self.__power_per_day.get(str(day), 0) for day in range(0, int(datetime.utcnow().strftime('%j'))+1)])
 
     @property
     def power_estimated_year(self) -> int:
-        current_day = int(datetime.now().strftime('%j'))
+        current_day = int(datetime.utcnow().strftime('%j'))
         power_per_day = [self.__power_per_day.get(str(day), -1) for day in range(0, current_day+1)]
         power_per_day = [power for power in power_per_day if power >= 0]
         if len(power_per_day) > 0:
@@ -168,14 +168,14 @@ class Energy:
         self.__provider_shelly = Shelly3em(meter_addr_provider)
         self.__pv_shelly = Shelly1pro(meter_addr_pv)
 
-        self.provider_measures_updated = datetime.now()
+        self.provider_measures_updated = datetime.utcnow()
         self.provider_power = 0
         self.provider_power_phase_a = 0
         self.provider_power_phase_b = 0
         self.provider_power_phase_c = 0
         self.__provider_aggregated_power = AggregatedPower("provider", directory)
 
-        self.pv_measures_updated = datetime.now()
+        self.pv_measures_updated = datetime.utcnow()
         self.pv_power = 0
         self.__pv_aggregated_power = AggregatedPower("pv", directory)
         self.__pv_effective_aggregated_power = AggregatedPower("pv_effective", directory)
@@ -188,7 +188,7 @@ class Energy:
         self.__consumption_power_smoothen_recorder = WattRecorder()
         self.__pv_surplus_power_smoothen_recorder = WattRecorder()
 
-        self.__time_daily_value_measured = datetime.now()
+        self.__time_daily_value_measured = datetime.utcnow()
 
         self.__pv_peek_hours = SimpleDB("pv_peek_hours", sync_period_sec=60, directory=directory)
         self.__min_pv_power = min_pv_power
@@ -335,9 +335,8 @@ class Energy:
         return self.__pv_aggregated_power.power_current_day
 
     @property
-    def pv_peek_hour(self) -> int:
-        today = datetime.now()
-        #hours = [self.__pv_peek_hours.get((today - timedelta(days=day_offset)).strftime("%Y-%m-%dT%H"), -1) for day_offset in range(1, 20)]
+    def pv_peek_hour_utc(self) -> int:
+        today = datetime.utcnow()
         hours = [self.__pv_peek_hours.get((today - timedelta(days=day_offset)).strftime("%Y-%m-%dT%H"), -1) for day_offset in range(0, 20)]
         peeks = sorted([hour for hour in hours if hour >= 0])
         if len(peeks) == 0:
@@ -375,7 +374,7 @@ class Energy:
     def __refresh_provider_values(self) -> bool:
         try:
             self.provider_power, self.provider_power_phase_a, self.provider_power_phase_b, self.provider_power_phase_c = self.__provider_shelly.query()
-            self.provider_measures_updated = datetime.now()
+            self.provider_measures_updated = datetime.utcnow()
             return True
         except Exception as e:
             return False
@@ -387,14 +386,14 @@ class Energy:
                 self.pv_power = pv_power
             else:
                 self.pv_power = 0
-            self.pv_measures_updated = datetime.now()
+            self.pv_measures_updated = datetime.utcnow()
             return True
         except Exception as e:
             logging.warning("error occurred reading pv values " + str(e))
             return False
 
     def __measure_daily_values(self):
-        if datetime.now() > self.__time_daily_value_measured + timedelta(seconds=29):
+        if datetime.utcnow() > self.__time_daily_value_measured + timedelta(seconds=29):
             provider = self.provider_power_1m
             if provider < 0:
                 provider = 0
@@ -403,15 +402,15 @@ class Energy:
             self.__pv_effective_aggregated_power.measure(self.pv_effective_power_1m)
             self.__consumption_aggregated_power.measure(self.consumption_power_1m)
             self.__surplus_aggregated_power.measure(self.pv_surplus_power_1m)
-            self.__time_daily_value_measured = datetime.now()
+            self.__time_daily_value_measured = datetime.utcnow()
             self.__compute_daily_pv_peek()
 
     def __compute_daily_pv_peek(self):
-        pv_power_per_hour = { hour: self.__pv_aggregated_power.power_by_hour(hour) for hour in range(0, datetime.now().hour) }
+        pv_power_per_hour = { hour: self.__pv_aggregated_power.power_by_hour(hour) for hour in range(0, datetime.utcnow().hour) }
         pv_power_per_hour = { hour: pv_power_per_hour[hour] for hour in pv_power_per_hour.keys() if pv_power_per_hour[hour] > self.__min_pv_power}
         pv_peek_hour = self.__pv_peek_hour_of_day(pv_power_per_hour)
         if pv_peek_hour is not None:
-            self.__pv_peek_hours.put(datetime.now().strftime("%Y-%m-%dT%H"), pv_peek_hour, ttl_sec=20*24*60*60)
+            self.__pv_peek_hours.put(datetime.utcnow().strftime("%Y-%m-%dT%H"), pv_peek_hour, ttl_sec=20*24*60*60)
 
     def __pv_peek_hour_of_day(self, pv_power_per_hour: Dict[int, int]) -> Optional[int]:
         aggregated_power_of_day =  sum(pv_power_per_hour.values())
