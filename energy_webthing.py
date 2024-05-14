@@ -170,7 +170,7 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.pv_peek_hour_utc = Value(energy.pv_peek_hour)
+        self.pv_peek_hour_utc = Value(energy.pv_peek_hour_utc)
         self.add_property(
             Property(self,
                      'pv_peek_hour_utc',
