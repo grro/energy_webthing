@@ -441,8 +441,8 @@ class EnergyThing(Thing):
         self.pv_surplus_power_5m.notify_of_external_update(self.energy.pv_surplus_power_5m)
         self.pv_surplus_power_current_hour.notify_of_external_update(self.energy.pv_surplus_power_current_hour)
 
-def run_server(description: str, port: int, meter_addr_provider: str, meter_addr_pv: str, directory: str):
-    energy = Energy(meter_addr_provider, meter_addr_pv, directory)
+def run_server(description: str, port: int, meter_addr_provider: str, meter_addr_pv: str, directory: str,  min_pv_power : int):
+    energy = Energy(meter_addr_provider, meter_addr_pv, directory, min_pv_power)
     server = WebThingServer(SingleThing(EnergyThing(description, energy)), port=port, disable_host_validation=True)
     try:
         logging.info('starting the server http://localhost:' + str(port) + " (provider meter=" + meter_addr_provider + "; pv meter=" + meter_addr_pv + ")")
@@ -459,4 +459,4 @@ if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s %(name)-20s: %(levelname)-8s %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
     logging.getLogger('tornado.access').setLevel(logging.ERROR)
     logging.getLogger('urllib3.connectionpool').setLevel(logging.WARNING)
-    run_server("description", int(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4])
+    run_server("description", int(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]))
