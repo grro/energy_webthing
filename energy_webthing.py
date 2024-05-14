@@ -445,7 +445,7 @@ def run_server(description: str, port: int, meter_addr_provider: str, meter_addr
     energy = Energy(meter_addr_provider, meter_addr_pv, directory, min_pv_power)
     server = WebThingServer(SingleThing(EnergyThing(description, energy)), port=port, disable_host_validation=True)
     try:
-        logging.info('starting the server http://localhost:' + str(port) + " (provider meter=" + meter_addr_provider + "; pv meter=" + meter_addr_pv + ")")
+        logging.info('starting the server http://localhost:' + str(port) + " (provider meter=" + meter_addr_provider + "; pv meter=" + meter_addr_pv + "; min pv power="  + str(min_pv_power) + ")")
         energy.start()
         server.start()
     except KeyboardInterrupt:

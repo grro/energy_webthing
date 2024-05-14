@@ -162,7 +162,7 @@ class AggregatedPower:
 
 class Energy:
 
-    def __init__(self, meter_addr_provider: str, meter_addr_pv: str, directory: str, min_pv_power : int =  400):
+    def __init__(self, meter_addr_provider: str, meter_addr_pv: str, directory: str, min_pv_power : int):
         self.__is_running = True
         self.__listener = lambda: None    # "empty" listener
         self.__provider_shelly = Shelly3em(meter_addr_provider)
@@ -337,14 +337,12 @@ class Energy:
     @property
     def pv_peek_hour(self) -> int:
         today = datetime.now()
-        hours = [self.__pv_peek_hours.get((today - timedelta(days=day_offset)).strftime("%Y-%m-%dT%H"), None) for day_offset in range(1, 20)]
-        peeks = sorted([hour for hour in hours if hour is not None])
+        hours = [self.__pv_peek_hours.get((today - timedelta(days=day_offset)).strftime("%Y-%m-%dT%H"), -1) for day_offset in range(0, 20)]
+        peeks = sorted([hour for hour in hours if hour >= 0])
         if len(peeks) == 0:
             return 12
         else:
-            if len(peeks) > 7:
-                peeks = peeks[3: -3]
-            return peeks[round(len(peeks)* 0.5)]
+            return peeks[int(len(peeks)* 0.5)]
 
     @property
     def consumption_power_day(self) -> int:
