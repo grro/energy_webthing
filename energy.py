@@ -424,6 +424,5 @@ class Energy:
         return None
 
 
- s
 
 
