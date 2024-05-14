@@ -37,19 +37,18 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.provider_measures_updated = Value(energy.provider_measures_updated.strftime("%Y-%m-%dT%H:%M:%S+00:00"))
+        self.provider_measures_updated_utc = Value(energy.provider_measures_updated_utc.strftime("%Y-%m-%dT%H:%M:%S+00:00"))
         self.add_property(
             Property(self,
-                     'provider_measures_updated',
-                     self.provider_measures_updated,
+                     'provider_measures_updated_utc',
+                     self.provider_measures_updated_utc,
                      metadata={
-                         'title': 'provider_measures_updated',
+                         'title': 'provider_measures_updated_utc',
                          "type": "string",
                          'unit': 'ISO8601 datetime',
                          'description': 'the datetime when the provider values has been updated',
                          'readOnly': True,
                      }))
-
 
         self.provider_power = Value(energy.provider_power)
         self.add_property(
@@ -408,7 +407,7 @@ class EnergyThing(Thing):
         self.ioloop.add_callback(self._on_value_changed)
 
     def _on_value_changed(self):
-        self.provider_measures_updated.notify_of_external_update(self.energy.provider_measures_updated.strftime("%Y-%m-%dT%H:%M:%S+00:00"))
+        self.provider_measures_updated_utc.notify_of_external_update(self.energy.provider_measures_updated_utc.strftime("%Y-%m-%dT%H:%M:%S+00:00"))
         self.provider_power.notify_of_external_update(self.energy.provider_power)
         self.provider_power_estimated_year.notify_of_external_update(self.energy.provider_power_estimated_year)
         self.provider_power_5s.notify_of_external_update(self.energy.provider_power_5s)

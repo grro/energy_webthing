@@ -168,7 +168,7 @@ class Energy:
         self.__provider_shelly = Shelly3em(meter_addr_provider)
         self.__pv_shelly = Shelly1pro(meter_addr_pv)
 
-        self.provider_measures_updated = datetime.utcnow()
+        self.provider_measures_updated_utc = datetime.utcnow()
         self.provider_power = 0
         self.provider_power_phase_a = 0
         self.provider_power_phase_b = 0
@@ -374,7 +374,7 @@ class Energy:
     def __refresh_provider_values(self) -> bool:
         try:
             self.provider_power, self.provider_power_phase_a, self.provider_power_phase_b, self.provider_power_phase_c = self.__provider_shelly.query()
-            self.provider_measures_updated = datetime.utcnow()
+            self.provider_measures_updated_utc = datetime.utcnow()
             return True
         except Exception as e:
             return False
