@@ -408,7 +408,7 @@ class EnergyThing(Thing):
         self.ioloop.add_callback(self._on_value_changed)
 
     def _on_value_changed(self):
-        self.provider_measures_updated.notify_of_external_update(self.energy.provider_measures_updated.strftime("%Y-%m-%dT%H:%M:%S+00.00"))
+        self.provider_measures_updated.notify_of_external_update(self.energy.provider_measures_updated.strftime("%Y-%m-%dT%H:%M:%S+00:00"))
         self.provider_power.notify_of_external_update(self.energy.provider_power)
         self.provider_power_estimated_year.notify_of_external_update(self.energy.provider_power_estimated_year)
         self.provider_power_5s.notify_of_external_update(self.energy.provider_power_5s)
@@ -424,7 +424,7 @@ class EnergyThing(Thing):
         self.consumption_power_current_year.notify_of_external_update(self.energy.consumption_power_current_year)
         self.consumption_power_estimated_year.notify_of_external_update(self.energy.consumption_power_estimated_year)
 
-        self.pv_measures_updated.notify_of_external_update(self.energy.pv_measures_updated.strftime("%Y-%m-%dT%H:%M:%S+00.00"))
+        self.pv_measures_updated.notify_of_external_update(self.energy.pv_measures_updated.strftime("%Y-%m-%dT%H:%M:%S+00:00"))
         self.pv_power.notify_of_external_update(self.energy.pv_power)
         self.pv_power_5s.notify_of_external_update(self.energy.pv_power_5s)
         self.pv_power_current_hour.notify_of_external_update(self.energy.pv_power_current_hour)
