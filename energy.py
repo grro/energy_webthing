@@ -3,7 +3,7 @@ import logging
 from threading import Thread
 from datetime import datetime, timedelta
 from time import sleep
-from typing import Tuple, List
+from typing import Tuple, List, Dict, Optional
 from redzoo.database.simple import SimpleDB
 
 
@@ -140,7 +140,10 @@ class AggregatedPower:
 
     @property
     def power_current_hour(self) -> int:
-        return self.__power_per_hour.get(str(datetime.now().hour), 0)
+        return self.power_by_hour(datetime.now().hour)
+
+    def power_by_hour(self, hour: int) -> int:
+        return self.__power_per_hour.get(str(hour), 0)
 
     @property
     def power_current_year(self) -> int:
@@ -159,7 +162,7 @@ class AggregatedPower:
 
 class Energy:
 
-    def __init__(self, meter_addr_provider: str, meter_addr_pv: str, directory: str):
+    def __init__(self, meter_addr_provider: str, meter_addr_pv: str, directory: str, min_pv_power : int =  400):
         self.__is_running = True
         self.__listener = lambda: None    # "empty" listener
         self.__provider_shelly = Shelly3em(meter_addr_provider)
@@ -186,6 +189,9 @@ class Energy:
         self.__pv_surplus_power_smoothen_recorder = WattRecorder()
 
         self.__time_daily_value_measured = datetime.now()
+
+        self.__pv_peek_hours = SimpleDB("pv_peek_hours", sync_period_sec=60, directory=directory)
+        self.__min_pv_power = min_pv_power
 
 
     def set_listener(self,listener):
@@ -329,6 +335,18 @@ class Energy:
         return self.__pv_aggregated_power.power_current_day
 
     @property
+    def pv_peek_hour(self) -> int:
+        today = datetime.now()
+        hours = [self.__pv_peek_hours.get((today - timedelta(days=day_offset)).strftime("%Y-%m-%dT%H"), None) for day_offset in range(1, 20)]
+        peeks = sorted([hour for hour in hours if hour is not None])
+        if len(peeks) == 0:
+            return 12
+        else:
+            if len(peeks) > 7:
+                peeks = peeks[3: -3]
+            return peeks[round(len(peeks)* 0.5)]
+
+    @property
     def consumption_power_day(self) -> int:
         return self.__consumption_aggregated_power.power_current_day
 
@@ -387,3 +405,27 @@ class Energy:
             self.__consumption_aggregated_power.measure(self.consumption_power_1m)
             self.__surplus_aggregated_power.measure(self.pv_surplus_power_1m)
             self.__time_daily_value_measured = datetime.now()
+            self.__compute_daily_pv_peek()
+
+    def __compute_daily_pv_peek(self):
+        print("")
+        pv_power_per_hour = { hour: self.__pv_aggregated_power.power_by_hour(hour) for hour in range(0, datetime.now().hour) }
+        pv_power_per_hour = { hour: pv_power_per_hour[hour] for hour in pv_power_per_hour.keys() if pv_power_per_hour[hour] > self.__min_pv_power}
+        print(pv_power_per_hour)
+        pv_peek_hour = self.__pv_peek_hour_of_day(pv_power_per_hour)
+        if pv_peek_hour is not None:
+            self.__pv_peek_hours.put(datetime.now().strftime("%Y-%m-%dT%H"), pv_peek_hour, ttl_sec=20*24*60*60)
+
+    def __pv_peek_hour_of_day(self, pv_power_per_hour: Dict[int, int]) -> Optional[int]:
+        aggregated_power_of_day =  sum(pv_power_per_hour.values())
+        aggregated = 0
+        for hour, power in pv_power_per_hour.items():
+            aggregated += power
+            if aggregated > round(aggregated_power_of_day/2):
+                return hour
+        return None
+
+
+
+
+

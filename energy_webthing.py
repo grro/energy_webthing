@@ -170,6 +170,19 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
+        self.pv_peek_hour = Value(energy.pv_peek_hour)
+        self.add_property(
+            Property(self,
+                     'pv_peek_hour',
+                     self.pv_peek_hour,
+                     metadata={
+                         'title': 'pv_peek_hour',
+                         "type": "integer",
+                         'unit': 'hour',
+                         'description': 'the peek pv hour',
+                         'readOnly': True,
+                     }))
+
         self.provider_power_estimated_year = Value(energy.provider_power_estimated_year)
         self.add_property(
             Property(self,
@@ -420,6 +433,7 @@ class EnergyThing(Thing):
         self.pv_power_estimated_year.notify_of_external_update(self.energy.pv_power_estimated_year)
         self.pv_effective_power.notify_of_external_update(self.energy.pv_effective_power)
         self.pv_effective_power_estimated_year.notify_of_external_update(self.energy.pv_effective_power_estimated_year)
+        self.pv_peek_hour.notify_of_external_update(self.energy.pv_peek_hour)
 
         self.pv_surplus_power.notify_of_external_update(self.energy.pv_surplus_power)
         self.pv_surplus_power_5s.notify_of_external_update(self.energy.pv_surplus_power_5s)
