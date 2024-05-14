@@ -199,20 +199,21 @@ class Energy:
 
     @property
     def pv_effective_power(self) -> int:
-        if self.provider_power >= 0:
-            return self.pv_power
+        effective = self.pv_power - self.pv_surplus_power
+        if effective < 0:
+            return 0
         else:
-            effective = self.pv_power - abs(self.provider_power)
-            if effective > 0:
-                return effective
-        return 0
+            return  effective
 
     @property
     def pv_surplus_power(self) -> int:
-        if self.provider_power > 0:
+        surplus = 0
+        if self.provider_power < 0:
+            surplus = abs(self.provider_power)
+        if surplus < 0:
             return 0
         else:
-            return self.provider_power * -1
+            return surplus
 
     @property
     def consumption_power(self) -> int:

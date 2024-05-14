@@ -411,7 +411,6 @@ class EnergyThing(Thing):
         self.provider_power.notify_of_external_update(self.energy.provider_power)
         self.provider_power_estimated_year.notify_of_external_update(self.energy.provider_power_estimated_year)
         self.provider_power_5s.notify_of_external_update(self.energy.provider_power_5s)
-        #self.provider_power_15s.notify_of_external_update(self.energy.provider_power_15s)
         self.provider_power_current_hour.notify_of_external_update(self.energy.provider_power_current_hour)
         self.provider_power_current_day.notify_of_external_update(self.energy.provider_power_current_day)
         self.provider_power_current_year.notify_of_external_update(self.energy.provider_power_current_year)
