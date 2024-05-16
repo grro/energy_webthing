@@ -339,6 +339,7 @@ class Energy:
     def pv_peek_hour_utc(self) -> int:
         today = datetime.utcnow()
         hours = [self.__pv_peek_hours.get((today - timedelta(days=day_offset)).strftime("%Y-%m-%dT%H"), -1) for day_offset in range(0, 20)]
+        logging.info("peeks " + ", ".join(str(hour) for hour in hours))
         peeks = sorted([hour for hour in hours if hour >= 0])
         if len(peeks) == 0:
             return 12
