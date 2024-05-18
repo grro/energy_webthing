@@ -337,20 +337,20 @@ class Energy:
 
     @property
     def pv_peek_hour_utc(self) -> int:
-        today = datetime.utcnow()
-        hours = [self.__pv_daily_peeks.get((today - timedelta(days=day_offset)).strftime("%Y-%m-%d"), -1) for day_offset in range(0, 60)]
-        peeks = sorted([hour for hour in hours if hour >= 0])
+        peeks = sorted(self.__peeks())
         if len(peeks) == 0:
             return 12
         else:
             return peeks[int(len(peeks)* 0.5)]
 
+    def __peeks(self) -> List[int]:
+        today = datetime.utcnow()
+        hours = [self.__pv_daily_peeks.get((today - timedelta(days=day_offset)).strftime("%Y-%m-%d"), -1) for day_offset in range(0, 60)]
+        return [hour for hour in hours if hour >= 0]
+
     def __peek_info_loop(self):
         if self.__is_running:
-            today = datetime.utcnow()
-            hours = [self.__pv_daily_peeks.get((today - timedelta(days=day_offset)).strftime("%Y-%m-%d"), -1) for day_offset in range(0, 60)]
-            peeks = sorted([hour for hour in hours if hour >= 0])
-            logging.info("peeks " + ", ".join(str(hour) for hour in peeks))
+            logging.info("peeks " + ", ".join(str(hour) for hour in self.__peeks()))
             sleep(23 * 60 *60)
 
     @property
