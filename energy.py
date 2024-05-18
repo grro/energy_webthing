@@ -339,12 +339,18 @@ class Energy:
     def pv_peek_hour_utc(self) -> int:
         today = datetime.utcnow()
         hours = [self.__pv_daily_peeks.get((today - timedelta(days=day_offset)).strftime("%Y-%m-%d"), -1) for day_offset in range(0, 20)]
-        logging.info("peeks " + ", ".join(str(hour) for hour in hours))
         peeks = sorted([hour for hour in hours if hour >= 0])
         if len(peeks) == 0:
             return 12
         else:
             return peeks[int(len(peeks)* 0.5)]
+
+    def __peek_info_loop(self):
+        if self.__is_running:
+            today = datetime.utcnow()
+            hours = [self.__pv_daily_peeks.get((today - timedelta(days=day_offset)).strftime("%Y-%m-%d"), -1) for day_offset in range(0, 20)]
+            logging.info("peeks " + ", ".join(str(hour) for hour in hours))
+            sleep(23 * 60 *60)
 
     @property
     def consumption_power_day(self) -> int:
@@ -352,6 +358,7 @@ class Energy:
 
     def start(self):
         Thread(target=self.__measure, daemon=True).start()
+        Thread(target=self.__peek_info_loop, daemon=True).start()
 
     def stop(self):
         self.__is_running = False
