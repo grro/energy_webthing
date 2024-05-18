@@ -350,7 +350,7 @@ class Energy:
 
     def __peek_info_loop(self):
         if self.__is_running:
-            logging.info("peeks " + ", ".join(str(hour) for hour in self.__peeks()))
+            logging.info("peeks: " + ", ".join(str(hour) for hour in self.__peeks()))
             sleep(24 * 60 * 59)
 
     @property
