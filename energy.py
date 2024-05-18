@@ -338,7 +338,7 @@ class Energy:
     @property
     def pv_peek_hour_utc(self) -> int:
         today = datetime.utcnow()
-        hours = [self.__pv_daily_peeks.get((today - timedelta(days=day_offset)).strftime("%Y-%m-%d"), -1) for day_offset in range(0, 20)]
+        hours = [self.__pv_daily_peeks.get((today - timedelta(days=day_offset)).strftime("%Y-%m-%d"), -1) for day_offset in range(0, 60)]
         peeks = sorted([hour for hour in hours if hour >= 0])
         if len(peeks) == 0:
             return 12
@@ -348,8 +348,9 @@ class Energy:
     def __peek_info_loop(self):
         if self.__is_running:
             today = datetime.utcnow()
-            hours = [self.__pv_daily_peeks.get((today - timedelta(days=day_offset)).strftime("%Y-%m-%d"), -1) for day_offset in range(0, 20)]
-            logging.info("peeks " + ", ".join(str(hour) for hour in hours))
+            hours = [self.__pv_daily_peeks.get((today - timedelta(days=day_offset)).strftime("%Y-%m-%d"), -1) for day_offset in range(0, 60)]
+            peeks = sorted([hour for hour in hours if hour >= 0])
+            logging.info("peeks " + ", ".join(str(hour) for hour in peeks))
             sleep(23 * 60 *60)
 
     @property
@@ -419,7 +420,7 @@ class Energy:
         pv_power_per_hour = { hour: pv_power_per_hour[hour] for hour in pv_power_per_hour.keys() if pv_power_per_hour[hour] > self.__min_pv_power}
         pv_peek_hour = self.__pv_peek_hour_of_day(pv_power_per_hour)
         if pv_peek_hour is not None:
-            self.__pv_daily_peeks.put(datetime.utcnow().strftime("%Y-%m-%d"), pv_peek_hour, ttl_sec=20*24*60*60)
+            self.__pv_daily_peeks.put(datetime.utcnow().strftime("%Y-%m-%d"), pv_peek_hour, ttl_sec=30*24*60*60)
 
     def __pv_peek_hour_of_day(self, pv_power_per_hour: Dict[int, int]) -> Optional[int]:
         aggregated_power_of_day =  sum(pv_power_per_hour.values())
