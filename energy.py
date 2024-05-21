@@ -428,10 +428,11 @@ class Energy:
     def __pv_peek_hour_of_day(self, pv_power_per_hour: Dict[int, int]) -> Optional[int]:
         aggregated_power_of_day =  sum(pv_power_per_hour.values())
         aggregated = 0
-        for hour, power in pv_power_per_hour.items():
-            aggregated += power
-            if aggregated > round(aggregated_power_of_day/2):
-                return hour
+        if len(pv_power_per_hour) > 2:
+            for hour, power in pv_power_per_hour.items():
+                aggregated += power
+                if aggregated > round(aggregated_power_of_day/2):
+                    return hour
         return None
 
 
