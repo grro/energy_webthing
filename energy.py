@@ -350,21 +350,24 @@ class Energy:
 
     def __peek_info_loop(self):
         if self.__is_running:
-            logging.info("peek: " + str(self.pv_peek_hour_utc) + " utc (peeks: " + ", ".join(str(hour) for hour in self.__peeks()) +")")
-            sleep(24 * 60 * 59)
+            try:
+                logging.info("peek: " + str(self.pv_peek_hour_utc) + " utc (peeks: " + ", ".join(str(hour) for hour in self.__peeks()) +")")
+            except Exception as e:
+                logging.warning("error occurred on printing peek values " + str(e))
+            sleep(13 * 60 * 60)
 
     @property
     def consumption_power_day(self) -> int:
         return self.__consumption_aggregated_power.power_current_day
 
     def start(self):
-        Thread(target=self.__measure, daemon=True).start()
+        Thread(target=self.__measure_loop, daemon=True).start()
         Thread(target=self.__peek_info_loop, daemon=True).start()
 
     def stop(self):
         self.__is_running = False
 
-    def __measure(self):
+    def __measure_loop(self):
         while self.__is_running:
             try:
                 self.__refresh_provider_values()
@@ -378,7 +381,7 @@ class Energy:
                 self.__listener()
                 sleep(1.03)
             except Exception as e:
-                logging.warning("error occurred on sync " + str(e))
+                logging.warning("error occurred on refresh " + str(e))
                 sleep(3)
 
     def __refresh_provider_values(self) -> bool:
