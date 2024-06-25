@@ -364,12 +364,12 @@ class Energy:
                 current_day = int(now.strftime("%d"))
                 if current_day != last_day_reported and now.hour > 19:
                     last_day_reported = current_day
-                    logging.info("pv power current day:              " + str(round(self.pv_power_current_day/1000,1)) + " kWh")
-                    logging.info("pv power current year:             " + str(round(self.pv_power_current_year/1000,1)) + " kWh")
-                    logging.info("pv power estimated year:           " + str(round(self.pv_power_estimated_year/1000,1)) + " kWh")
-                    logging.info("provider power current_year:       " + str(round(self.provider_power_current_year/1000,1)) + " kWh")
-                    logging.info("provider power estimated year:     " + str(round(self.provider_power_estimated_year/1000,1)) + " kWh")
-                    logging.info("pv effective power estimated year: " + str(round(self.pv_effective_power_estimated_year/1000,1)) + " kWh")
+                    logging.info("pv power current day:               " + str(round(self.pv_power_current_day/1000,1)) + " kWh")
+                    logging.info("pv power current year:              " + str(round(self.pv_power_current_year/1000,1)) + " kWh")
+                    logging.info("pv power estimated year:            " + str(round(self.pv_power_estimated_year/1000,1)) + " kWh")
+                    logging.info("provider power current_year:        " + str(round(self.provider_power_current_year/1000,1)) + " kWh")
+                    logging.info("provider power estimated year:      " + str(round(self.provider_power_estimated_year/1000,1)) + " kWh")
+                    logging.info("pv effective power estimated year:  " + str(round(self.pv_effective_power_estimated_year/1000,1)) + " kWh")
             except Exception as e:
                 logging.warning("error occurred on statistics " + str(e))
             sleep(10 * 60)
