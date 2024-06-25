@@ -349,12 +349,31 @@ class Energy:
         return [hour for hour in hours if hour >= 0]
 
     def __peek_info_loop(self):
-        if self.__is_running:
+        while self.__is_running:
             try:
                 logging.info("peek: " + str(self.pv_peek_hour_utc) + " utc (peeks: " + ", ".join(str(hour) for hour in self.__peeks()) +")")
             except Exception as e:
                 logging.warning("error occurred on printing peek values " + str(e))
             sleep(13 * 60 * 60)
+
+    def __statistics_loop(self):
+        last_day_reported = -1
+        while self.__is_running:
+            try:
+                now = datetime.now()
+                current_day = int(now.strftime("%d"))
+                if current_day != last_day_reported and now.hour > 19:
+                    last_day_reported = current_day
+                    logging.info("pv power            current day:  " + str(round(self.pv_power_current_day/1000,1)) + " kWh")
+                    logging.info("pv power           current year:  " + str(round(self.pv_power_current_year/1000,1)) + " kWh")
+                    logging.info("provider power     current_year:  " + str(round(self.provider_power_current_year/1000,1)) + " kWh")
+                    logging.info("pv power           estimated year: " + str(round(self.pv_power_estimated_year/1000,1)) + " kWh")
+                    logging.info("provider power     estimated year: " + str(round(self.provider_power_estimated_year/1000,1)) + " kWh")
+                    logging.info("pv effective power estimated year: " + str(round(self.pv_effective_power_estimated_year/1000,1)) + " kWh")
+
+            except Exception as e:
+                logging.warning("error occurred on statistics " + str(e))
+            sleep(10 * 60)
 
     @property
     def consumption_power_day(self) -> int:
@@ -363,6 +382,7 @@ class Energy:
     def start(self):
         Thread(target=self.__measure_loop, daemon=True).start()
         Thread(target=self.__peek_info_loop, daemon=True).start()
+        Thread(target=self.__statistics_loop, daemon=True).start()
 
     def stop(self):
         self.__is_running = False
