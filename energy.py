@@ -362,7 +362,7 @@ class Energy:
             try:
                 now = datetime.now()
                 current_day = int(now.strftime("%d"))
-                if current_day != last_day_reported and now.hour > 19:
+                if current_day != last_day_reported and now.hour >= 19:
                     last_day_reported = current_day
                     logging.info("pv power current day:               " + str(round(self.pv_power_current_day/1000,1)) + " kWh")
                     logging.info("pv power current year:              " + str(round(self.pv_power_current_year/1000,1)) + " kWh")
