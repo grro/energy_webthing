@@ -379,7 +379,6 @@ class Energy:
                     logging.info("pv power estimated year:            " + str(round(self.pv_power_estimated_year/1000)) + " kWh")
                     logging.info("pv effective power estimated year:  " + str(round(self.pv_effective_power_estimated_year/1000)) + " kWh  (" + self.__print_percent(self.pv_effective_power_estimated_year, self.pv_power_estimated_year) + ")")
                     logging.info("pv surplus power estimated year:    " + str(round((self.pv_power_estimated_year-self.pv_effective_power_estimated_year)/1000)) + " kWh")
-                    logging.info("provider power current_year:        " + str(round(self.provider_power_current_year/1000)) + " kWh")
                     logging.info("provider power estimated year:      " + str(round(self.provider_power_estimated_year/1000)) + " kWh")
             except Exception as e:
                 logging.warning("error occurred on statistics " + str(e))
