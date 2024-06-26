@@ -131,7 +131,8 @@ class AggregatedPower:
         power_60min = int(sum([self.__power_per_minute.get(str(minute), 0) for minute in range(0, 60)]) / 60)
         self.__power_per_hour.put(str(datetime.utcnow().hour), power_60min, ttl_sec=25*60*60)
         # daily value
-        power_24hour =  sum([self.__power_per_hour.get(str(hour), 0) for hour in range(0, 24)])
+        current_hour = datetime.now().hour
+        power_24hour =  sum([self.__power_per_hour.get(str(hour), 0) for hour in range(0, current_hour)])
         self.__power_per_day.put(datetime.utcnow().strftime('%j'), power_24hour, ttl_sec=366 * 24 * 60 * 60)
 
     @property
