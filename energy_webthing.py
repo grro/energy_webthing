@@ -16,7 +16,7 @@ class EnergyThing(Thing):
         Thing.__init__(
             self,
             'urn:dev:ops:energy-1',
-            'EnergySensor',
+            'EnergySensor2',
             ['MultiLevelSensor'],
             description
         )
@@ -73,6 +73,71 @@ class EnergyThing(Thing):
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the current pv power produced',
+                         'readOnly': True,
+                     }))
+
+        self.pv_power_channel_1 = Value(energy.pv_power_channel_1)
+        self.add_property(
+            Property(self,
+                     'pv_channel1',
+                     self.pv_power_channel_1,
+                     metadata={
+                         'title': 'pv_channel1',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the current pv power channel 1 produced',
+                         'readOnly': True,
+                     }))
+
+        self.pv_power_channel_2 = Value(energy.pv_power_channel_2)
+        self.add_property(
+            Property(self,
+                     'pv_channel2',
+                     self.pv_power_channel_2,
+                     metadata={
+                         'title': 'pv_channel2',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the current pv power channel 2 produced',
+                         'readOnly': True,
+                     }))
+
+        self.pv_power_channel_3 = Value(energy.pv_power_channel_3)
+        self.add_property(
+            Property(self,
+                     'pv_channel3',
+                     self.pv_power_channel_3,
+                     metadata={
+                         'title': 'pv_channel3',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the current pv power channel 3 produced',
+                         'readOnly': True,
+                     }))
+
+        self.pv_power_channel_1u2 = Value(energy.pv_power_channel_1 + energy.pv_power_channel_2)
+        self.add_property(
+            Property(self,
+                     'pv_channel1u2',
+                     self.pv_power_channel_1u2,
+                     metadata={
+                         'title': 'pv_channel 1 & 2',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the current pv power channel 1 & 2 produced',
+                         'readOnly': True,
+                     }))
+
+        self.pv_power_channel_1u2u3 = Value(energy.pv_power_channel_1 + energy.pv_power_channel_2 + energy.pv_power_channel_3)
+        self.add_property(
+            Property(self,
+                     'pv_channel1u2u3',
+                     self.pv_power_channel_1u2u3,
+                     metadata={
+                         'title': 'pv_channel 1 & 2 & 3',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the current pv power channel 1 & 2 & 3 produced',
                          'readOnly': True,
                      }))
 
@@ -424,6 +489,11 @@ class EnergyThing(Thing):
 
         self.pv_measures_updated.notify_of_external_update(self.energy.pv_measures_updated.strftime("%Y-%m-%dT%H:%M:%S+00:00"))
         self.pv_power.notify_of_external_update(self.energy.pv_power)
+        self.pv_power_channel_1.notify_of_external_update(self.energy.pv_power_channel_1)
+        self.pv_power_channel_2.notify_of_external_update(self.energy.pv_power_channel_2)
+        self.pv_power_channel_3.notify_of_external_update(self.energy.pv_power_channel_3)
+        self.pv_power_channel_1u2.notify_of_external_update(self.energy.pv_power_channel_1 + self.energy.pv_power_channel_2)
+        self.pv_power_channel_1u2u3.notify_of_external_update(self.energy.pv_power_channel_1 + self.energy.pv_power_channel_2 + self.energy.pv_power_channel_3)
         self.pv_power_5s.notify_of_external_update(self.energy.pv_power_5s)
         self.pv_power_current_hour.notify_of_external_update(self.energy.pv_power_current_hour)
         self.pv_power_current_day.notify_of_external_update(self.energy.pv_power_current_day)
@@ -439,8 +509,16 @@ class EnergyThing(Thing):
         self.pv_surplus_power_5m.notify_of_external_update(self.energy.pv_surplus_power_5m)
         self.pv_surplus_power_current_hour.notify_of_external_update(self.energy.pv_surplus_power_current_hour)
 
-def run_server(description: str, port: int, meter_addr_provider: str, meter_addr_pv: str, directory: str,  min_pv_power : int):
-    energy = Energy(meter_addr_provider, meter_addr_pv, directory, min_pv_power)
+def run_server(description: str,
+               port: int,
+               meter_addr_provider: str,
+               meter_addr_pv: str,
+               meter_addr_pv_channel1: str,
+               meter_addr_pv_channel2: str,
+               meter_addr_pv_channel3: str,
+               directory: str,
+               min_pv_power : int):
+    energy = Energy(meter_addr_provider, meter_addr_pv, meter_addr_pv_channel1, meter_addr_pv_channel2, meter_addr_pv_channel3, directory, min_pv_power)
     server = WebThingServer(SingleThing(EnergyThing(description, energy)), port=port, disable_host_validation=True)
     try:
         logging.info('starting the server http://localhost:' + str(port) + " (provider meter=" + meter_addr_provider + "; pv meter=" + meter_addr_pv + "; min pv power="  + str(min_pv_power) + ")")
@@ -457,4 +535,4 @@ if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s %(name)-20s: %(levelname)-8s %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
     logging.getLogger('tornado.access').setLevel(logging.ERROR)
     logging.getLogger('urllib3.connectionpool').setLevel(logging.WARNING)
-    run_server("description", int(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]))
+    run_server("description", int(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6], sys.argv[7], int(sys.argv[8]))

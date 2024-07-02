@@ -70,6 +70,62 @@ class Shelly1pro:
         self.__session = Session()
 
 
+class Shelly1pm:
+
+    def __init__(self, addr: str):
+        self.__session = Session()
+        self.addr = addr
+
+    def query(self) -> int:
+        uri = self.addr + '/status'
+        try:
+            resp = self.__session.get(uri, timeout=30)
+            try:
+                data = resp.json()
+                return round(data['meters'][0]['power'])
+            except Exception as e:
+                raise Exception("called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
+        except Exception as e:
+            self.__renew_session()
+            raise Exception("called " + uri + " got " + str(e))
+
+
+    def __renew_session(self):
+        logging.info("renew session for " + self.addr)
+        try:
+            self.__session.close()
+        except Exception as e:
+            logging.warning(str(e))
+        self.__session = Session()
+
+
+class ShellyPmMini:
+
+    def __init__(self, addr: str):
+        self.__session = Session()
+        self.addr = addr
+
+    def query(self) -> Tuple[int, int, int, int]:
+        uri = self.addr + '/rpc/Shelly.GetStatus?channel=0'
+        try:
+            resp = self.__session.get(uri, timeout=50)
+            try:
+                data = resp.json()
+                current_power = round(data['pm1:0']['apower'])
+                return current_power
+            except Exception as e:
+                raise Exception("called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
+        except Exception as e:
+            self.__renew_session()
+            raise Exception("called " + uri + " got " + str(e))
+
+    def __renew_session(self):
+        logging.info("renew session for " + self.addr)
+        try:
+            self.__session.close()
+        except Exception as e:
+            logging.warning(str(e))
+        self.__session = Session()
 
 
 
@@ -163,11 +219,21 @@ class AggregatedPower:
 
 class Energy:
 
-    def __init__(self, meter_addr_provider: str, meter_addr_pv: str, directory: str, min_pv_power : int):
+    def __init__(self,
+                 meter_addr_provider: str,
+                 meter_addr_pv: str,
+                 meter_addr_pv_channel1: str,
+                 meter_addr_pv_channel2: str,
+                 meter_addr_pv_channel3: str,
+                 directory: str,
+                 min_pv_power : int):
         self.__is_running = True
         self.__listener = lambda: None    # "empty" listener
         self.__provider_shelly = Shelly3em(meter_addr_provider)
         self.__pv_shelly = Shelly1pro(meter_addr_pv)
+        self.__pv_shelly_channel1 = ShellyPmMini(meter_addr_pv_channel1)
+        self.__pv_shelly_channel2 = Shelly1pm(meter_addr_pv_channel2)
+        self.__pv_shelly_channel3 = ShellyPmMini(meter_addr_pv_channel3)
 
         self.provider_measures_updated_utc = datetime.utcnow()
         self.provider_power = 0
@@ -178,6 +244,9 @@ class Energy:
 
         self.pv_measures_updated = datetime.utcnow()
         self.pv_power = 0
+        self.pv_power_channel_1 = 0
+        self.pv_power_channel_2 = 0
+        self.pv_power_channel_3 = 0
         self.__pv_aggregated_power = AggregatedPower("pv", directory)
         self.__pv_effective_aggregated_power = AggregatedPower("pv_effective", directory)
         self.__consumption_aggregated_power = AggregatedPower("consumption", directory)
@@ -390,6 +459,9 @@ class Energy:
 
     def start(self):
         Thread(target=self.__measure_loop, daemon=True).start()
+        Thread(target=self.__measure_channel1_loop, daemon=True).start()
+        Thread(target=self.__measure_channel2_loop, daemon=True).start()
+        Thread(target=self.__measure_channel3_loop, daemon=True).start()
         Thread(target=self.__peek_info_loop, daemon=True).start()
         Thread(target=self.__statistics_loop, daemon=True).start()
 
@@ -413,6 +485,36 @@ class Energy:
                 logging.warning("error occurred on refresh " + str(e))
                 sleep(3)
 
+    def __measure_channel1_loop(self):
+        while self.__is_running:
+            try:
+                self.__refresh_pv_channel1_values()
+                self.__listener()
+                sleep(2.03)
+            except Exception as e:
+                logging.warning("error occurred on refresh " + str(e))
+                sleep(3)
+
+    def __measure_channel2_loop(self):
+        while self.__is_running:
+            try:
+                self.__refresh_pv_channel2_values()
+                self.__listener()
+                sleep(2.03)
+            except Exception as e:
+                logging.warning("error occurred on refresh " + str(e))
+                sleep(3)
+
+    def __measure_channel3_loop(self):
+        while self.__is_running:
+            try:
+                self.__refresh_pv_channel3_values()
+                self.__listener()
+                sleep(2.03)
+            except Exception as e:
+                logging.warning("error occurred on refresh " + str(e))
+                sleep(3)
+
     def __refresh_provider_values(self) -> bool:
         try:
             self.provider_power, self.provider_power_phase_a, self.provider_power_phase_b, self.provider_power_phase_c = self.__provider_shelly.query()
@@ -429,6 +531,42 @@ class Energy:
             else:
                 self.pv_power = 0
             self.pv_measures_updated = datetime.utcnow()
+            return True
+        except Exception as e:
+            logging.warning("error occurred reading pv values " + str(e))
+            return False
+
+    def __refresh_pv_channel1_values(self) -> bool:
+        try:
+            pv_power_channel_1 = self.__pv_shelly_channel1.query()
+            if pv_power_channel_1 > 0:
+                self.pv_power_channel_1 = pv_power_channel_1
+            else:
+                self.pv_power_channel_1 = 0
+            return True
+        except Exception as e:
+            logging.warning("error occurred reading pv values " + str(e))
+            return False
+
+    def __refresh_pv_channel2_values(self) -> bool:
+        try:
+            pv_power_channel_2 = self.__pv_shelly_channel2.query()
+            if pv_power_channel_2 > 0:
+                self.pv_power_channel_2 = pv_power_channel_2
+            else:
+                self.pv_power_channel_2 = 0
+            return True
+        except Exception as e:
+            logging.warning("error occurred reading pv values " + str(e))
+            return False
+
+    def __refresh_pv_channel3_values(self) -> bool:
+        try:
+            pv_power_channel_3 = self.__pv_shelly_channel3.query()
+            if pv_power_channel_3 > 0:
+                self.pv_power_channel_3 = pv_power_channel_3
+            else:
+                self.pv_power_channel_3 = 0
             return True
         except Exception as e:
             logging.warning("error occurred reading pv values " + str(e))
