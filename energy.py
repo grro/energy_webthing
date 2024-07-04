@@ -253,6 +253,9 @@ class Energy:
         self.__surplus_aggregated_power = AggregatedPower("surplus", directory)
 
         self.__pv_power_smoothen_recorder = WattRecorder()
+        self.__pv_power_ch_1_smoothen_recorder = WattRecorder()
+        self.__pv_power_ch_2_smoothen_recorder = WattRecorder()
+        self.__pv_power_ch_3_smoothen_recorder = WattRecorder()
         self.__pv_effective_power_smoothen_recorder = WattRecorder()
         self.__provider_power_smoothen_recorder = WattRecorder()
         self.__consumption_power_smoothen_recorder = WattRecorder()
@@ -374,6 +377,30 @@ class Energy:
         return self.__pv_effective_power_smoothen_recorder.watt_per_hour(minute_range=1)
 
     @property
+    def pv_power_ch1_5s(self) -> int:
+        return self.__pv_power_ch_1_smoothen_recorder.watt_per_hour(second_range=5)
+
+    @property
+    def pv_power_ch1_15s(self) -> int:
+        return self.__pv_power_ch_1_smoothen_recorder.watt_per_hour(second_range=15)
+
+    @property
+    def pv_power_ch2_5s(self) -> int:
+        return self.__pv_power_ch_2_smoothen_recorder.watt_per_hour(second_range=5)
+
+    @property
+    def pv_power_ch2_15s(self) -> int:
+        return self.__pv_power_ch_2_smoothen_recorder.watt_per_hour(second_range=15)
+
+    @property
+    def pv_power_ch3_5s(self) -> int:
+        return self.__pv_power_ch_3_smoothen_recorder.watt_per_hour(second_range=5)
+
+    @property
+    def pv_power_ch3_15s(self) -> int:
+        return self.__pv_power_ch_3_smoothen_recorder.watt_per_hour(second_range=15)
+
+    @property
     def pv_power_5s(self) -> int:
         return self.__pv_power_smoothen_recorder.watt_per_hour(second_range=5)
 
@@ -476,6 +503,9 @@ class Energy:
                 self.__provider_power_smoothen_recorder.put(self.provider_power)
                 self.__consumption_power_smoothen_recorder.put(self.consumption_power)
                 self.__pv_power_smoothen_recorder.put(self.pv_power)
+                self.__pv_power_ch_1_smoothen_recorder.put(self.pv_power_channel_1)
+                self.__pv_power_ch_2_smoothen_recorder.put(self.pv_power_channel_2)
+                self.__pv_power_ch_3_smoothen_recorder.put(self.pv_power_channel_3)
                 self.__pv_surplus_power_smoothen_recorder.put(self.pv_surplus_power)
                 self.__pv_effective_power_smoothen_recorder.put(self.pv_effective_power)
                 self.__measure_daily_values()

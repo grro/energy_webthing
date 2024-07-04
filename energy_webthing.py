@@ -89,6 +89,45 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
+        self.pv_power_channel1_5s = Value(energy.pv_power_ch1_5s)
+        self.add_property(
+            Property(self,
+                     'pv_channel1_5s',
+                     self.pv_power_channel1_5s,
+                     metadata={
+                         'title': 'pv_channel1_5s',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the current pv power channel 1produced (smoothen 5 sec)',
+                         'readOnly': True,
+                     }))
+
+        self.pv_power_channel2_5s = Value(energy.pv_power_ch2_5s)
+        self.add_property(
+            Property(self,
+                     'pv_channel2_5s',
+                     self.pv_power_channel2_5s,
+                     metadata={
+                         'title': 'pv_channel2_5s',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the current pv power channel 2produced (smoothen 5 sec)',
+                         'readOnly': True,
+                     }))
+
+        self.pv_power_channel3_5s = Value(energy.pv_power_ch3_5s)
+        self.add_property(
+            Property(self,
+                     'pv_channel3_5s',
+                     self.pv_power_channel3_5s,
+                     metadata={
+                         'title': 'pv_channel3_5s',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the current pv power channel 3produced (smoothen 5 sec)',
+                         'readOnly': True,
+                     }))
+
         self.pv_power_channel_2 = Value(energy.pv_power_channel_2)
         self.add_property(
             Property(self,
@@ -125,6 +164,32 @@ class EnergyThing(Thing):
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the current pv power channel 1 & 2 produced',
+                         'readOnly': True,
+                     }))
+
+        self.pv_power_channel1u2_5s = Value(energy.pv_power_ch1_5s + energy.pv_power_ch2_5s)
+        self.add_property(
+            Property(self,
+                     'pv_channel1u2_5s',
+                     self.pv_power_channel1u2_5s,
+                     metadata={
+                         'title': 'pv_power_channel1u2_5s',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the current pv power channel 1 & 2 produced (smoothen 5 sec)',
+                         'readOnly': True,
+                     }))
+
+        self.pv_power_channel1u2u3_5s = Value(energy.pv_power_ch1_5s + energy.pv_power_ch2_5s +  + energy.pv_power_ch3_5s)
+        self.add_property(
+            Property(self,
+                     'pv_channel1u2u3_5s',
+                     self.pv_power_channel1u2u3_5s,
+                     metadata={
+                         'title': 'pv_power_channel1u2u3_5s',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the current pv power channel 1 & 2 & 3 produced (smoothen 5 sec)',
                          'readOnly': True,
                      }))
 
@@ -494,6 +559,8 @@ class EnergyThing(Thing):
         self.pv_power_channel_3.notify_of_external_update(self.energy.pv_power_channel_3)
         self.pv_power_channel_1u2.notify_of_external_update(self.energy.pv_power_channel_1 + self.energy.pv_power_channel_2)
         self.pv_power_channel_1u2u3.notify_of_external_update(self.energy.pv_power_channel_1 + self.energy.pv_power_channel_2 + self.energy.pv_power_channel_3)
+        self.pv_power_channel1u2_5s.notify_of_external_update(self.energy.pv_power_ch1_5s + self.energy.pv_power_ch2_5s)
+        self.pv_power_channel1u2u3_5s.notify_of_external_update(self.energy.pv_power_ch1_5s + self.energy.pv_power_ch2_5s + self.energy.pv_power_ch3_5s)
         self.pv_power_5s.notify_of_external_update(self.energy.pv_power_5s)
         self.pv_power_current_hour.notify_of_external_update(self.energy.pv_power_current_hour)
         self.pv_power_current_day.notify_of_external_update(self.energy.pv_power_current_day)
