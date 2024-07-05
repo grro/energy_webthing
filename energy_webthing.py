@@ -429,6 +429,19 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
+        self.pv_power_15s = Value(energy.pv_power_15s)
+        self.add_property(
+            Property(self,
+                     'pv_15s',
+                     self.pv_power_15s,
+                     metadata={
+                         'title': 'pv_15s',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the current pv power produced (smoothen 15 sec)',
+                         'readOnly': True,
+                     }))
+
         self.pv_power_current_hour = Value(energy.pv_power_current_hour)
         self.add_property(
             Property(self,
@@ -603,6 +616,7 @@ class EnergyThing(Thing):
         self.pv_power_channel1u2_15s.notify_of_external_update(self.energy.pv_power_ch1_15s + self.energy.pv_power_ch2_15s)
         self.pv_power_channel1u2u3_15s.notify_of_external_update(self.energy.pv_power_ch1_15s + self.energy.pv_power_ch2_15s + self.energy.pv_power_ch3_15s)
         self.pv_power_5s.notify_of_external_update(self.energy.pv_power_5s)
+        self.pv_power_15s.notify_of_external_update(self.energy.pv_power_15s)
         self.pv_power_current_hour.notify_of_external_update(self.energy.pv_power_current_hour)
         self.pv_power_current_day.notify_of_external_update(self.energy.pv_power_current_day)
         self.pv_power_current_year.notify_of_external_update(self.energy.pv_power_current_year)
