@@ -520,6 +520,19 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
+        self.consumption_power_15s = Value(energy.consumption_power_15s)
+        self.add_property(
+            Property(self,
+                     'consumption_15s',
+                     self.consumption_power_15s,
+                     metadata={
+                         'title': 'consumption_15s',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the power currently consumed (smoothen 15 sec)',
+                         'readOnly': True,
+                     }))
+
         self.consumption_power_current_hour = Value(energy.consumption_power_current_hour)
         self.add_property(
             Property(self,
@@ -627,6 +640,7 @@ class EnergyThing(Thing):
 
         self.consumption_power.notify_of_external_update(self.energy.consumption_power)
         self.consumption_power_5s.notify_of_external_update(self.energy.consumption_power_5s)
+        self.consumption_power_15s.notify_of_external_update(self.energy.consumption_power_15s)
         self.consumption_power_current_hour.notify_of_external_update(self.energy.consumption_power_current_hour)
         self.consumption_power_current_day.notify_of_external_update(self.energy.consumption_power_current_day)
         self.consumption_power_current_year.notify_of_external_update(self.energy.consumption_power_current_year)
