@@ -1,6 +1,7 @@
 import sys
 import logging
 import tornado.ioloop
+from datetime import datetime, timedelta
 from webthing import (SingleThing, Property, Thing, Value, WebThingServer)
 from energy import Energy
 
@@ -13,6 +14,8 @@ class EnergyThing(Thing):
     # there is also another schema registry http://iotschema.org/docs/full.html not used by webthing
 
     def __init__(self, description: str, energy: Energy):
+        self.self_last_update = datetime.now()
+
         Thing.__init__(
             self,
             'urn:dev:ops:energy-1',
@@ -630,22 +633,7 @@ class EnergyThing(Thing):
     def _on_value_changed(self):
         self.provider_measures_updated_utc.notify_of_external_update(self.energy.provider_measures_updated_utc.strftime("%Y-%m-%dT%H:%M:%S+00:00"))
         self.provider_power.notify_of_external_update(self.energy.provider_power)
-        self.provider_power_estimated_year.notify_of_external_update(self.energy.provider_power_estimated_year)
-        self.provider_power_5s.notify_of_external_update(self.energy.provider_power_5s)
-        self.provider_power_5s_effective.notify_of_external_update(self.energy.provider_power_5s_effective)
-        self.provider_power_15s_effective.notify_of_external_update(self.energy.provider_power_15s_effective)
-        self.provider_power_current_hour.notify_of_external_update(self.energy.provider_power_current_hour)
-        self.provider_power_current_day.notify_of_external_update(self.energy.provider_power_current_day)
-        self.provider_power_current_year.notify_of_external_update(self.energy.provider_power_current_year)
-
         self.consumption_power.notify_of_external_update(self.energy.consumption_power)
-        self.consumption_power_5s.notify_of_external_update(self.energy.consumption_power_5s)
-        self.consumption_power_15s.notify_of_external_update(self.energy.consumption_power_15s)
-        self.consumption_power_current_hour.notify_of_external_update(self.energy.consumption_power_current_hour)
-        self.consumption_power_current_day.notify_of_external_update(self.energy.consumption_power_current_day)
-        self.consumption_power_current_year.notify_of_external_update(self.energy.consumption_power_current_year)
-        self.consumption_power_estimated_year.notify_of_external_update(self.energy.consumption_power_estimated_year)
-
         self.pv_measures_updated.notify_of_external_update(self.energy.pv_measures_updated.strftime("%Y-%m-%dT%H:%M:%S+00:00"))
         self.pv_power.notify_of_external_update(self.energy.pv_power)
         self.pv_power_channel_1.notify_of_external_update(self.energy.pv_power_channel_1)
@@ -653,25 +641,40 @@ class EnergyThing(Thing):
         self.pv_power_channel_3.notify_of_external_update(self.energy.pv_power_channel_3)
         self.pv_power_channel_1u2.notify_of_external_update(self.energy.pv_power_channel_1 + self.energy.pv_power_channel_2)
         self.pv_power_channel_1u2u3.notify_of_external_update(self.energy.pv_power_channel_1 + self.energy.pv_power_channel_2 + self.energy.pv_power_channel_3)
-        self.pv_power_channel1u2_5s.notify_of_external_update(self.energy.pv_power_ch1_5s + self.energy.pv_power_ch2_5s)
-        self.pv_power_channel1u2u3_5s.notify_of_external_update(self.energy.pv_power_ch1_5s + self.energy.pv_power_ch2_5s + self.energy.pv_power_ch3_5s)
-        self.pv_power_channel1u2_15s.notify_of_external_update(self.energy.pv_power_ch1_15s + self.energy.pv_power_ch2_15s)
-        self.pv_power_channel1u2u3_15s.notify_of_external_update(self.energy.pv_power_ch1_15s + self.energy.pv_power_ch2_15s + self.energy.pv_power_ch3_15s)
-        self.pv_power_5s.notify_of_external_update(self.energy.pv_power_5s)
-        self.pv_power_15s.notify_of_external_update(self.energy.pv_power_15s)
-        self.pv_power_current_hour.notify_of_external_update(self.energy.pv_power_current_hour)
-        self.pv_power_current_day.notify_of_external_update(self.energy.pv_power_current_day)
-        self.pv_power_current_year.notify_of_external_update(self.energy.pv_power_current_year)
-        self.pv_power_estimated_year.notify_of_external_update(self.energy.pv_power_estimated_year)
         self.pv_effective_power.notify_of_external_update(self.energy.pv_effective_power)
         self.pv_effective_power_estimated_year.notify_of_external_update(self.energy.pv_effective_power_estimated_year)
         self.pv_peek_hour_utc.notify_of_external_update(self.energy.pv_peek_hour_utc)
-
         self.pv_surplus_power.notify_of_external_update(self.energy.pv_surplus_power)
-        self.pv_surplus_power_5s.notify_of_external_update(self.energy.pv_surplus_power_5s)
-        self.pv_surplus_power_15s.notify_of_external_update(self.energy.pv_surplus_power_15s)
-        self.pv_surplus_power_5m.notify_of_external_update(self.energy.pv_surplus_power_5m)
-        self.pv_surplus_power_current_hour.notify_of_external_update(self.energy.pv_surplus_power_current_hour)
+
+        if datetime.now() > self.self_last_update + timedelta(seconds=2):
+            self.provider_power_estimated_year.notify_of_external_update(self.energy.provider_power_estimated_year)
+            self.provider_power_5s.notify_of_external_update(self.energy.provider_power_5s)
+            self.provider_power_5s_effective.notify_of_external_update(self.energy.provider_power_5s_effective)
+            self.provider_power_15s_effective.notify_of_external_update(self.energy.provider_power_15s_effective)
+            self.provider_power_current_hour.notify_of_external_update(self.energy.provider_power_current_hour)
+            self.provider_power_current_day.notify_of_external_update(self.energy.provider_power_current_day)
+            self.provider_power_current_year.notify_of_external_update(self.energy.provider_power_current_year)
+            self.consumption_power_5s.notify_of_external_update(self.energy.consumption_power_5s)
+            self.consumption_power_15s.notify_of_external_update(self.energy.consumption_power_15s)
+            self.consumption_power_current_hour.notify_of_external_update(self.energy.consumption_power_current_hour)
+            self.consumption_power_current_day.notify_of_external_update(self.energy.consumption_power_current_day)
+            self.consumption_power_current_year.notify_of_external_update(self.energy.consumption_power_current_year)
+            self.consumption_power_estimated_year.notify_of_external_update(self.energy.consumption_power_estimated_year)
+            self.pv_power_channel1u2_5s.notify_of_external_update(self.energy.pv_power_ch1_5s + self.energy.pv_power_ch2_5s)
+            self.pv_power_channel1u2u3_5s.notify_of_external_update(self.energy.pv_power_ch1_5s + self.energy.pv_power_ch2_5s + self.energy.pv_power_ch3_5s)
+            self.pv_power_channel1u2_15s.notify_of_external_update(self.energy.pv_power_ch1_15s + self.energy.pv_power_ch2_15s)
+            self.pv_power_channel1u2u3_15s.notify_of_external_update(self.energy.pv_power_ch1_15s + self.energy.pv_power_ch2_15s + self.energy.pv_power_ch3_15s)
+            self.pv_power_5s.notify_of_external_update(self.energy.pv_power_5s)
+            self.pv_power_15s.notify_of_external_update(self.energy.pv_power_15s)
+            self.pv_power_current_hour.notify_of_external_update(self.energy.pv_power_current_hour)
+            self.pv_power_current_day.notify_of_external_update(self.energy.pv_power_current_day)
+            self.pv_power_current_year.notify_of_external_update(self.energy.pv_power_current_year)
+            self.pv_power_estimated_year.notify_of_external_update(self.energy.pv_power_estimated_year)
+            self.pv_surplus_power_5s.notify_of_external_update(self.energy.pv_surplus_power_5s)
+            self.pv_surplus_power_15s.notify_of_external_update(self.energy.pv_surplus_power_15s)
+            self.pv_surplus_power_5m.notify_of_external_update(self.energy.pv_surplus_power_5m)
+            self.pv_surplus_power_current_hour.notify_of_external_update(self.energy.pv_surplus_power_current_hour)
+        self.self_last_update = datetime.now()
 
 def run_server(description: str,
                port: int,
