@@ -696,6 +696,7 @@ class EnergyThing(Thing):
             self.pv_power_channel1_5s.notify_of_external_update(self.energy.pv_power_ch1_5s)
             self.pv_power_channel2_5s.notify_of_external_update(self.energy.pv_power_ch2_5s)
             self.pv_power_channel3_5s.notify_of_external_update(self.energy.pv_power_ch3_5s)
+            self.pv_power_channel1_15s.notify_of_external_update(self.energy.pv_power_ch1_15s)
             self.pv_power_channel1u2_5s.notify_of_external_update(self.energy.pv_power_ch1_5s + self.energy.pv_power_ch2_5s)
             self.pv_power_channel1u2u3_5s.notify_of_external_update(self.energy.pv_power_ch1_5s + self.energy.pv_power_ch2_5s + self.energy.pv_power_ch3_5s)
             self.pv_power_channel1u2_15s.notify_of_external_update(self.energy.pv_power_ch1_15s + self.energy.pv_power_ch2_15s)
