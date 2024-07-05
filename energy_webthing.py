@@ -14,7 +14,8 @@ class EnergyThing(Thing):
     # there is also another schema registry http://iotschema.org/docs/full.html not used by webthing
 
     def __init__(self, description: str, energy: Energy):
-        self.self_last_update = datetime.now()
+        self.last_short_update = datetime.now() - timedelta(hours=3)
+        self.last_long_update = datetime.now() - timedelta(hours=3)
 
         Thing.__init__(
             self,
@@ -684,7 +685,8 @@ class EnergyThing(Thing):
         self.pv_peek_hour_utc.notify_of_external_update(self.energy.pv_peek_hour_utc)
         self.pv_surplus_power.notify_of_external_update(self.energy.pv_surplus_power)
 
-        if datetime.now() > self.self_last_update + timedelta(seconds=2):
+        if datetime.now() > self.last_short_update + timedelta(seconds=2):
+            self.last_short_update = datetime.now()
             self.provider_power_estimated_year.notify_of_external_update(self.energy.provider_power_estimated_year)
             self.provider_power_5s.notify_of_external_update(self.energy.provider_power_5s)
             self.provider_power_5s_effective.notify_of_external_update(self.energy.provider_power_5s_effective)
@@ -701,7 +703,8 @@ class EnergyThing(Thing):
             self.pv_surplus_power_15s.notify_of_external_update(self.energy.pv_surplus_power_15s)
             self.pv_surplus_power_5m.notify_of_external_update(self.energy.pv_surplus_power_5m)
 
-        if datetime.now() > self.self_last_update + timedelta(seconds=60):
+        if datetime.now() > self.last_long_update + timedelta(seconds=60):
+            self.last_long_update = datetime.now()
             self.pv_power_3m.notify_of_external_update(self.energy.pv_power_3m)
             self.consumption_power_3m.notify_of_external_update(self.energy.consumption_power_3m)
             self.provider_power_current_hour.notify_of_external_update(self.energy.provider_power_current_hour)
@@ -717,7 +720,6 @@ class EnergyThing(Thing):
             self.pv_power_estimated_year.notify_of_external_update(self.energy.pv_power_estimated_year)
             self.pv_surplus_power_current_hour.notify_of_external_update(self.energy.pv_surplus_power_current_hour)
 
-        self.self_last_update = datetime.now()
 
 def run_server(description: str,
                port: int,
