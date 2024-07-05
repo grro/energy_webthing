@@ -377,6 +377,20 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
+        self.provider_power_5s_effective = Value(abs(energy.provider_power_5s))
+        self.add_property(
+            Property(self,
+                     'provider_5s_effective',
+                     self.provider_power_5s_effective,
+                     metadata={
+                         'title': 'provider_5s_effectiveprovider_5s_effective',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the power provider  (smoothen 5 sec)',
+                         'readOnly': True,
+                     }))
+
+
         self.provider_power_current_hour = Value(energy.provider_power_current_hour)
         self.add_property(
             Property(self,
@@ -593,6 +607,7 @@ class EnergyThing(Thing):
         self.provider_power.notify_of_external_update(self.energy.provider_power)
         self.provider_power_estimated_year.notify_of_external_update(self.energy.provider_power_estimated_year)
         self.provider_power_5s.notify_of_external_update(self.energy.provider_power_5s)
+        self.provider_power_5s_effective.notify_of_external_update(abs(self.energy.provider_power_5s))
         self.provider_power_current_hour.notify_of_external_update(self.energy.provider_power_current_hour)
         self.provider_power_current_day.notify_of_external_update(self.energy.provider_power_current_day)
         self.provider_power_current_year.notify_of_external_update(self.energy.provider_power_current_year)
