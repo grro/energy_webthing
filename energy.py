@@ -338,6 +338,11 @@ class Energy:
         return self.__provider_power_smoothen_recorder.watt_per_hour(second_range=15)
 
     @property
+    def provider_power_15s_effective(self) -> int:
+        power = self.provider_power_15s
+        return 0 if power < 0 else power
+
+    @property
     def provider_power_1m(self) -> int:
         return self.__provider_power_smoothen_recorder.watt_per_hour(minute_range=1)
 

@@ -383,13 +383,25 @@ class EnergyThing(Thing):
                      'provider_5s_effective',
                      self.provider_power_5s_effective,
                      metadata={
-                         'title': 'provider_5s_effectiveprovider_5s_effective',
+                         'title': 'provider_5s_effective',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the power provider  (smoothen 5 sec)',
                          'readOnly': True,
                      }))
 
+        self.provider_power_15s_effective = Value(energy.provider_power_15s_effective)
+        self.add_property(
+            Property(self,
+                     'provider_15s_effective',
+                     self.provider_power_15s_effective,
+                     metadata={
+                         'title': 'provider_15s_effective',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the power provider  (smoothen 15 sec)',
+                         'readOnly': True,
+                     }))
 
         self.provider_power_current_hour = Value(energy.provider_power_current_hour)
         self.add_property(
@@ -608,6 +620,7 @@ class EnergyThing(Thing):
         self.provider_power_estimated_year.notify_of_external_update(self.energy.provider_power_estimated_year)
         self.provider_power_5s.notify_of_external_update(self.energy.provider_power_5s)
         self.provider_power_5s_effective.notify_of_external_update(self.energy.provider_power_5s_effective)
+        self.provider_power_15s_effective.notify_of_external_update(self.energy.provider_power_15s_effective)
         self.provider_power_current_hour.notify_of_external_update(self.energy.provider_power_current_hour)
         self.provider_power_current_day.notify_of_external_update(self.energy.provider_power_current_day)
         self.provider_power_current_year.notify_of_external_update(self.energy.provider_power_current_year)
