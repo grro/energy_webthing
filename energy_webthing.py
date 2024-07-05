@@ -20,7 +20,7 @@ class EnergyThing(Thing):
         Thing.__init__(
             self,
             'urn:dev:ops:energy-1',
-            'EnergySensor',
+            'EnergySensor2',
             ['MultiLevelSensor'],
             description
         )
@@ -693,6 +693,9 @@ class EnergyThing(Thing):
             self.provider_power_15s_effective.notify_of_external_update(self.energy.provider_power_15s_effective)
             self.consumption_power_5s.notify_of_external_update(self.energy.consumption_power_5s)
             self.consumption_power_15s.notify_of_external_update(self.energy.consumption_power_15s)
+            self.pv_power_channel1_5s.notify_of_external_update(self.energy.pv_power_ch1_5s)
+            self.pv_power_channel2_5s.notify_of_external_update(self.energy.pv_power_ch2_5s)
+            self.pv_power_channel3_5s.notify_of_external_update(self.energy.pv_power_ch3_5s)
             self.pv_power_channel1u2_5s.notify_of_external_update(self.energy.pv_power_ch1_5s + self.energy.pv_power_ch2_5s)
             self.pv_power_channel1u2u3_5s.notify_of_external_update(self.energy.pv_power_ch1_5s + self.energy.pv_power_ch2_5s + self.energy.pv_power_ch3_5s)
             self.pv_power_channel1u2_15s.notify_of_external_update(self.energy.pv_power_ch1_15s + self.energy.pv_power_ch2_15s)
