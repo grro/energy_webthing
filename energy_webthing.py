@@ -303,10 +303,10 @@ class EnergyThing(Thing):
         self.consumption_power_3m = Value(energy.consumption_power_3m)
         self.add_property(
             Property(self,
-                     'consumption_power_3m',
+                     'consumption_3m',
                      self.consumption_power_3m,
                      metadata={
-                         'title': 'consumption_power_3m',
+                         'title': 'consumption_3m',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the power currently consumed  (smoothen 3 min)',
