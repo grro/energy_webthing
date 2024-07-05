@@ -309,6 +309,10 @@ class Energy:
         return self.__consumption_power_smoothen_recorder.watt_per_hour(minute_range=1)
 
     @property
+    def consumption_power_3m(self) -> int:
+        return self.__consumption_power_smoothen_recorder.watt_per_hour(minute_range=3)
+
+    @property
     def consumption_power_current_hour(self) -> int:
         return self.__consumption_aggregated_power.power_current_hour
 
@@ -421,6 +425,10 @@ class Energy:
     @property
     def pv_power_1m(self) -> int:
         return self.__pv_power_smoothen_recorder.watt_per_hour(minute_range=1)
+
+    @property
+    def pv_power_3m(self) -> int:
+        return self.__pv_power_smoothen_recorder.watt_per_hour(minute_range=3)
 
     @property
     def pv_power_current_hour(self) -> int:
