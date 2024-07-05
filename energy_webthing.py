@@ -685,7 +685,7 @@ class EnergyThing(Thing):
         self.pv_peek_hour_utc.notify_of_external_update(self.energy.pv_peek_hour_utc)
         self.pv_surplus_power.notify_of_external_update(self.energy.pv_surplus_power)
 
-        if datetime.now() > self.last_short_update + timedelta(seconds=2):
+        if datetime.now() > self.last_short_update + timedelta(seconds=5):
             self.last_short_update = datetime.now()
             self.provider_power_estimated_year.notify_of_external_update(self.energy.provider_power_estimated_year)
             self.provider_power_5s.notify_of_external_update(self.energy.provider_power_5s)
