@@ -48,17 +48,21 @@ class Shelly1pro:
         self.addr = addr
 
     def query(self) -> int:
-        uri = self.addr + '/rpc/switch.GetStatus?id=0'
-        try:
-            resp = self.__session.get(uri, timeout=30)
+        e = None
+        for i in range(0,3):
+            uri = self.addr + '/rpc/switch.GetStatus?id=0'
             try:
-                data = resp.json()
-                return round(data['apower'])
+                resp = self.__session.get(uri, timeout=20)
+                try:
+                    data = resp.json()
+                    return round(data['apower'])
+                except Exception as e:
+                    e = Exception("called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
-                raise Exception("called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
-        except Exception as e:
-            self.__renew_session()
-            raise Exception("called " + uri + " got " + str(e))
+                self.__renew_session()
+                e = Exception("called " + uri + " got " + str(e))
+        if e is not None:
+            raise e
 
 
     def __renew_session(self):
@@ -77,17 +81,21 @@ class Shelly1pm:
         self.addr = addr
 
     def query(self) -> int:
-        uri = self.addr + '/status'
-        try:
-            resp = self.__session.get(uri, timeout=30)
+        e = None
+        for i in range(0,3):
+            uri = self.addr + '/status'
             try:
-                data = resp.json()
-                return round(data['meters'][0]['power'])
+                resp = self.__session.get(uri, timeout=20)
+                try:
+                    data = resp.json()
+                    return round(data['meters'][0]['power'])
+                except Exception as e:
+                    e = Exception("called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
-                raise Exception("called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
-        except Exception as e:
-            self.__renew_session()
-            raise Exception("called " + uri + " got " + str(e))
+                self.__renew_session()
+                e = Exception("called " + uri + " got " + str(e))
+        if e is not None:
+            raise e
 
 
     def __renew_session(self):
@@ -106,18 +114,22 @@ class ShellyPmMini:
         self.addr = addr
 
     def query(self) -> Tuple[int, int, int, int]:
-        uri = self.addr + '/rpc/Shelly.GetStatus?channel=0'
-        try:
-            resp = self.__session.get(uri, timeout=50)
+        e = None
+        for i in range(0,3):
+            uri = self.addr + '/rpc/Shelly.GetStatus?channel=0'
             try:
-                data = resp.json()
-                current_power = round(data['pm1:0']['apower'])
-                return current_power
+                resp = self.__session.get(uri, timeout=20)
+                try:
+                    data = resp.json()
+                    current_power = round(data['pm1:0']['apower'])
+                    return current_power
+                except Exception as e:
+                    e =  Exception("called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
-                raise Exception("called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
-        except Exception as e:
-            self.__renew_session()
-            raise Exception("called " + uri + " got " + str(e))
+                self.__renew_session()
+                e = Exception("called " + uri + " got " + str(e))
+        if e is not None:
+            raise e
 
     def __renew_session(self):
         logging.info("renew session for " + self.addr)
