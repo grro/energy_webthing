@@ -16,7 +16,7 @@ class Shelly3em:
         self.addr = addr
 
     def query(self) -> Tuple[int, int, int, int]:
-        e = None
+        ex = None
         for i in range(0,3):
             uri = self.addr + '/rpc/EM.GetStatus?id=0'
             try:
@@ -29,13 +29,13 @@ class Shelly3em:
                     current_power_phase_c = round(data['c_act_power'])
                     return current_power, current_power_phase_a, current_power_phase_b, current_power_phase_c
                 except Exception as e:
-                    e = Exception("Shelly3em called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
+                    ex = Exception("Shelly3em called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
                 self.__renew_session()
-                e = Exception("Shelly3em called " + uri + " got " + str(e))
+                ex = Exception("Shelly3em called " + uri + " got " + str(e))
             sleep(1)
-        if e is not None:
-            raise e
+        if ex is not None:
+            raise ex
 
     def __renew_session(self):
         logging.info("renew session for " + self.addr)
@@ -53,7 +53,7 @@ class Shelly1pro:
         self.addr = addr
 
     def query(self) -> int:
-        e = None
+        ex = None
         for i in range(0,3):
             uri = self.addr + '/rpc/switch.GetStatus?id=0'
             try:
@@ -62,13 +62,13 @@ class Shelly1pro:
                     data = resp.json()
                     return round(data['apower'])
                 except Exception as e:
-                    e = Exception("Shelly1pro called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
+                    ex = Exception("Shelly1pro called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
                 self.__renew_session()
-                e = Exception("Shelly1pro called " + uri + " got " + str(e))
+                ex = Exception("Shelly1pro called " + uri + " got " + str(e))
             sleep(1)
-        if e is not None:
-            raise e
+        if ex is not None:
+            raise ex
 
 
     def __renew_session(self):
@@ -87,7 +87,7 @@ class Shelly1pm:
         self.addr = addr
 
     def query(self) -> int:
-        e = None
+        ex = None
         for i in range(0,3):
             uri = self.addr + '/status'
             try:
@@ -96,13 +96,13 @@ class Shelly1pm:
                     data = resp.json()
                     return round(data['meters'][0]['power'])
                 except Exception as e:
-                    e = Exception("Shelly1pm called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
+                    ex = Exception("Shelly1pm called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
                 self.__renew_session()
-                e = Exception("Shelly1pm called " + uri + " got " + str(e))
+                ex = Exception("Shelly1pm called " + uri + " got " + str(e))
             sleep(1)
-        if e is not None:
-            raise e
+        if ex is not None:
+            raise ex
 
 
     def __renew_session(self):
@@ -121,7 +121,7 @@ class ShellyPmMini:
         self.addr = addr
 
     def query(self) -> Tuple[int, int, int, int]:
-        e = None
+        ex = None
         for i in range(0,3):
             uri = self.addr + '/rpc/Shelly.GetStatus?channel=0'
             try:
@@ -131,13 +131,13 @@ class ShellyPmMini:
                     current_power = round(data['pm1:0']['apower'])
                     return current_power
                 except Exception as e:
-                    e =  Exception("ShellyPmMini called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
+                    ex =  Exception("ShellyPmMini called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
                 self.__renew_session()
-                e = Exception("ShellyPmMini called " + uri + " got " + str(e))
+                ex = Exception("ShellyPmMini called " + uri + " got " + str(e))
             sleep(1)
-        if e is not None:
-            raise e
+        if ex is not None:
+            raise ex
 
     def __renew_session(self):
         logging.info("renew session for " + self.addr)
