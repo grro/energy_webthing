@@ -20,7 +20,7 @@ class EnergyThing(Thing):
         Thing.__init__(
             self,
             'urn:dev:ops:energy-1',
-            'EnergySensor2',
+            'EnergySensor',
             ['MultiLevelSensor'],
             description
         )

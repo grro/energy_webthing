@@ -16,21 +16,26 @@ class Shelly3em:
         self.addr = addr
 
     def query(self) -> Tuple[int, int, int, int]:
-        uri = self.addr + '/rpc/EM.GetStatus?id=0'
-        try:
-            resp = self.__session.get(uri, timeout=30)
+        e = None
+        for i in range(0,3):
+            uri = self.addr + '/rpc/EM.GetStatus?id=0'
             try:
-                data = resp.json()
-                current_power = round(data['total_act_power'])
-                current_power_phase_a = round(data['a_act_power'])
-                current_power_phase_b = round(data['b_act_power'])
-                current_power_phase_c = round(data['c_act_power'])
-                return current_power, current_power_phase_a, current_power_phase_b, current_power_phase_c
+                resp = self.__session.get(uri, timeout=20)
+                try:
+                    data = resp.json()
+                    current_power = round(data['total_act_power'])
+                    current_power_phase_a = round(data['a_act_power'])
+                    current_power_phase_b = round(data['b_act_power'])
+                    current_power_phase_c = round(data['c_act_power'])
+                    return current_power, current_power_phase_a, current_power_phase_b, current_power_phase_c
+                except Exception as e:
+                    e = Exception("Shelly3em called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
-                raise Exception("called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
-        except Exception as e:
-            self.__renew_session()
-            raise Exception("called " + uri + " got " + str(e))
+                self.__renew_session()
+                e = Exception("Shelly3em called " + uri + " got " + str(e))
+            sleep(1)
+        if e is not None:
+            raise e
 
     def __renew_session(self):
         logging.info("renew session for " + self.addr)
@@ -57,10 +62,11 @@ class Shelly1pro:
                     data = resp.json()
                     return round(data['apower'])
                 except Exception as e:
-                    e = Exception("called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
+                    e = Exception("Shelly1pro called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
                 self.__renew_session()
-                e = Exception("called " + uri + " got " + str(e))
+                e = Exception("Shelly1pro called " + uri + " got " + str(e))
+            sleep(1)
         if e is not None:
             raise e
 
@@ -90,10 +96,11 @@ class Shelly1pm:
                     data = resp.json()
                     return round(data['meters'][0]['power'])
                 except Exception as e:
-                    e = Exception("called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
+                    e = Exception("Shelly1pm called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
                 self.__renew_session()
-                e = Exception("called " + uri + " got " + str(e))
+                e = Exception("Shelly1pm called " + uri + " got " + str(e))
+            sleep(1)
         if e is not None:
             raise e
 
@@ -124,10 +131,11 @@ class ShellyPmMini:
                     current_power = round(data['pm1:0']['apower'])
                     return current_power
                 except Exception as e:
-                    e =  Exception("called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
+                    e =  Exception("ShellyPmMini called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
                 self.__renew_session()
-                e = Exception("called " + uri + " got " + str(e))
+                e = Exception("ShellyPmMini called " + uri + " got " + str(e))
+            sleep(1)
         if e is not None:
             raise e
 
