@@ -499,7 +499,7 @@ class Energy:
         if share == 0 or total == 0:
             return "0%"
         else:
-            return str(round(share*100/total, 0)) + "%"
+            return str(round(share*100/total)) + "%"
 
     def __statistics_loop(self):
         reported_date = datetime.now() - timedelta(days=1)
