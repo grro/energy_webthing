@@ -495,11 +495,11 @@ class Energy:
                 logging.warning("error occurred on printing peek values " + str(e))
             sleep(13 * 60 * 60)
 
-    def __print_percent(self, share: int, total: int, digits: int = 1) -> str:
+    def __print_percent(self, share: int, total: int) -> str:
         if share == 0 or total == 0:
             return "0%"
         else:
-            return str(round(share*100/total, digits)) + "%"
+            return str(round(share*100/total, 0)) + "%"
 
     def __statistics_loop(self):
         reported_date = datetime.now() - timedelta(days=1)
@@ -509,10 +509,10 @@ class Energy:
                 if now > (reported_date + timedelta(hours=3)):
                     reported_date = now
                     logging.info("pv power current day:               " + str(round(self.pv_power_current_day/1000,1)) + " kWh")
-                    logging.info("pv effective power current day:     " + str(round(self.pv_effective_power_current_day/1000,1)) + " kWh (" + self.__print_percent(self.pv_effective_power_current_day, self.pv_power_current_day, 0) + " efficiency)")
+                    logging.info("pv effective power current day:     " + str(round(self.pv_effective_power_current_day/1000,1)) + " kWh (" + self.__print_percent(self.pv_effective_power_current_day, self.pv_power_current_day) + " efficiency)")
                     logging.info("pv power estimated year:            " + str(round(self.pv_power_estimated_year/1000)) + " kWh")
-                    logging.info("pv effective power estimated year:  " + str(round(self.pv_effective_power_estimated_year/1000)) + " kWh  (" + self.__print_percent(self.pv_effective_power_estimated_year, self.pv_power_estimated_year, 0) + " efficiency; " + self.__print_percent(self.pv_effective_power_estimated_year, self.pv_effective_power_estimated_year + self.provider_power_estimated_year, 0) + " of total consumption)")
-                    logging.info("provider power estimated year:      " + str(round(self.provider_power_estimated_year/1000)) + " kWh  (" + self.__print_percent(self.provider_power_estimated_year, self.pv_effective_power_estimated_year + self.provider_power_estimated_year, 0) + " of total consumption)")
+                    logging.info("pv effective power estimated year:  " + str(round(self.pv_effective_power_estimated_year/1000)) + " kWh  (" + self.__print_percent(self.pv_effective_power_estimated_year, self.pv_power_estimated_year) + " efficiency; " + self.__print_percent(self.pv_effective_power_estimated_year, self.pv_effective_power_estimated_year + self.provider_power_estimated_year) + " of total consumption)")
+                    logging.info("provider power estimated year:      " + str(round(self.provider_power_estimated_year/1000)) + " kWh  (" + self.__print_percent(self.provider_power_estimated_year, self.pv_effective_power_estimated_year + self.provider_power_estimated_year) + " of total consumption)")
             except Exception as e:
                 logging.warning("error occurred on statistics " + str(e))
             sleep(10 * 60)
