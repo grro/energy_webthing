@@ -508,9 +508,9 @@ class Energy:
                 now = datetime.now()
                 if now > (reported_date + timedelta(hours=3)):
                     reported_date = now
+                    logging.info("power consumption current day:      " + str(round(self.consumption_power_current_day/1000,1)) + " kWh")
                     logging.info("pv power current day:               " + str(round(self.pv_power_current_day/1000,1)) + " kWh")
                     logging.info("pv effective power current day:     " + str(round(self.pv_effective_power_current_day/1000,1)) + " kWh (" + self.__print_percent(self.pv_effective_power_current_day, self.pv_power_current_day) + " efficiency)")
-                    logging.info("pv power estimated year:            " + str(round(self.pv_power_estimated_year/1000)) + " kWh")
                     logging.info("pv effective power estimated year:  " + str(round(self.pv_effective_power_estimated_year/1000)) + " kWh  (" + self.__print_percent(self.pv_effective_power_estimated_year, self.pv_power_estimated_year) + " efficiency; " + self.__print_percent(self.pv_effective_power_estimated_year, self.pv_effective_power_estimated_year + self.provider_power_estimated_year) + " of total consumption)")
                     logging.info("provider power estimated year:      " + str(round(self.provider_power_estimated_year/1000)) + " kWh  (" + self.__print_percent(self.provider_power_estimated_year, self.pv_effective_power_estimated_year + self.provider_power_estimated_year) + " of total consumption)")
             except Exception as e:
