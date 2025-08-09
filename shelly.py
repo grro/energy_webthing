@@ -1,4 +1,3 @@
-from pycparser.ply.yacc import restart
 from requests import Session
 from abc import ABC, abstractmethod
 import logging

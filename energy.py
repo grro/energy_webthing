@@ -1,5 +1,3 @@
-from requests import Session
-import logging
 from threading import Thread
 from datetime import datetime, timedelta
 from time import sleep
