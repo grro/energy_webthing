@@ -2,7 +2,7 @@ from requests import Session
 from abc import ABC, abstractmethod
 import logging
 from time import sleep
-from typing import Tuple, Dict, Optional
+from typing import Optional
 from dataclasses import dataclass
 
 
@@ -14,7 +14,7 @@ class Measure:
     channel_c: Optional[int] = None
 
 
-class Device(ABC):
+class EnergySensor(ABC):
 
     @abstractmethod
     def measure(self) -> Optional[Measure]:
@@ -22,7 +22,7 @@ class Device(ABC):
 
 
 
-class Shelly3em(Device):
+class Shelly3em(EnergySensor):
 
     def __init__(self, addr: str):
         self.__session = Session()
@@ -56,7 +56,7 @@ class Shelly3em(Device):
 
 
 
-class Shelly1pro(Device):
+class Shelly1pro(EnergySensor):
 
     def __init__(self, addr: str):
         self.__session = Session()
@@ -91,7 +91,7 @@ class Shelly1pro(Device):
 
 
 
-class ShellyPmMini(Device):
+class ShellyPmMini(EnergySensor):
 
     def __init__(self, addr: str):
         self.__session = Session()
@@ -126,7 +126,7 @@ class ShellyPmMini(Device):
 
 
 
-class Shelly1pm(Device):
+class Shelly1pm(EnergySensor):
 
     def __init__(self, addr: str):
         self.__session = Session()
@@ -161,7 +161,7 @@ class Shelly1pm(Device):
         self.__session = Session()
 
 
-class ShellyMeter(Device):
+class ShellyMeter(EnergySensor):
 
     def __init__(self, addr: str):
         self.device = ShellyMeter.auto_select(addr)
@@ -170,7 +170,7 @@ class ShellyMeter(Device):
         return self.device.measure()
 
     @staticmethod
-    def auto_select(addr: str) -> Device:
+    def auto_select(addr: str) -> Optional[EnergySensor]:
         try:
             s = Shelly1pro(addr)
             s.measure()
