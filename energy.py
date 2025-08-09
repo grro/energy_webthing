@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from time import sleep
 from typing import Tuple, List, Dict, Optional
 from redzoo.database.simple import SimpleDB
-from shelly import ShellyMeter, ThreePhaseMeasure
+from shelly import ShellyMeter
 
 
 class WattRecorder:
@@ -442,11 +442,11 @@ class Energy:
 
     def __refresh_provider_values(self) -> bool:
         try:
-            measure: ThreePhaseMeasure = self.__provider_shelly.measure()
-            self.provider_power = measure.power
-            self.provider_power_phase_a = measure.a_power
-            self.provider_power_phase_b = measure.b_power
-            self.provider_power_phase_c = measure.c_power
+            measure = self.__provider_shelly.measure()
+            self.provider_power = measure.total
+            self.provider_power_phase_a = measure.channel_a
+            self.provider_power_phase_b = measure.channel_b
+            self.provider_power_phase_c = measure.channel_c
             self.provider_measures_updated_utc = datetime.utcnow()
             return True
         except Exception as e:
@@ -454,7 +454,7 @@ class Energy:
 
     def __refresh_pv_values(self) -> bool:
         try:
-            pv_power = self.__pv_shelly.measure().power
+            pv_power = self.__pv_shelly.measure().total
             if pv_power > 0:
                 self.pv_power = pv_power
             else:
@@ -467,7 +467,7 @@ class Energy:
 
     def __refresh_pv_channel1_values(self) -> bool:
         try:
-            pv_power_channel_1 = self.__pv_shelly_channel1.measure().power
+            pv_power_channel_1 = self.__pv_shelly_channel1.measure().total
             if pv_power_channel_1 > 0:
                 self.pv_power_channel_1 = pv_power_channel_1
             else:
@@ -479,7 +479,7 @@ class Energy:
 
     def __refresh_pv_channel2_values(self) -> bool:
         try:
-            pv_power_channel_2 = self.__pv_shelly_channel2.measure().power
+            pv_power_channel_2 = self.__pv_shelly_channel2.measure().total
             if pv_power_channel_2 > 0:
                 self.pv_power_channel_2 = pv_power_channel_2
             else:
@@ -491,7 +491,7 @@ class Energy:
 
     def __refresh_pv_channel3_values(self) -> bool:
         try:
-            pv_power_channel_3 = self.__pv_shelly_channel3.measure().power
+            pv_power_channel_3 = self.__pv_shelly_channel3.measure().total
             if pv_power_channel_3 > 0:
                 self.pv_power_channel_3 = pv_power_channel_3
             else:

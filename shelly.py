@@ -8,17 +8,10 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Measure:
-    power: int
-
-
-@dataclass(frozen=True)
-class ThreePhaseMeasure(Measure):
-    a_power: int
-    b_power: int
-    c_power: int
-
-
-
+    total: int
+    channel_a: Optional[int] = None
+    channel_b: Optional[int] = None
+    channel_c: Optional[int] = None
 
 
 class Device(ABC):
@@ -26,6 +19,7 @@ class Device(ABC):
     @abstractmethod
     def measure(self) -> Optional[Measure]:
         pass
+
 
 
 class Shelly3em(Device):
@@ -42,7 +36,7 @@ class Shelly3em(Device):
                 resp = self.__session.get(uri, timeout=20)
                 try:
                     data = resp.json()
-                    return ThreePhaseMeasure(round(data['total_act_power']), round(data['a_act_power']), round(data['b_act_power']), round(data['c_act_power']))
+                    return Measure(round(data['total_act_power']), round(data['a_act_power']), round(data['b_act_power']), round(data['c_act_power']))
                 except Exception as e:
                     ex = Exception("Shelly3em called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
@@ -76,7 +70,8 @@ class Shelly1pro(Device):
                 resp = self.__session.get(uri, timeout=20)
                 try:
                     data = resp.json()
-                    return Measure(round(data['apower']))
+                    power = round(data['apower'])
+                    return Measure(power, power)
                 except Exception as e:
                     ex = Exception("Shelly1pro called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
@@ -110,7 +105,8 @@ class ShellyPmMini(Device):
                 resp = self.__session.get(uri, timeout=20)
                 try:
                     data = resp.json()
-                    return Measure(round(data['pm1:0']['apower']))
+                    power = round(data['pm1:0']['apower'])
+                    return Measure(power, power)
                 except Exception as e:
                     ex =  Exception("ShellyPmMini called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
@@ -144,7 +140,8 @@ class Shelly1pm(Device):
                 resp = self.__session.get(uri, timeout=20)
                 try:
                     data = resp.json()
-                    return Measure(round(data['meters'][0]['power']))
+                    power = round(data['meters'][0]['power'])
+                    return Measure(power, power)
                 except Exception as e:
                     ex = Exception("Shelly1pm called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
