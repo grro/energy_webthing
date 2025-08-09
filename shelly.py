@@ -173,6 +173,7 @@ class ShellyAutoMeter(ShellyMeter):
         try:
             s = Shelly1pro(addr)
             s.query()
+            logging.info("detected shelly1pro running on " + addr)
             return s
         except Exception as e:
             pass
@@ -180,6 +181,7 @@ class ShellyAutoMeter(ShellyMeter):
         try:
             s = Shelly1pm(addr)
             s.query()
+            logging.info("detected shelly1pm running on " + addr)
             return s
         except Exception as e:
             pass
@@ -187,6 +189,7 @@ class ShellyAutoMeter(ShellyMeter):
         try:
             s = ShellyPmMini(addr)
             s.query()
+            logging.info("detected shellyPmMini running on " + addr)
             return s
         except Exception as e:
             pass
