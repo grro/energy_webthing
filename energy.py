@@ -251,7 +251,7 @@ class Energy:
         self.__listener = lambda: None    # "empty" listener
         self.__provider_shelly = Shelly3em(meter_addr_provider)
         self.__pv_shelly = Shelly1pro(meter_addr_pv)
-        self.__pv_shelly_channel1 = Shelly1pm(meter_addr_pv_channel1)
+        self.__pv_shelly_channel1 = ShellyPmMini(meter_addr_pv_channel1)
         self.__pv_shelly_channel2 = ShellyPmMini(meter_addr_pv_channel2)
         self.__pv_shelly_channel3 = ShellyPmMini(meter_addr_pv_channel3)
 
