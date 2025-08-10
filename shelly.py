@@ -164,10 +164,17 @@ class Shelly1pm(EnergySensor):
 class ShellyMeter(EnergySensor):
 
     def __init__(self, addr: str):
+        self.addr = addr
         self.device = ShellyMeter.auto_select(addr)
 
     def measure(self) -> Optional[Measure]:
-        return self.device.measure()
+        if self.device is None:
+            self.device = ShellyMeter.auto_select(self.addr)
+        try:
+            return self.device.measure()
+        except Exception as e:
+            self.device = None
+            raise e
 
     @staticmethod
     def auto_select(addr: str) -> Optional[EnergySensor]:
