@@ -14,7 +14,7 @@ class Measure:
     channel_c: Optional[int] = None
 
 
-class EnergySensor(ABC):
+class Meter(ABC):
 
     @abstractmethod
     def measure(self) -> Optional[Measure]:
@@ -22,7 +22,7 @@ class EnergySensor(ABC):
 
 
 
-class Shelly3em(EnergySensor):
+class Shelly3em(Meter):
 
     def __init__(self, addr: str):
         self.__session = Session()
@@ -56,7 +56,7 @@ class Shelly3em(EnergySensor):
 
 
 
-class Shelly1pro(EnergySensor):
+class Shelly1pro(Meter):
 
     def __init__(self, addr: str):
         self.__session = Session()
@@ -91,7 +91,7 @@ class Shelly1pro(EnergySensor):
 
 
 
-class ShellyPmMini(EnergySensor):
+class ShellyPmMini(Meter):
 
     def __init__(self, addr: str):
         self.__session = Session()
@@ -126,7 +126,7 @@ class ShellyPmMini(EnergySensor):
 
 
 
-class Shelly1pm(EnergySensor):
+class Shelly1pm(Meter):
 
     def __init__(self, addr: str):
         self.__session = Session()
@@ -161,7 +161,7 @@ class Shelly1pm(EnergySensor):
         self.__session = Session()
 
 
-class ShellyMeter(EnergySensor):
+class ShellyMeter(Meter):
 
     def __init__(self, addr: str):
         self.addr = addr
@@ -177,7 +177,7 @@ class ShellyMeter(EnergySensor):
             raise e
 
     @staticmethod
-    def auto_select(addr: str) -> Optional[EnergySensor]:
+    def auto_select(addr: str) -> Optional[Meter]:
         try:
             s = Shelly1pro(addr)
             s.measure()
