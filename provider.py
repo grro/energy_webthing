@@ -15,6 +15,7 @@ class Provider:
         self.__listeners = set()
 
         self.__provider_shelly = ShellyMeter(meter_addr_provider)
+        self.name = self.__provider_shelly.info().name
         self.power = 0
         self.provider_power_downstream = 0
         self.provider_power_upstream = 0

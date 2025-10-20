@@ -11,7 +11,7 @@ class Module:
 
     def __init__(self, addr: str):
         self.__shelly = ShellyMeter(addr)
-
+        self.name = self.__shelly.name
         self.power = 0
         self.__pv_power_smoothen_recorder = WattRecorder()
 
@@ -36,10 +36,6 @@ class Module:
         except Exception as e:
             return 0
 
-
-
-
-1
 
 class Pv:
 

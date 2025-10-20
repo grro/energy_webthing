@@ -14,12 +14,28 @@ class Measure:
     channel_c: Optional[int] = None
 
 
+@dataclass(frozen=True)
+class Info:
+    name: str
+    type: str
+
 class Meter(ABC):
+
+    @abstractmethod
+    def info(self) -> Info:
+        pass
 
     @abstractmethod
     def measure(self) -> Optional[Measure]:
         pass
 
+    @property
+    def name(self) -> str:
+        return self.info().name
+
+    @property
+    def type(self) -> str:
+        return self.info().type
 
 
 class Shelly3em(Meter):
@@ -27,6 +43,25 @@ class Shelly3em(Meter):
     def __init__(self, addr: str):
         self.__session = Session()
         self.addr = addr
+
+    def info(self) -> Info:
+        ex = None
+        for i in range(0,3):
+            uri = self.addr + '/rpc/Shelly.GetDeviceInfo'
+            try:
+                resp = self.__session.get(uri, timeout=20)
+                try:
+                    data = resp.json()
+                    return Info(data['name'], data['app'])
+                except Exception as e:
+                    ex =  Exception("ShellyPmMini called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
+            except Exception as e:
+                self.__renew_session()
+                ex = Exception("ShellyPmMini called " + uri + " got " + str(e))
+            sleep(1)
+        if ex is not None:
+            raise ex
+
 
     def measure(self) -> Optional[Measure]:
         ex = None
@@ -61,6 +96,24 @@ class Shelly1pro(Meter):
     def __init__(self, addr: str):
         self.__session = Session()
         self.addr = addr
+
+    def info(self) -> Info:
+        ex = None
+        for i in range(0,3):
+            uri = self.addr + '/rpc/Shelly.GetDeviceInfo'
+            try:
+                resp = self.__session.get(uri, timeout=20)
+                try:
+                    data = resp.json()
+                    return Info(data['name'], data['app'])
+                except Exception as e:
+                    ex =  Exception("ShellyPmMini called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
+            except Exception as e:
+                self.__renew_session()
+                ex = Exception("ShellyPmMini called " + uri + " got " + str(e))
+            sleep(1)
+        if ex is not None:
+            raise ex
 
     def measure(self) -> Optional[Measure]:
         ex = None
@@ -97,6 +150,24 @@ class ShellyPmMini(Meter):
         self.__session = Session()
         self.addr = addr
 
+    def info(self) -> Info:
+        ex = None
+        for i in range(0,3):
+            uri = self.addr + '/rpc/Shelly.GetDeviceInfo'
+            try:
+                resp = self.__session.get(uri, timeout=20)
+                try:
+                    data = resp.json()
+                    return Info(data['name'], data['app'])
+                except Exception as e:
+                    ex =  Exception("ShellyPmMini called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
+            except Exception as e:
+                self.__renew_session()
+                ex = Exception("ShellyPmMini called " + uri + " got " + str(e))
+            sleep(1)
+        if ex is not None:
+            raise ex
+
     def measure(self) -> Optional[Measure]:
         ex = None
         for i in range(0,3):
@@ -131,6 +202,25 @@ class Shelly1pm(Meter):
     def __init__(self, addr: str):
         self.__session = Session()
         self.addr = addr
+
+    def info(self) -> Info:
+        ex = None
+        for i in range(0,3):
+            uri = self.addr + '/rpc/Shelly.GetDeviceInfo'
+            try:
+                resp = self.__session.get(uri, timeout=20)
+                try:
+                    data = resp.json()
+                    return Info(data['name'], data['app'])
+                except Exception as e:
+                    ex =  Exception("ShellyPmMini called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
+            except Exception as e:
+                self.__renew_session()
+                ex = Exception("ShellyPmMini called " + uri + " got " + str(e))
+            sleep(1)
+        if ex is not None:
+            raise ex
+
 
     def measure(self) -> Optional[Measure]:
         ex = None
@@ -167,6 +257,15 @@ class ShellyMeter(Meter):
         self.addr = addr
         self.device = ShellyMeter.auto_select(addr)
 
+    def info(self) -> Info:
+        if self.device is None:
+            self.device = ShellyMeter.auto_select(self.addr)
+        try:
+            return self.device.info()
+        except Exception as e:
+            self.device = None
+            raise e
+
     def measure(self) -> Optional[Measure]:
         if self.device is None:
             self.device = ShellyMeter.auto_select(self.addr)
@@ -179,16 +278,35 @@ class ShellyMeter(Meter):
     @staticmethod
     def auto_select(addr: str) -> Optional[Meter]:
         try:
+            s = Shelly3em(addr)
+            info = s.info()
+            if info.type == "Pro3EM":
+                logging.info("detected " + info.name + " (" + info.type + ") running on " + addr)
+                return s
+        except Exception as e:
+            pass
+
+        try:
+            s = ShellyPmMini(addr)
+            info = s.info()
+            if info.type == 'MiniPMG3':
+                logging.info("detected " + info.name + " (" + info.type + ") running on " + addr)
+                return s
+        except Exception as e:
+            pass
+
+        try:
             s = Shelly1pro(addr)
-            s.measure()
-            logging.info("detected shelly1pro running on " + addr)
-            return s
+            info = s.info()
+            if info.type == 'Pro1PM':
+                logging.info("detected " + info.name + " (" + info.type + ") running on " + addr)
+                return s
         except Exception as e:
             pass
 
         try:
             s = Shelly1pm(addr)
-            s.measure()
+            s.info()
             logging.info("detected shelly1pm running on " + addr)
             return s
         except Exception as e:
@@ -196,16 +314,8 @@ class ShellyMeter(Meter):
 
         try:
             s = ShellyPmMini(addr)
-            s.measure()
+            s.info()
             logging.info("detected shellyPmMini running on " + addr)
-            return s
-        except Exception as e:
-            pass
-
-        try:
-            s = Shelly3em(addr)
-            s.measure()
-            logging.info("detected shelly3em running on " + addr)
             return s
         except Exception as e:
             pass
