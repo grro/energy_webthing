@@ -153,9 +153,14 @@ class Pv:
     def __measure(self) -> bool:
         try:
             power1 = self.__module1.measure()
+            power1 = 0 if power1 <0 else power1
             power2 = self.__module2.measure()
+            power2 = 0 if power2 <0 else power2
             power3 = self.__module3.measure()
+            power3 = 0 if power3 <0 else power3
             power4 = self.__module4.measure()
+            power4 = 0 if power4 <0 else power4
+
             power = power1 + power2 + power3 + power4
             self.power_downstream = power
             self.__pv_power_smoothen_recorder.put(power)
