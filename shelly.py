@@ -289,7 +289,7 @@ class ShellyMeter(Meter):
         try:
             s = ShellyPmMini(addr)
             info = s.info()
-            if info.type == 'MiniPMG3':
+            if info.type.startswith('MiniPMG'):
                 logging.info("detected " + info.name + " (" + info.type + ") running on " + addr)
                 return s
         except Exception as e:

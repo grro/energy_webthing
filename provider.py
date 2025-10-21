@@ -239,13 +239,13 @@ class ProviderThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.provider_power_upstream_power_5s = Value(provider.provider_power_upstream_5s)
+        self.provider_power_upstream_5s = Value(provider.provider_power_upstream_5s)
         self.add_property(
             Property(self,
-                     'power_upstream_power_5s',
-                     self.provider_power_upstream_power_5s,
+                     'power_upstream_5s',
+                     self.provider_power_upstream_5s,
                      metadata={
-                         'title': 'provider_power_upstream_power_5s',
+                         'title': 'provider_power_upstream_5s',
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the upstream power provider  (smoothen 5 sec)',
