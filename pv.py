@@ -44,13 +44,13 @@ class Module:
 
 class Pv:
 
-    def __init__(self, meter_addr_pv_channel1: str, meter_addr_pv_channel2: str, meter_addr_pv_channel3: str, meter_addr_pv_channel4: str):
+    def __init__(self, meter_addr_pv_all: str, meter_addr_pv_channel1: str, meter_addr_pv_channel2: str, meter_addr_pv_channel3: str):
         self.__is_running = True
         self.__listeners = set()
+        self.__all = Module(meter_addr_pv_all)
         self.__module1 = Module(meter_addr_pv_channel1)
         self.__module2 = Module(meter_addr_pv_channel2)
         self.__module3 = Module(meter_addr_pv_channel3)
-        self.__module4 = Module(meter_addr_pv_channel4)
 
         self.power_downstream = 0
         self.__pv_power_smoothen_recorder = WattRecorder()
@@ -137,23 +137,28 @@ class Pv:
 
     @property
     def power_downstream_module4(self) -> int:
-        return self.__module4.power
+        power4 = self.power_downstream - self.power_downstream_module1 - self.power_downstream_module2 - self.power_downstream_module3
+        return 0 if power4 <0 else power4
 
     @property
     def power_downstream_module4_5s(self) -> int:
-        return self.__module4.power_5s
+        power4 = self.power_downstream_5s - self.power_downstream_module1_5s - self.power_downstream_module2_5s - self.power_downstream_module3_5s
+        return 0 if power4 <0 else power4
 
     @property
     def power_downstream_module4_15s(self) -> int:
-        return self.__module4.power_15s
+        power4 = self.power_downstream_15s - self.power_downstream_module1_15s - self.power_downstream_module2_15s - self.power_downstream_module3_15s
+        return 0 if power4 <0 else power4
 
     @property
     def power_downstream_module4_1m(self) -> int:
-        return self.__module4.power_1m
+        power4 = self.power_downstream_1m - self.power_downstream_module1_1m - self.power_downstream_module2_1m - self.power_downstream_module3_1m
+        return 0 if power4 <0 else power4
 
     @property
     def power_downstream_module4_5m(self) -> int:
-        return self.__module4.power_5m
+        power4 = self.power_downstream_5m - self.power_downstream_module1_5m - self.power_downstream_module2_5m - self.power_downstream_module3_5m
+        return 0 if power4 <0 else power4
 
     def add_listener(self,listener):
         self.__listeners.add(listener)
@@ -177,18 +182,9 @@ class Pv:
 
     def __measure(self) -> bool:
         try:
-            power1 = self.__module1.measure()
-            power1 = 0 if power1 <0 else power1
-            power2 = self.__module2.measure()
-            power2 = 0 if power2 <0 else power2
-            power3 = self.__module3.measure()
-            power3 = 0 if power3 <0 else power3
-            power4 = self.__module4.measure()
-            power4 = 0 if power4 <0 else power4
-
-            power = power1 + power2 + power3 + power4
-            self.power_downstream = power
-            self.__pv_power_smoothen_recorder.put(power)
+            power_all = self.__all.measure()
+            self.power_downstream = 0 if power_all <0 else power_all
+            self.__pv_power_smoothen_recorder.put(power_all)
             return True
         except Exception as e:
             return False

@@ -12,13 +12,13 @@ from energy_mcp import EnergyMCPServer
 
 def run_server(port: int,
                meter_addr_provider: str,
+               pv_all: str,
                pv_module1: str,
                pv_module2: str,
-               pv_module3: str,
-               pv_module4: str):
+               pv_module3: str):
 
     provider = Provider(meter_addr_provider)
-    pv = Pv(pv_module1, pv_module2, pv_module3, pv_module4)
+    pv = Pv(pv_all, pv_module1, pv_module2, pv_module3)
     battery = Battery()
     energy = Energy(provider, pv, battery)
 
