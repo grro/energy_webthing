@@ -31,7 +31,7 @@ def run_server(port: int,
         pv.start()
         battery.start()
         mcp_server.start()
-        #server.start()
+        server.start()
         sleep(5555)
     except KeyboardInterrupt:
         logging.info('stopping the server')
