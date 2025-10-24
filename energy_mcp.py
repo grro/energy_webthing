@@ -24,10 +24,6 @@ class EnergyMCPServer(MCPServer):
         def get_provider_power_downstream_smoothen_15s() -> int:
             return energy.provider.provider_power_downstream_15s
 
-        @self.mcp.resource("resource://provider_power_downstream_smoothen_1m", description="Current downstream provider power (smoothen 1 min)")
-        def get_provider_power_downstream_smoothen_1m() -> int:
-            return energy.provider.provider_power_downstream_1m
-
         @self.mcp.resource("resource://provider_power_upstream", description="Current upstream provider power")
         def get_provider_power_upstream() -> int:
             return energy.provider.provider_power_upstream
@@ -39,10 +35,6 @@ class EnergyMCPServer(MCPServer):
         @self.mcp.resource("resource://provider_power_upstream_smoothen_15s", description="Current upstream provider power (smoothen 15 sec)")
         def get_provider_power_upstream_smoothen_15s() -> int:
             return energy.provider.provider_power_upstream_15s
-
-        @self.mcp.resource("resource://provider_power_upstream_smoothen_1m", description="Current upstream provider power (smoothen 1 min)")
-        def get_provider_power_upstream_smoothen_1m() -> int:
-            return energy.provider.provider_power_upstream_1m
 
         @self.mcp.resource("resource:/pv_downstream", description="Current downstream pv power")
         def get_pv_power_downstream() -> int:
