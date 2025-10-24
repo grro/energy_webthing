@@ -246,7 +246,7 @@ class PvThing(Thing):
         self.power_downstream_module1 = Value(pv.power_downstream_module1)
         self.add_property(
             Property(self,
-                     'module1__power_downstream',
+                     'module1_power_downstream',
                      self.power_downstream_module1,
                      metadata={
                          'title': 'module1 power downstream',
