@@ -28,6 +28,14 @@ class Battery:
         return 0
 
     @property
+    def power_upstream_1m(self) -> int:
+        return 0
+
+    @property
+    def power_upstream_5m(self) -> int:
+        return 0
+
+    @property
     def power_downstream(self) -> int:
         return 0
 
@@ -37,7 +45,14 @@ class Battery:
 
     @property
     def power_downstream_15s(self) -> int:
+        return 0
 
+    @property
+    def power_downstream_1m(self) -> int:
+        return 0
+
+    @property
+    def power_downstream_5m(self) -> int:
         return 0
 
     def __on_update(self):
@@ -118,6 +133,32 @@ class BatteryThing(Thing):
                          'readOnly': True,
                      }))
 
+        self.power_upstream_1m = Value(battery.power_upstream_1m)
+        self.add_property(
+            Property(self,
+                     'power_upstream_1m',
+                     self.power_upstream_1m,
+                     metadata={
+                         'title': 'power upstream 1m',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the smoothen upstream battery power (loading) over 1 minutes',
+                         'readOnly': True,
+                     }))
+
+        self.power_upstream_5m = Value(battery.power_upstream_5m)
+        self.add_property(
+            Property(self,
+                     'power_upstream_5m',
+                     self.power_upstream_5m,
+                     metadata={
+                         'title': 'power upstream 5m',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the smoothen upstream battery power (loading) over 5 minutes',
+                         'readOnly': True,
+                     }))
+
         self.power_downstream = Value(battery.power_downstream)
         self.add_property(
             Property(self,
@@ -157,6 +198,32 @@ class BatteryThing(Thing):
                          'readOnly': True,
                      }))
 
+        self.power_downstream_1m = Value(battery.power_downstream_1m)
+        self.add_property(
+            Property(self,
+                     'power_downstream_1m',
+                     self.power_downstream_1m,
+                     metadata={
+                         'title': 'power downstream 1m',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the current downstream battery power (unloading) smoothen over 1 minute',
+                         'readOnly': True,
+                     }))
+
+
+        self.power_downstream_5m = Value(battery.power_downstream_5m)
+        self.add_property(
+            Property(self,
+                     'power_downstream_5m',
+                     self.power_downstream_5m,
+                     metadata={
+                         'title': 'power downstream 5m',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the current downstream battery power (unloading) smoothen over 5 minute',
+                         'readOnly': True,
+                     }))
 
 
     def on_value_changed(self):
@@ -166,8 +233,13 @@ class BatteryThing(Thing):
         self.power_upstream.notify_of_external_update(self.battery.power_upstream)
         self.power_upstream_5s.notify_of_external_update(self.battery.power_upstream_5s)
         self.power_upstream_15s.notify_of_external_update(self.battery.power_upstream_15s)
+        self.power_upstream_1m.notify_of_external_update(self.battery.power_upstream_1m)
+        self.power_upstream_5m.notify_of_external_update(self.battery.power_upstream_5m)
+
         self.power_downstream.notify_of_external_update(self.battery.power_downstream)
         self.power_downstream_5s.notify_of_external_update(self.battery.power_downstream_5s)
         self.power_downstream_15s.notify_of_external_update(self.battery.power_downstream_15s)
+        self.power_downstream_1m.notify_of_external_update(self.battery.power_downstream_1m)
+        self.power_downstream_5m.notify_of_external_update(self.battery.power_downstream_5m)
 
 

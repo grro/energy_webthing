@@ -33,6 +33,14 @@ class Provider:
         return self.__provider_power_smoothen_recorder.watt_per_hour(second_range=15)
 
     @property
+    def provider_power_1m(self) -> int:
+        return self.__provider_power_smoothen_recorder.watt_per_hour(minute_range=1)
+
+    @property
+    def provider_power_5m(self) -> int:
+        return self.__provider_power_smoothen_recorder.watt_per_hour(minute_range=5)
+
+    @property
     def provider_power_downstream_5s(self) -> int:
         return self.__provider_power_downstream_smoothen_recorder.watt_per_hour(second_range=5)
 
@@ -41,12 +49,28 @@ class Provider:
         return self.__provider_power_downstream_smoothen_recorder.watt_per_hour(second_range=15)
 
     @property
+    def provider_power_downstream_1m(self) -> int:
+        return self.__provider_power_downstream_smoothen_recorder.watt_per_hour(minute_range=1)
+
+    @property
+    def provider_power_downstream_5m(self) -> int:
+        return self.__provider_power_downstream_smoothen_recorder.watt_per_hour(minute_range=5)
+
+    @property
     def provider_power_upstream_5s(self) -> int:
         return self.__provider_power_upstream_smoothen_recorder.watt_per_hour(second_range=5)
 
     @property
     def provider_power_upstream_15s(self) -> int:
         return self.__provider_power_upstream_smoothen_recorder.watt_per_hour(second_range=15)
+
+    @property
+    def provider_power_upstream_1m(self) -> int:
+        return self.__provider_power_upstream_smoothen_recorder.watt_per_hour(minute_range=1)
+
+    @property
+    def provider_power_upstream_5m(self) -> int:
+        return self.__provider_power_upstream_smoothen_recorder.watt_per_hour(minute_range=5)
 
     def add_listener(self,listener):
         self.__listeners.add(listener)
@@ -146,6 +170,34 @@ class ProviderThing(Thing):
                          'readOnly': True,
                      }))
 
+
+        self.provider_power_1m = Value(provider.provider_power_1m)
+        self.add_property(
+            Property(self,
+                     'power_1m',
+                     self.provider_power_1m,
+                     metadata={
+                         'title': 'provider_power_1m',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the power provider  (smoothen 1 mim)',
+                         'readOnly': True,
+                     }))
+
+
+        self.provider_power_5m = Value(provider.provider_power_5m)
+        self.add_property(
+            Property(self,
+                     'power_5m',
+                     self.provider_power_5m,
+                     metadata={
+                         'title': 'provider_power_5m',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the power provider  (smoothen 5 min)',
+                         'readOnly': True,
+                     }))
+
         self.provider_power_downstream = Value(provider.provider_power_downstream)
         self.add_property(
             Property(self,
@@ -182,6 +234,33 @@ class ProviderThing(Thing):
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the downstream power provider  (smoothen 15 sec)',
+                         'readOnly': True,
+                     }))
+
+
+        self.provider_power_downstream_1m = Value(provider.provider_power_downstream_1m)
+        self.add_property(
+            Property(self,
+                     'power_downstream_1m',
+                     self.provider_power_downstream_1m,
+                     metadata={
+                         'title': 'provider_power_downstream_1m',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the downstream power provider  (smoothen 1 min)',
+                         'readOnly': True,
+                     }))
+
+        self.provider_power_downstream_5m = Value(provider.provider_power_downstream_5m)
+        self.add_property(
+            Property(self,
+                     'power_downstream_5m',
+                     self.provider_power_downstream_5m,
+                     metadata={
+                         'title': 'provider_power_downstream_5m',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the downstream power provider  (smoothen 5 min)',
                          'readOnly': True,
                      }))
 
@@ -224,6 +303,45 @@ class ProviderThing(Thing):
                          'readOnly': True,
                      }))
 
+        self.provider_power_upstream_15s = Value(provider.provider_power_upstream_15s)
+        self.add_property(
+            Property(self,
+                     'power_upstream_15s',
+                     self.provider_power_upstream_15s,
+                     metadata={
+                         'title': 'provider_power_upstream_15s',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the upstream power provider  (smoothen 15 sec)',
+                         'readOnly': True,
+                     }))
+
+        self.provider_power_upstream_1m = Value(provider.provider_power_upstream_1m)
+        self.add_property(
+            Property(self,
+                     'power_upstream_1m',
+                     self.provider_power_upstream_1m,
+                     metadata={
+                         'title': 'provider_power_upstream_1m',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the upstream power provider  (smoothen 1 min)',
+                         'readOnly': True,
+                     }))
+
+        self.provider_power_upstream_5m = Value(provider.provider_power_upstream_5m)
+        self.add_property(
+            Property(self,
+                     'power_upstream_5m',
+                     self.provider_power_upstream_5m,
+                     metadata={
+                         'title': 'provider_power_upstream_5m',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the upstream power provider  (smoothen 5 min)',
+                         'readOnly': True,
+                     }))
+
     def on_value_changed(self):
         self.ioloop.add_callback(self._on_value_changed)
 
@@ -231,9 +349,18 @@ class ProviderThing(Thing):
         self.provider_power.notify_of_external_update(self.provider.power)
         self.provider_power_5s.notify_of_external_update(self.provider.provider_power_5s)
         self.provider_power_15s.notify_of_external_update(self.provider.provider_power_15s)
+        self.provider_power_1m.notify_of_external_update(self.provider.provider_power_1m)
+        self.provider_power_5m.notify_of_external_update(self.provider.provider_power_5m)
+
         self.provider_power_downstream.notify_of_external_update(self.provider.provider_power_downstream)
         self.provider_power_downstream_5s.notify_of_external_update(self.provider.provider_power_downstream_5s)
         self.provider_power_downstream_15s.notify_of_external_update(self.provider.provider_power_downstream_15s)
+        self.provider_power_downstream_1m.notify_of_external_update(self.provider.provider_power_downstream_1m)
+        self.provider_power_downstream_5m.notify_of_external_update(self.provider.provider_power_downstream_5m)
+
         self.provider_power_upstream.notify_of_external_update(self.provider.provider_power_upstream)
         self.provider_power_upstream_5s.notify_of_external_update(self.provider.provider_power_upstream_5s)
         self.provider_power_upstream_15s.notify_of_external_update(self.provider.provider_power_upstream_15s)
+        self.provider_power_upstream_1m.notify_of_external_update(self.provider.provider_power_upstream_1m)
+        self.provider_power_upstream_5m.notify_of_external_update(self.provider.provider_power_upstream_5m)
+
