@@ -11,8 +11,7 @@ class MCPServer:
 
     def __init__(self, name: str, port: int):
         self.port = port
-        self.hostname = socket.gethostname().lower()
-        self.mcp = FastMCP(name, host=self.hostname, port=self.port)
+        self.mcp = FastMCP(name, host='0.0.0.0', port=self.port)
         self.new_loop = asyncio.new_event_loop()
 
     async def __run_async(self):
@@ -26,7 +25,7 @@ class MCPServer:
         t = Thread(target=self.__start_loop, args=(self.new_loop,), daemon=True)
         t.start()
         asyncio.run_coroutine_threadsafe(self.__run_async(), self.new_loop)
-        logging.info("MCP Server running on http://" + self.hostname  + ":" + str(self.port) + "/sse")
+        logging.info("MCP Server running on http://localhost:" + str(self.port) + "/sse")
 
     def stop(self):
         self.new_loop.stop()
