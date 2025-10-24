@@ -205,20 +205,6 @@ class PvThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.power_downstream_1m = Value(pv.power_downstream_1m)
-        self.add_property(
-            Property(self,
-                     'power_downstream_1m',
-                     self.power_downstream_1m,
-                     metadata={
-                         'title': 'power downstream 1m',
-                         "type": "integer",
-                         'unit': 'watt',
-                         'description': 'the power of the pv  (smoothen 1 min)',
-                         'readOnly': True,
-                     }))
-
-
         self.power_downstream_module1 = Value(pv.power_downstream_module1)
         self.add_property(
             Property(self,
@@ -258,20 +244,6 @@ class PvThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.power_downstream_module1_1m = Value(pv.power_downstream_module1_1m)
-        self.add_property(
-            Property(self,
-                     'module1_power_downstream_1m',
-                     self.power_downstream_module1_1m,
-                     metadata={
-                         'title': 'module1 power downstream 1m',
-                         "type": "integer",
-                         'unit': 'watt',
-                         'description': 'the power of the module 1 (smoothen 1 min)',
-                         'readOnly': True,
-                     }))
-
-
         self.power_downstream_module2 = Value(pv.power_downstream_module2)
         self.add_property(
             Property(self,
@@ -308,19 +280,6 @@ class PvThing(Thing):
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the power of the module 2 (smoothen 15 sec)',
-                         'readOnly': True,
-                     }))
-
-        self.power_downstream_module2_1m = Value(pv.power_downstream_module2_1m)
-        self.add_property(
-            Property(self,
-                     'module2_power_downstream_1m',
-                     self.power_downstream_module2_1m,
-                     metadata={
-                         'title': 'module2 power downstream 1m',
-                         "type": "integer",
-                         'unit': 'watt',
-                         'description': 'the power of the module 2 (smoothen 1 min)',
                          'readOnly': True,
                      }))
 
