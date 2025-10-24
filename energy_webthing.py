@@ -26,7 +26,7 @@ def run_server(port: int,
     server = WebThingServer(MultipleThings([ProviderThing(provider), PvThing(pv), BatteryThing(battery), EnergyThing(energy)], "energy"), port=port, disable_host_validation=True)
 
     try:
-        logging.info('starting the server http://localhost:' + str(port) + " (provider meter=" + meter_addr_provider + ")")
+        logging.info('starting the server http://localhost:' + str(port))
         provider.start()
         pv.start()
         battery.start()
