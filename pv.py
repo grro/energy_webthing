@@ -182,6 +182,9 @@ class Pv:
 
     def __measure(self) -> bool:
         try:
+            self.__module1.measure()
+            self.__module2.measure()
+            self.__module3.measure()
             power_all = self.__all.measure()
             self.power_downstream = 0 if power_all <0 else power_all
             self.__pv_power_smoothen_recorder.put(power_all)
