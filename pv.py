@@ -187,7 +187,7 @@ class Pv:
             self.__module3.measure()
             power_all = self.__all.measure()
             self.power_downstream = 0 if power_all <0 else power_all
-            self.__pv_power_smoothen_recorder.put(power_all)
+            self.__pv_power_smoothen_recorder.put(self.power_downstream)
             return True
         except Exception as e:
             return False
