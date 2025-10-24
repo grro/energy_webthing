@@ -291,6 +291,6 @@ class ProviderThing(Thing):
         self.provider_power_downstream_15s.notify_of_external_update(self.provider.provider_power_downstream_15s)
         self.provider_power_downstream_1m.notify_of_external_update(self.provider.provider_power_downstream_1m)
         self.provider_power_upstream.notify_of_external_update(self.provider.provider_power_upstream)
-        self.provider_power_upstream_power_5s.notify_of_external_update(self.provider.provider_power_upstream_5s)
+        self.provider_power_upstream_5s.notify_of_external_update(self.provider.provider_power_upstream_5s)
         self.provider_power_upstream_15s.notify_of_external_update(self.provider.provider_power_upstream_15s)
         self.provider_power_upstream_1m.notify_of_external_update(self.provider.provider_power_upstream_1m)
