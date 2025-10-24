@@ -56,12 +56,6 @@ class EnergyMCPServer(MCPServer):
         def get_pv_power_downstream_15s() -> int:
             return energy.pv.power_downstream_15s
 
-        @self.mcp.resource("resource:/pv_downstream_1m", description="Current downstream pv power (smoothen 1 min)")
-        def get_pv_power_downstream_1m() -> int:
-            return energy.pv.power_downstream_1m
-
-
-
         @self.mcp.resource("resource://battery_power_downstream", description="Current downstream battery power")
         def get_battery_power_downstream() -> int:
             return energy.battery.power_downstream
@@ -73,10 +67,6 @@ class EnergyMCPServer(MCPServer):
         @self.mcp.resource("resource://battery_power_downstream_smoothen_15s", description="Current downstream battery power (smoothen 15 sec)")
         def get_battery_power_downstream_smoothen_15s() -> int:
             return energy.battery.power_downstream_15s
-
-        @self.mcp.resource("resource://battery_power_downstream_smoothen_1m", description="Current downstream battery power (smoothen 1 min)")
-        def get_battery_power_downstream_smoothen_1m() -> int:
-            return energy.battery.power_downstream_1m
 
         @self.mcp.resource("resource://battery_power_upstream", description="Current upstream battery power")
         def get_battery_power_upstream() -> int:
@@ -90,10 +80,6 @@ class EnergyMCPServer(MCPServer):
         def get_battery_power_upstream_smoothen_15s() -> int:
             return energy.battery.power_upstream_15s
 
-        @self.mcp.resource("resource://battery_power_upstream_smoothen_1m", description="Current upstream battery power (smoothen 1 min)")
-        def get_battery_power_upstream_smoothen_1m() -> int:
-            return energy.battery.power_upstream_1m
-
         @self.mcp.resource("resource://power_consumption", description="Current power consumption")
         def get_power_consumption() -> int:
             return energy.power_consumption
@@ -106,10 +92,6 @@ class EnergyMCPServer(MCPServer):
         def get_power_consumption_15s() -> int:
             return energy.power_consumption_15s
 
-        @self.mcp.resource("resource://power_consumption_1m", description="Current power consumption (smoothen 1 min)")
-        def get_power_consumption_1m() -> int:
-            return energy.power_consumption_1m
-
         @self.mcp.resource("resource://power_surplus", description="Current power surplus")
         def get_power_surplus() -> int:
             return energy.power_surplus
@@ -121,10 +103,6 @@ class EnergyMCPServer(MCPServer):
         @self.mcp.resource("resource://power_surplus_15s", description="Current power surplus (smoothen 15 sec)")
         def get_power_surplus_15s() -> int:
             return energy.power_surplus_15s
-
-        @self.mcp.resource("resource://power_surplus_1m", description="Current power surplus (smoothen 1 min)")
-        def get_power_surplus_1m() -> int:
-            return energy.power_surplus_1m
 
 
 # npx @modelcontextprotocol/inspector

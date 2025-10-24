@@ -23,10 +23,6 @@ class Module:
     def power_15s(self) -> int:
         return self.__pv_power_smoothen_recorder.watt_per_hour(second_range=15)
 
-    @property
-    def power_1m(self) -> int:
-        return self.__pv_power_smoothen_recorder.watt_per_hour(minute_range=1)
-
     def measure(self) -> int:
         try:
             power = self.__shelly.measure().total
@@ -63,10 +59,6 @@ class Pv:
         return self.__pv_power_smoothen_recorder.watt_per_hour(second_range=15)
 
     @property
-    def power_downstream_1m(self) -> int:
-        return self.__pv_power_smoothen_recorder.watt_per_hour(minute_range=1)
-
-    @property
     def power_downstream_module1(self) -> int:
         return self.__module1.power
 
@@ -77,10 +69,6 @@ class Pv:
     @property
     def power_downstream_module1_15s(self) -> int:
         return self.__module1.power_15s
-
-    @property
-    def power_downstream_module1_1m(self) -> int:
-        return self.__module1.power_1m
 
     @property
     def power_downstream_module2(self) -> int:
@@ -95,10 +83,6 @@ class Pv:
         return self.__module2.power_15s
 
     @property
-    def power_downstream_module2_1m(self) -> int:
-        return self.__module2.power_1m
-
-    @property
     def power_downstream_module3(self) -> int:
         return self.__module3.power
 
@@ -111,10 +95,6 @@ class Pv:
         return self.__module3.power_15s
 
     @property
-    def power_downstream_module3_1m(self) -> int:
-        return self.__module3.power_1m
-
-    @property
     def power_downstream_module4(self) -> int:
         return self.__module4.power
 
@@ -125,10 +105,6 @@ class Pv:
     @property
     def power_downstream_module4_15s(self) -> int:
         return self.__module4.power_15s
-
-    @property
-    def power_downstream_module4_1m(self) -> int:
-        return self.__module4.power_1m
 
     def add_listener(self,listener):
         self.__listeners.add(listener)
@@ -387,19 +363,6 @@ class PvThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.power_downstream_module3_1m = Value(pv.power_downstream_module3_1m)
-        self.add_property(
-            Property(self,
-                     'module3_power_downstream_1m',
-                     self.power_downstream_module3_1m,
-                     metadata={
-                         'title': 'module3 power downstream 1m',
-                         "type": "integer",
-                         'unit': 'watt',
-                         'description': 'the power of the module 3 (smoothen 1 min)',
-                         'readOnly': True,
-                     }))
-
         self.power_downstream_module4 = Value(pv.power_downstream_module4)
         self.add_property(
             Property(self,
@@ -439,42 +402,42 @@ class PvThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.power_downstream_module4_1m = Value(pv.power_downstream_module4_1m)
+        self.power_downstream_module4_15s = Value(pv.power_downstream_module4_15s)
         self.add_property(
             Property(self,
-                     'module4_power_downstream_1m',
-                     self.power_downstream_module4_1m,
+                     'module4_power_downstream_15s',
+                     self.power_downstream_module4_15s,
                      metadata={
-                         'title': 'module4 power downstream 1m',
+                         'title': 'module4 power downstream 15 sec',
                          "type": "integer",
                          'unit': 'watt',
-                         'description': 'the power of the module 4 (smoothen 1 min)',
+                         'description': 'the power of the module 4 (smoothen 15 sec)',
                          'readOnly': True,
                      }))
 
-        self.power_downstream_module1u2_1m = Value(pv.power_downstream_module1_1m + pv.power_downstream_module2_1m)
+        self.power_downstream_module1u2_15s = Value(pv.power_downstream_module1_15s + pv.power_downstream_module2_15s)
         self.add_property(
             Property(self,
-                     'module1u2_power_downstream_1m',
-                     self.power_downstream_module1u2_1m,
+                     'module1u2_power_downstream_15s',
+                     self.power_downstream_module1u2_15s,
                      metadata={
-                         'title': 'module1 + module2 power downstream 1min',
+                         'title': 'module1 + module2 power downstream 15 sec',
                          "type": "integer",
                          'unit': 'watt',
-                         'description': 'the current power of the module1 + module2 (smoothen 1 min)',
+                         'description': 'the current power of the module1 + module2 (smoothen 15 sec)',
                          'readOnly': True,
                      }))
 
-        self.power_downstream_module1u2u3_1m = Value(pv.power_downstream_module1_1m + pv.power_downstream_module2_1m + pv.power_downstream_module3_1m )
+        self.power_downstream_module1u2u3_15s = Value(pv.power_downstream_module1_15s + pv.power_downstream_module2_15s + pv.power_downstream_module3_15s)
         self.add_property(
             Property(self,
-                     'module1u2u3_power_downstream_1m',
-                     self.power_downstream_module1u2u3_1m,
+                     'module1u2u3_power_downstream_15s',
+                     self.power_downstream_module1u2u3_15s,
                      metadata={
-                         'title': 'module1 + module2 + module3 power downstream 1 min',
+                         'title': 'module1 + module2 + module3 power downstream 15 sec',
                          "type": "integer",
                          'unit': 'watt',
-                         'description': 'the current power of the module1 + module2 + module3 (smoothen 1 min)',
+                         'description': 'the current power of the module1 + module2 + module3 (smoothen 15 sec)',
                          'readOnly': True,
                      }))
 
@@ -487,27 +450,22 @@ class PvThing(Thing):
         self.power_downstream.notify_of_external_update(self.pv.power_downstream)
         self.power_downstream_5s.notify_of_external_update(self.pv.power_downstream_5s)
         self.power_downstream_15s.notify_of_external_update(self.pv.power_downstream_15s)
-        self.power_downstream_1m.notify_of_external_update(self.pv.power_downstream_1m)
 
         self.power_downstream_module1.notify_of_external_update(self.pv.power_downstream_module1)
         self.power_downstream_module1_5s.notify_of_external_update(self.pv.power_downstream_module1_5s)
         self.power_downstream_module1_15s.notify_of_external_update(self.pv.power_downstream_module1_15s)
-        self.power_downstream_module1_1m.notify_of_external_update(self.pv.power_downstream_module1_1m)
 
         self.power_downstream_module2.notify_of_external_update(self.pv.power_downstream_module2)
         self.power_downstream_module2_5s.notify_of_external_update(self.pv.power_downstream_module2_5s)
         self.power_downstream_module2_15s.notify_of_external_update(self.pv.power_downstream_module2_15s)
-        self.power_downstream_module2_1m.notify_of_external_update(self.pv.power_downstream_module2_1m)
 
         self.power_downstream_module3.notify_of_external_update(self.pv.power_downstream_module3)
         self.power_downstream_module3_5s.notify_of_external_update(self.pv.power_downstream_module3_5s)
         self.power_downstream_module3_15s.notify_of_external_update(self.pv.power_downstream_module3_15s)
-        self.power_downstream_module3_1m.notify_of_external_update(self.pv.power_downstream_module3_1m)
 
         self.power_downstream_module4.notify_of_external_update(self.pv.power_downstream_module4)
         self.power_downstream_module4_5s.notify_of_external_update(self.pv.power_downstream_module4_5s)
         self.power_downstream_module4_15s.notify_of_external_update(self.pv.power_downstream_module4_15s)
-        self.power_downstream_module4_1m.notify_of_external_update(self.pv.power_downstream_module4_1m)
 
-        self.power_downstream_module1u2_1m.notify_of_external_update(self.pv.power_downstream_module1_1m + self.pv.power_downstream_module2_1m)
-        self.power_downstream_module1u2u3_1m.notify_of_external_update(self.pv.power_downstream_module1_1m + self.pv.power_downstream_module2_1m + self.pv.power_downstream_module3_1m)
+        self.power_downstream_module1u2_15s.notify_of_external_update(self.pv.power_downstream_module1_15s + self.pv.power_downstream_module2_15s)
+        self.power_downstream_module1u2u3_15s.notify_of_external_update(self.pv.power_downstream_module1_15s + self.pv.power_downstream_module2_15s + self.pv.power_downstream_module3_15s)
