@@ -1,11 +1,13 @@
 import sys
 import logging
+from time import sleep
+
 from webthing import (MultipleThings,  WebThingServer)
 from provider import Provider, ProviderThing
 from pv import Pv, PvThing
 from battery import Battery, BatteryThing
 from energy import Energy, EnergyThing
-
+from energy_mcp import EnergyMCPServer
 
 
 def run_server(port: int,
@@ -19,19 +21,25 @@ def run_server(port: int,
     pv = Pv(pv_module1, pv_module2, pv_module3, pv_module4)
     battery = Battery()
     energy = Energy(provider, pv, battery)
+
+    mcp_server = EnergyMCPServer(port+1, energy)
     server = WebThingServer(MultipleThings([ProviderThing(provider), PvThing(pv), BatteryThing(battery), EnergyThing(energy)], "energy"), port=port, disable_host_validation=True)
+
     try:
         logging.info('starting the server http://localhost:' + str(port) + " (provider meter=" + meter_addr_provider + ")")
         provider.start()
         pv.start()
         battery.start()
+        mcp_server.start()
         server.start()
+        sleep(5555)
     except KeyboardInterrupt:
         logging.info('stopping the server')
         provider.stop()
         pv.stop()
-        server.stop()
         battery.stop()
+        mcp_server.stop()
+        server.stop()
         logging.info('done')
 
 
