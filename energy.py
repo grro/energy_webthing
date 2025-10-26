@@ -9,7 +9,7 @@ from battery import Battery
 class Energy:
 
     def __init__(self, provider: Provider, pv: Pv, battery: Battery):
-        self.__listener = lambda: None    # "empty" listener
+        self.__listeners = set()
         self.provider = provider
         self.pv = pv
         self.battery = battery
@@ -58,10 +58,10 @@ class Energy:
         return self.provider.provider_power_upstream_5m + self.battery.power_upstream_5m
 
     def __on_update(self):
-        self.__listener()
+        [listener() for listener in self.__listeners]
 
-    def set_listener(self,listener):
-        self.__listener = listener
+    def add_listener(self, listener):
+        self.__listeners.add(listener)
 
 
 
@@ -80,7 +80,7 @@ class EnergyThing(Thing):
         )
         self.ioloop = tornado.ioloop.IOLoop.current()
         self.energy = energy
-        self.energy.set_listener(self.on_value_changed)
+        self.energy.add_listener(self.on_value_changed)
 
         self.power_surplus = Value(energy.power_surplus)
         self.add_property(
