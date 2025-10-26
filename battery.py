@@ -25,18 +25,18 @@ class Power:
         try:
             hour_now = datetime.now().hour
 
-            loading_counter_now = self.__loading_counter_by_hour[hour_now]
+            loading_counter_now = self.__loading_counter_by_hour.get(hour_now, 0)
             loading_counter_4am =  self.__loading_counter_by_hour.get(4, loading_counter_now)
             loading_counter_current_day = loading_counter_now - loading_counter_4am
 
-            unloading_counter_now = self.__unloading_counter_by_hour[hour_now]
+            unloading_counter_now = self.__unloading_counter_by_hour.get(hour_now, 0)
             unloading_counter_4am =  self.__unloading_counter_by_hour.get(4, unloading_counter_now)
             unloading_counter_current_day = unloading_counter_now - unloading_counter_4am
 
             energy_current_day = loading_counter_current_day - unloading_counter_current_day
             return 0 if energy_current_day < 0 else energy_current_day
         except Exception as e:
-            logging.info(str(e))
+            logging.warning(str(e))
             return -1
 
 
