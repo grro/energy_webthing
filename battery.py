@@ -26,12 +26,12 @@ class Power:
             hour_now = datetime.now().hour
 
             loading_counter_now = self.__loading_counter_by_hour[hour_now]
-            loading_counter_3am =  self.__loading_counter_by_hour.get(3, loading_counter_now)
-            loading_counter_day = loading_counter_now - loading_counter_3am
+            loading_counter_4am =  self.__loading_counter_by_hour.get(4, loading_counter_now)
+            loading_counter_day = loading_counter_now - loading_counter_4am
 
             unloading_counter_now = self.__unloading_counter_by_hour[hour_now]
-            unloading_counter_3am =  self.__unloading_counter_by_hour.get(3, unloading_counter_now)
-            unloading_counter_day = unloading_counter_now - unloading_counter_3am
+            unloading_counter_4am =  self.__unloading_counter_by_hour.get(4, unloading_counter_now)
+            unloading_counter_day = unloading_counter_now - unloading_counter_4am
 
             energy = loading_counter_day - unloading_counter_day
             return 0 if energy < 0 else energy
@@ -115,8 +115,7 @@ class Battery:
         while self.__is_running:
             try:
                 self.__measure()
-                for listener in self.__listeners:
-                    listener()
+                [listener() for listener in self.__listeners]
                 sleep(1.03)
             except Exception as e:
                 logging.warning("error occurred on refresh " + str(e))

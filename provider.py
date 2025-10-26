@@ -85,8 +85,7 @@ class Provider:
         while self.__is_running:
             try:
                 self.__measure()
-                for listener in self.__listeners:
-                    listener()
+                [listener() for listener in self.__listeners]
                 sleep(1.03)
             except Exception as e:
                 logging.warning("error occurred on refresh " + str(e))
