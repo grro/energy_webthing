@@ -27,14 +27,14 @@ class Power:
 
             loading_counter_now = self.__loading_counter_by_hour[hour_now]
             loading_counter_4am =  self.__loading_counter_by_hour.get(4, loading_counter_now)
-            loading_counter_day = loading_counter_now - loading_counter_4am
+            loading_counter_current_day = loading_counter_now - loading_counter_4am
 
             unloading_counter_now = self.__unloading_counter_by_hour[hour_now]
             unloading_counter_4am =  self.__unloading_counter_by_hour.get(4, unloading_counter_now)
-            unloading_counter_day = unloading_counter_now - unloading_counter_4am
+            unloading_counter_current_day = unloading_counter_now - unloading_counter_4am
 
-            energy = loading_counter_day - unloading_counter_day
-            return 0 if energy < 0 else energy
+            energy_current_day = loading_counter_current_day - unloading_counter_current_day
+            return 0 if energy_current_day < 0 else energy_current_day
         except Exception as e:
             logging.info(str(e))
             return -1
@@ -316,6 +316,7 @@ class BatteryThing(Thing):
         self.power_downstream_5m.notify_of_external_update(self.battery.power_downstream_5m)
 
         self.energy_wh.notify_of_external_update(self.battery.energy_wh)
+
 
 '''
 b = Battery("http://10.1.33.94")
