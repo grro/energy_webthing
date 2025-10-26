@@ -22,19 +22,22 @@ class Power:
 
     @property
     def energy_wh(self) -> int:
-        hour_now = datetime.now().hour
+        try:
+            hour_now = datetime.now().hour
 
-        loading_counter_now = self.__loading_counter_by_hour[hour_now]
-        loading_counter_3am =  self.__loading_counter_by_hour.get(3, loading_counter_now)
-        loading_counter_day = loading_counter_now - loading_counter_3am
+            loading_counter_now = self.__loading_counter_by_hour[hour_now]
+            loading_counter_3am =  self.__loading_counter_by_hour.get(3, loading_counter_now)
+            loading_counter_day = loading_counter_now - loading_counter_3am
 
-        unloading_counter_now = self.__unloading_counter_by_hour[hour_now]
-        unloading_counter_3am =  self.__unloading_counter_by_hour.get(3, unloading_counter_now)
-        unloading_counter_day = unloading_counter_now - unloading_counter_3am
+            unloading_counter_now = self.__unloading_counter_by_hour[hour_now]
+            unloading_counter_3am =  self.__unloading_counter_by_hour.get(3, unloading_counter_now)
+            unloading_counter_day = unloading_counter_now - unloading_counter_3am
 
-        energy = loading_counter_day - unloading_counter_day
-        return 0 if energy < 0 else energy
-
+            energy = loading_counter_day - unloading_counter_day
+            return 0 if energy < 0 else energy
+        except Exception as e:
+            logging.info(str(e))
+            return -1
 
 
 
@@ -314,7 +317,6 @@ class BatteryThing(Thing):
         self.power_downstream_5m.notify_of_external_update(self.battery.power_downstream_5m)
 
         self.energy_wh.notify_of_external_update(self.battery.energy_wh)
-
 
 '''
 b = Battery("http://10.1.33.94")
