@@ -12,6 +12,8 @@ class Measure:
     channel_a: Optional[int] = None
     channel_b: Optional[int] = None
     channel_c: Optional[int] = None
+    energy_total: Optional[int] = None
+    ret_energy_total: Optional[int] = None
 
 
 @dataclass(frozen=True)
@@ -177,7 +179,9 @@ class ShellyPmMini(Meter):
                 try:
                     data = resp.json()
                     power = round(data['pm1:0']['apower'])
-                    return Measure(power, power)
+                    energy = round(data['pm1:0']['aenergy']['total'])
+                    ret_energy = round(data['pm1:0']['ret_aenergy']['total'])
+                    return Measure(power, power, None, None, energy, ret_energy)
                 except Exception as e:
                     ex =  Exception("ShellyPmMini called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
@@ -275,6 +279,9 @@ class ShellyMeter(Meter):
             self.device = None
             raise e
 
+    def rest_counter(self):
+        pass
+
     @staticmethod
     def auto_select(addr: str) -> Optional[Meter]:
         try:
@@ -325,3 +332,6 @@ class ShellyMeter(Meter):
 
 
 
+#s = ShellyMeter.auto_select("http://10.1.33.54")
+#m=  s.measure()
+#print(m)

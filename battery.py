@@ -2,58 +2,101 @@ import tornado.ioloop
 import logging
 from threading import Thread
 from time import sleep
+from datetime import datetime
+from utils import WattRecorder
+from shelly import ShellyMeter
 from webthing import (Property, Thing, Value)
+
+
+
+class Power:
+
+    def __init__(self):
+        self.__unloading_counter_by_hour = {}
+        self.__loading_counter_by_hour = {}
+
+    def add(self, counter_loading: int, counter_unloading: int):
+        hour = datetime.now().hour
+        self.__unloading_counter_by_hour[hour] = counter_unloading
+        self.__loading_counter_by_hour[hour] = counter_loading
+
+    @property
+    def energy_wh(self) -> int:
+        hour_now = datetime.now().hour
+
+        loading_counter_now = self.__loading_counter_by_hour[hour_now]
+        loading_counter_3am =  self.__loading_counter_by_hour.get(3, loading_counter_now)
+        loading_counter_day = loading_counter_now - loading_counter_3am
+
+        unloading_counter_now = self.__unloading_counter_by_hour[hour_now]
+        unloading_counter_3am =  self.__unloading_counter_by_hour.get(3, unloading_counter_now)
+        unloading_counter_day = unloading_counter_now - unloading_counter_3am
+
+        energy = loading_counter_day - unloading_counter_day
+        return 0 if energy < 0 else energy
+
+
 
 
 
 class Battery:
 
-    def __init__(self):
+    def __init__(self, addr: str):
         self.__listeners = set()
         self.__is_running = True
+        self.__meter = ShellyMeter.auto_select(addr)
+        self.__power_unloading = 0
+        self.__power_loading= 0
+        self.__power_unloading_smoothen_recorder = WattRecorder()
+        self.__power_loading_smoothen_recorder = WattRecorder()
+        self.__power = Power()
 
     def add_listener(self,listener):
         self.__listeners.add(listener)
 
     @property
+    def energy_wh(self) -> int:
+        return self.__power.energy_wh
+
+    @property
     def power_upstream(self) -> int:
-        return 0
+        return self.__power_loading
 
     @property
     def power_upstream_5s(self) -> int:
-        return 0
+        return self.__power_loading_smoothen_recorder.watt_per_hour(second_range=5)
 
     @property
     def power_upstream_15s(self) -> int:
-        return 0
+        return self.__power_loading_smoothen_recorder.watt_per_hour(second_range=15)
 
     @property
     def power_upstream_1m(self) -> int:
-        return 0
+        return self.__power_loading_smoothen_recorder.watt_per_hour(minute_range=1)
 
     @property
     def power_upstream_5m(self) -> int:
-        return 0
+        return self.__power_loading_smoothen_recorder.watt_per_hour(minute_range=5)
 
     @property
     def power_downstream(self) -> int:
-        return 0
+        return self.__power_unloading_smoothen_recorder.watt_per_hour(second_range=1)
 
     @property
     def power_downstream_5s(self) -> int:
-        return 0
+        return self.__power_unloading_smoothen_recorder.watt_per_hour(second_range=5)
 
     @property
     def power_downstream_15s(self) -> int:
-        return 0
+        return self.__power_unloading_smoothen_recorder.watt_per_hour(second_range=15)
 
     @property
     def power_downstream_1m(self) -> int:
-        return 0
+        return self.__power_unloading_smoothen_recorder.watt_per_hour(minute_range=1)
 
     @property
     def power_downstream_5m(self) -> int:
-        return 0
+        return self.__power_unloading_smoothen_recorder.watt_per_hour(minute_range=5)
 
     def __on_update(self):
         for listener in self.__listeners:
@@ -68,13 +111,27 @@ class Battery:
     def __measure_loop(self):
         while self.__is_running:
             try:
-                #self.__measure()
+                self.__measure()
                 for listener in self.__listeners:
                     listener()
                 sleep(1.03)
             except Exception as e:
                 logging.warning("error occurred on refresh " + str(e))
                 sleep(3)
+
+    def __measure(self):
+        try:
+            m = self.__meter.measure()
+            power = m.total
+            self.__power_loading = 0 if power < 0 else power            #  battery consumes power
+            self.__power_unloading = 0 if power > 0 else (power*-1)
+            self.__power_loading_smoothen_recorder.put(self.__power_loading)
+            self.__power_unloading_smoothen_recorder.put(self.__power_unloading)
+            self.__power.add(m.energy_total, m.ret_energy_total)
+            return True
+        except Exception as e:
+            return False
+
 
 
 class BatteryThing(Thing):
@@ -226,6 +283,20 @@ class BatteryThing(Thing):
                      }))
 
 
+        self.energy_wh = Value(battery.energy_wh)
+        self.add_property(
+            Property(self,
+                     'energy_wh',
+                     self.energy_wh,
+                     metadata={
+                         'title': 'energy',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the battery power (watt per hour)',
+                         'readOnly': True,
+                     }))
+
+
     def on_value_changed(self):
         self.ioloop.add_callback(self._on_value_changed)
 
@@ -242,4 +313,15 @@ class BatteryThing(Thing):
         self.power_downstream_1m.notify_of_external_update(self.battery.power_downstream_1m)
         self.power_downstream_5m.notify_of_external_update(self.battery.power_downstream_5m)
 
+        self.energy_wh.notify_of_external_update(self.battery.energy_wh)
 
+
+'''
+b = Battery("http://10.1.33.94")
+b.start()
+sleep(2)
+
+while True:
+    print("energy " + str(b.energy_wh))
+    sleep(5)
+'''
