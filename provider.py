@@ -130,7 +130,7 @@ class ProviderThing(Thing):
         self.provider.add_listener(self.on_value_changed)
 
 
-        self.provider_power = Value(provider.power)
+        self.provider_power = Value(provider.provider_power)
         self.add_property(
             Property(self,
                      'power',
