@@ -345,7 +345,7 @@ class ProviderThing(Thing):
         self.ioloop.add_callback(self._on_value_changed)
 
     def _on_value_changed(self):
-        self.provider_power.notify_of_external_update(self.provider.power)
+        self.provider_power.notify_of_external_update(self.provider.provider_power)
         self.provider_power_5s.notify_of_external_update(self.provider.provider_power_5s)
         self.provider_power_15s.notify_of_external_update(self.provider.provider_power_15s)
         self.provider_power_1m.notify_of_external_update(self.provider.provider_power_1m)
