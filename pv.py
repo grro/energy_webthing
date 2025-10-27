@@ -197,7 +197,7 @@ class Pv:
         while self.__is_running:
             try:
                 print(self.__info())
-                sleep(60 * 60) # each hour
+                sleep(30 * 60) # each hour
             except Exception as e:
                 logging.warning("error occurred on info " + str(e))
                 sleep(3)
