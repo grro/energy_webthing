@@ -77,6 +77,7 @@ class Provider:
 
     def start(self):
         Thread(target=self.__measure_loop, daemon=True).start()
+        Thread(target=self.__info_loop, daemon=True).start()
 
     def stop(self):
         self.__is_running = False
@@ -107,6 +108,20 @@ class Provider:
             return True
         except Exception as e:
             return False
+
+    def __info_loop(self):
+        sleep(5 * 60)
+        while self.__is_running:
+            try:
+                logging.info(self.__info())
+                sleep(30 * 60) # each hour
+            except Exception as e:
+                logging.warning("error occurred on info " + str(e))
+                sleep(3)
+
+    def __info(self) -> str:
+        return "(1m smoothen) Provider " + str(int(self.provider_power_1m)) + "W"
+
 
 
 

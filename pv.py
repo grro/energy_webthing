@@ -203,7 +203,7 @@ class Pv:
                 sleep(3)
 
     def __info(self) -> str:
-        return "(1m smoothen) downstream all " + str(int(self.power_downstream_1m)) + "W" + \
+        return "(1m smoothen) PV downstream all: " + str(int(self.power_downstream_1m)) + "W" + \
                 " (module1: " + str(int(self.power_downstream_module1_1m)) + "W," + \
                 " module2: " + str(int(self.power_downstream_module2_1m)) + "W," + \
                 " module3: " + str(int(self.power_downstream_module3_1m)) + "W," + \
