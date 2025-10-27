@@ -2,6 +2,7 @@ import tornado.ioloop
 import logging
 from threading import Thread
 from time import sleep
+from datetime import datetime
 from webthing import (Property, Thing, Value)
 from shelly import ShellyMeter
 from utils import WattRecorder
@@ -31,10 +32,10 @@ class Module:
     def power_5m(self) -> int:
         return self.__pv_power_smoothen_recorder.watt_per_hour(minute_range=5)
 
-
     def measure(self) -> int:
         try:
             power = self.__shelly.measure().total
+            power = 0 if power < 0 else power
             self.power = power
             self.__pv_power_smoothen_recorder.put(power)
             return power
@@ -54,7 +55,6 @@ class Pv:
 
         self.power_downstream = 0
         self.__pv_power_smoothen_recorder = WattRecorder()
-
 
     def addd_listener(self,listener):
         self.__listeners.add(listener)
@@ -137,27 +137,27 @@ class Pv:
 
     @property
     def power_downstream_module4(self) -> int:
-        power4 = self.power_downstream - self.power_downstream_module1 - self.power_downstream_module2 - self.power_downstream_module3
+        power4 = self.power_downstream - (self.power_downstream_module1 + self.power_downstream_module2 + self.power_downstream_module3)
         return 0 if power4 <0 else power4
 
     @property
     def power_downstream_module4_5s(self) -> int:
-        power4 = self.power_downstream_5s - self.power_downstream_module1_5s - self.power_downstream_module2_5s - self.power_downstream_module3_5s
+        power4 = self.power_downstream_5s - (self.power_downstream_module1_5s + self.power_downstream_module2_5s + self.power_downstream_module3_5s)
         return 0 if power4 <0 else power4
 
     @property
     def power_downstream_module4_15s(self) -> int:
-        power4 = self.power_downstream_15s - self.power_downstream_module1_15s - self.power_downstream_module2_15s - self.power_downstream_module3_15s
+        power4 = self.power_downstream_15s - (self.power_downstream_module1_15s + self.power_downstream_module2_15s + self.power_downstream_module3_15s)
         return 0 if power4 <0 else power4
 
     @property
     def power_downstream_module4_1m(self) -> int:
-        power4 = self.power_downstream_1m - self.power_downstream_module1_1m - self.power_downstream_module2_1m - self.power_downstream_module3_1m
+        power4 = self.power_downstream_1m - (self.power_downstream_module1_1m + self.power_downstream_module2_1m + self.power_downstream_module3_1m)
         return 0 if power4 <0 else power4
 
     @property
     def power_downstream_module4_5m(self) -> int:
-        power4 = self.power_downstream_5m - self.power_downstream_module1_5m - self.power_downstream_module2_5m - self.power_downstream_module3_5m
+        power4 = self.power_downstream_5m - (self.power_downstream_module1_5m + self.power_downstream_module2_5m + self.power_downstream_module3_5m)
         return 0 if power4 <0 else power4
 
     def add_listener(self,listener):
@@ -165,6 +165,7 @@ class Pv:
 
     def start(self):
         Thread(target=self.__measure_loop, daemon=True).start()
+        Thread(target=self.__info_loop, daemon=True).start()
 
     def stop(self):
         self.__is_running = False
@@ -190,6 +191,23 @@ class Pv:
             return True
         except Exception as e:
             return False
+
+    def __info_loop(self):
+        sleep(3 * 60)
+        while self.__is_running:
+            try:
+                print(self.__info())
+                sleep(60 * 60) # each hour
+            except Exception as e:
+                logging.warning("error occurred on info " + str(e))
+                sleep(3)
+
+    def __info(self) -> str:
+        return (datetime.now().strftime('%H:%M') + " -  all " + str(int(self.power_downstream_1m)) + "W" +
+                " (module1: " + str(int(self.power_downstream_module1_1m)) + "W," +
+                " module2: " + str(int(self.power_downstream_module2_1m)) + "W," +
+                " module3: " + str(int(self.power_downstream_module3_1m)) + "W," +
+                " module4: " + str(int(self.power_downstream_module4_1m)) + "W)")
 
 
 
