@@ -19,23 +19,23 @@ class Energy:
 
     @property
     def power_consumption(self) -> int:
-        return self.provider.provider_power_downstream + self.pv.power_downstream + self.battery.power_downstream
+        return self.provider.provider_power + self.pv.power_downstream + self.battery.power_downstream
 
     @property
     def power_consumption_5s(self) -> int:
-        return self.provider.provider_power_downstream_5s + self.pv.power_downstream_5s + self.battery.power_downstream_5s
+        return self.provider.provider_power_5s + self.pv.power_downstream_5s + self.battery.power_downstream_5s
 
     @property
     def power_consumption_15s(self) -> int:
-        return self.provider.provider_power_downstream_15s + self.pv.power_downstream_15s + self.battery.power_downstream_15s
+        return self.provider.provider_power_upstream_5s + self.pv.power_downstream_15s + self.battery.power_downstream_15s
 
     @property
     def power_consumption_1m(self) -> int:
-        return self.provider.provider_power_downstream_1m + self.pv.power_downstream_1m + self.battery.power_downstream_1m
+        return self.provider.provider_power_1m - self.provider.provider_power_downstream_1m + self.pv.power_downstream_1m + self.battery.power_downstream_1m
 
     @property
     def power_consumption_5m(self) -> int:
-        return self.provider.provider_power_downstream_5m + self.pv.power_downstream_5m + self.battery.power_downstream_5m
+        return self.provider.provider_power_5m - self.provider.provider_power_downstream_5m + self.pv.power_downstream_5m + self.battery.power_downstream_5m
 
     @property
     def power_surplus(self) -> int:

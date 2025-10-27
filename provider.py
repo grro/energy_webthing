@@ -16,7 +16,7 @@ class Provider:
 
         self.__provider_shelly = ShellyMeter(meter_addr_provider)
         self.name = self.__provider_shelly.info().name
-        self.power = 0
+        self.provider_power = 0
         self.provider_power_downstream = 0
         self.provider_power_upstream = 0
 
@@ -97,7 +97,7 @@ class Provider:
             downstream_power = 0 if power < 0 else power
             upstream_power = 0 if power > 0 else (power*-1)
 
-            self.power = power
+            self.provider_power = power
             self.provider_power_downstream = downstream_power
             self.provider_power_upstream = upstream_power
 
