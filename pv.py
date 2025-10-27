@@ -196,18 +196,18 @@ class Pv:
         sleep(3 * 60)
         while self.__is_running:
             try:
-                print(self.__info())
+                logging.info(self.__info())
                 sleep(30 * 60) # each hour
             except Exception as e:
                 logging.warning("error occurred on info " + str(e))
                 sleep(3)
 
     def __info(self) -> str:
-        return (datetime.now().strftime('%H:%M') + " -  all " + str(int(self.power_downstream_1m)) + "W" +
-                " (module1: " + str(int(self.power_downstream_module1_1m)) + "W," +
-                " module2: " + str(int(self.power_downstream_module2_1m)) + "W," +
-                " module3: " + str(int(self.power_downstream_module3_1m)) + "W," +
-                " module4: " + str(int(self.power_downstream_module4_1m)) + "W)")
+        return "(1m smoothen) downstream all " + str(int(self.power_downstream_1m)) + "W" + \
+                " (module1: " + str(int(self.power_downstream_module1_1m)) + "W," + \
+                " module2: " + str(int(self.power_downstream_module2_1m)) + "W," + \
+                " module3: " + str(int(self.power_downstream_module3_1m)) + "W," + \
+                " module4: " + str(int(self.power_downstream_module4_1m)) + "W)"
 
 
 
