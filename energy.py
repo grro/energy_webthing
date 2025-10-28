@@ -25,7 +25,7 @@ class Energy:
         self.pv.add_listener(self.__on_update)
         self.battery.add_listener(self.__on_update)
         self.__power_per_hour = {}
-        self.__surplus_daily_peeks = SimpleDB("pv_daily_peek", sync_period_sec=60, directory=directory)
+        self.__surplus_daily_peeks = SimpleDB("surplus_daily_peek", sync_period_sec=60, directory=directory)
 
 
     @property
@@ -105,8 +105,6 @@ class Energy:
     def __day_peek_loop(self):
         while self.__is_running:
             try:
-                self.__power_per_hour.get(datetime.now().hour, self.power_surplus_60m)
-            except Exception as e:
                 logging.warning("error occurred on printing peek values " + str(e))
             sleep(5)
 
