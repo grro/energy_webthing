@@ -381,9 +381,3 @@ class ProviderThing(Thing):
         self.provider_power_upstream_1m.notify_of_external_update(self.provider.provider_power_upstream_1m)
         self.provider_power_upstream_5m.notify_of_external_update(self.provider.provider_power_upstream_5m)
 
-'''
-p = Provider("http://10.1.33.54")
-p.start()
-
-sleep(444)
-'''

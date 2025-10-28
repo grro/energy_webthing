@@ -148,7 +148,7 @@ class Battery:
         try:
             m = self.__meter.measure()
             power = m.total
-            if -3 < power < 3:
+            if -3 < power < 3:  # ignore low values
                 power = 0
             self.__power = power                                          # battery -> energy source
             self.__power_unloading = 0 if power < 0 else power            #  positive power -> battery unloads
