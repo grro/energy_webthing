@@ -96,17 +96,24 @@ class Energy:
         self.__listeners.add(listener)
 
     def start(self):
+        Thread(target=self.__day_peek_loop, daemon=True).start()
         Thread(target=self.__peek_loop, daemon=True).start()
 
     def stop(self):
         self.__is_running = False
 
-    def __peek_loop(self):
+    def __day_peek_loop(self):
         while self.__is_running:
             try:
                 self.__power_per_hour.get(datetime.now().hour, self.power_surplus_60m)
+            except Exception as e:
+                logging.warning("error occurred on printing peek values " + str(e))
+            sleep(5)
 
-                if datetime.now().hour == 23:
+    def __peek_loop(self):
+        while self.__is_running:
+            try:
+                if datetime.now().hour >= 22:
                     peek_hour = 0
                     peek_value = 0
                     for hour in range(0, 23):
@@ -116,8 +123,7 @@ class Energy:
                     self.__surplus_daily_peeks.put(datetime.now(UTC).strftime("%Y-%m-%d"), peek_hour, ttl_sec=30*24*60*60)
             except Exception as e:
                 logging.warning("error occurred on printing peek values " + str(e))
-            sleep(5)
-
+            sleep(30)
 
 
 class EnergyThing(Thing):
@@ -292,6 +298,7 @@ class EnergyThing(Thing):
         self.power_surplus_15s.notify_of_external_update(self.energy.power_surplus_15s)
         self.power_surplus_1m.notify_of_external_update(self.energy.power_surplus_1m)
         self.power_surplus_5m.notify_of_external_update(self.energy.power_surplus_5m)
+        self.power_surplus_peek_hour.notify_of_external_update(self.energy.power_surplus_peek_hour)
 
         self.power_consumption.notify_of_external_update(self.energy.power_consumption)
         self.power_consumption_5s.notify_of_external_update(self.energy.power_consumption_5s)
@@ -299,5 +306,5 @@ class EnergyThing(Thing):
         self.power_consumption_1m.notify_of_external_update(self.energy.power_consumption_1m)
         self.power_consumption_5m.notify_of_external_update(self.energy.power_consumption_5m)
 
-        self.power_surplus_peek_hour.notify_of_external_update(self.energy.power_surplus_peek_hour)
+
 
