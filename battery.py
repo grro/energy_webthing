@@ -129,6 +129,7 @@ class Battery:
 
     def start(self):
         Thread(target=self.__measure_loop, daemon=True).start()
+        Thread(target=self.__info_loop, daemon=True).start()
 
     def stop(self):
         self.__is_running = False
@@ -158,6 +159,21 @@ class Battery:
             return True
         except Exception as e:
             return False
+
+    def __info_loop(self):
+        sleep(3 * 60)
+        while self.__is_running:
+            try:
+                logging.info(self.__info())
+
+                sleep_time = 30 - (datetime.now().minute % 30)
+                sleep(sleep_time)
+            except Exception as e:
+                logging.warning("error occurred on info " + str(e))
+                sleep(4 * 60)
+
+    def __info(self) -> str:
+        return "(1m smoothen) Battery " + str(int(self.power_1m)) + "W"
 
 
 

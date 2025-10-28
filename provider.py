@@ -1,6 +1,7 @@
 import tornado.ioloop
 import logging
 from threading import Thread
+from datetime import datetime
 from time import sleep
 from webthing import (Property, Thing, Value)
 from shelly import ShellyMeter
@@ -110,11 +111,13 @@ class Provider:
             return False
 
     def __info_loop(self):
-        sleep(5 * 60)
+        sleep(3 * 60)
         while self.__is_running:
             try:
                 logging.info(self.__info())
-                sleep(30 * 60) # each hour
+
+                sleep_time = 30 - (datetime.now().minute % 30)
+                sleep(sleep_time)
             except Exception as e:
                 logging.warning("error occurred on info " + str(e))
                 sleep(4 * 60)
@@ -378,3 +381,9 @@ class ProviderThing(Thing):
         self.provider_power_upstream_1m.notify_of_external_update(self.provider.provider_power_upstream_1m)
         self.provider_power_upstream_5m.notify_of_external_update(self.provider.provider_power_upstream_5m)
 
+'''
+p = Provider("http://10.1.33.54")
+p.start()
+
+sleep(444)
+'''
