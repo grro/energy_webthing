@@ -12,6 +12,26 @@ class EnergyMCPServer(MCPServer):
         super().__init__("energy", port)
         self.energy = energy
 
+        @self.mcp.resource("resource://provider_power", description="Current provider power. May be negative")
+        def get_provider_power() -> int:
+            return energy.provider.provider_power
+
+        @self.mcp.resource("resource://provider_power_5s", description="Current provider power. May be negative (smoothen 5 sec)")
+        def get_provider_power_5s() -> int:
+            return energy.provider.provider_power_5s
+
+        @self.mcp.resource("resource://provider_power_15s", description="Current provider power. May be negative (smoothen 15 sec)")
+        def get_provider_power_15s() -> int:
+            return energy.provider.provider_power_15s
+
+        @self.mcp.resource("resource://provider_power_1m", description="Current provider power. May be negative (smoothen 1 min)")
+        def get_provider_power_1m() -> int:
+            return energy.provider.provider_power_1m
+
+        @self.mcp.resource("resource://provider_power_5m", description="Current provider power. May be negative (smoothen 5 min)")
+        def get_provider_power_5m() -> int:
+            return energy.provider.provider_power_5m
+
         @self.mcp.resource("resource://provider_power_downstream", description="Current downstream provider power")
         def get_provider_power_downstream() -> int:
             return energy.provider.provider_power_downstream
