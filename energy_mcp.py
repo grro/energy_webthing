@@ -176,4 +176,10 @@ class EnergyMCPServer(MCPServer):
         def get_power_surplus_5m() -> int:
             return energy.power_surplus_5m
 
+        @self.mcp.resource("resource://power_surplus_peek_hour", description="The hour of the day when the surplus peak currently occurs")
+        def get_power_surplus_peek_hour() -> int:
+            return energy.power_surplus_peek_hour
+
+
+
 # npx @modelcontextprotocol/inspector

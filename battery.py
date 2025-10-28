@@ -104,6 +104,10 @@ class Battery:
         return self.__power_loading_smoothen_recorder.watt_per_hour(minute_range=5)
 
     @property
+    def power_upstream_60m(self) -> int:
+        return self.__power_loading_smoothen_recorder.watt_per_hour(minute_range=60)
+
+    @property
     def power_downstream(self) -> int:
         return self.__power_unloading_smoothen_recorder.watt_per_hour(second_range=1)
 

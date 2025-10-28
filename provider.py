@@ -73,6 +73,11 @@ class Provider:
     def provider_power_upstream_5m(self) -> int:
         return self.__provider_power_upstream_smoothen_recorder.watt_per_hour(minute_range=5)
 
+    @property
+    def provider_power_upstream_60m(self) -> int:
+        return self.__provider_power_upstream_smoothen_recorder.watt_per_hour(minute_range=60)
+
+
     def add_listener(self,listener):
         self.__listeners.add(listener)
 
