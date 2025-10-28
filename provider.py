@@ -117,7 +117,7 @@ class Provider:
                 sleep(30 * 60) # each hour
             except Exception as e:
                 logging.warning("error occurred on info " + str(e))
-                sleep(3)
+                sleep(4 * 60)
 
     def __info(self) -> str:
         return "(1m smoothen) Provider " + str(int(self.provider_power_1m)) + "W"

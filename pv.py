@@ -200,7 +200,7 @@ class Pv:
                 sleep(30 * 60) # each hour
             except Exception as e:
                 logging.warning("error occurred on info " + str(e))
-                sleep(3)
+                sleep(3 * 60)
 
     def __info(self) -> str:
         return "(1m smoothen) PV downstream all: " + str(int(self.power_downstream_1m)) + "W" + \
