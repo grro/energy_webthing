@@ -4,11 +4,11 @@ from webthing import (Property, Thing, Value)
 from provider import Provider
 from pv import Pv
 from battery import Battery
-from datetime import datetime, timedelta, UTC
+from datetime import timedelta, UTC
 from threading import Thread
 from time import sleep
 from datetime import datetime
-from typing import List, Dict, Optional
+from typing import List
 from redzoo.database.simple import SimpleDB
 
 
@@ -98,6 +98,7 @@ class Energy:
     def start(self):
         Thread(target=self.__day_peek_loop, daemon=True).start()
         Thread(target=self.__peek_loop, daemon=True).start()
+        Thread(target=self.__info_loop, daemon=True).start()
 
     def stop(self):
         self.__is_running = False
