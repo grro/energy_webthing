@@ -105,8 +105,10 @@ class Energy:
     def __day_peek_loop(self):
         while self.__is_running:
             try:
+                self.__power_per_hour.get(datetime.now().hour, self.power_surplus_60m)
+            except Exception as e:
                 logging.warning("error occurred on printing peek values " + str(e))
-            sleep(5)
+            sleep(1*60)
 
     def __peek_loop(self):
         while self.__is_running:
@@ -121,7 +123,17 @@ class Energy:
                     self.__surplus_daily_peeks.put(datetime.now(UTC).strftime("%Y-%m-%d"), peek_hour, ttl_sec=30*24*60*60)
             except Exception as e:
                 logging.warning("error occurred on printing peek values " + str(e))
-            sleep(30)
+            sleep(30*60)
+
+    def __info_loop(self):
+        while self.__is_running:
+            try:
+                info = ", ".join([date + "->" + str(self.__surplus_daily_peeks.get(date, "")) for date in self.__surplus_daily_peeks.keys()])
+                logging.info("surplus peek " + info)
+            except Exception as e:
+                logging.warning("error occurred on printing peek values " + str(e))
+            sleep(12*60*60)
+
 
 
 class EnergyThing(Thing):
