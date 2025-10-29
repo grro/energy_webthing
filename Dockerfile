@@ -7,7 +7,7 @@ ENV pv_module1 http://example.org
 ENV pv_module2 http://example.org
 ENV pv_module3 http://example.org
 ENV battery http://example.org
-ENV directory /etc/energy
+ENV directory /app/energy
 
 
 RUN cd /etc

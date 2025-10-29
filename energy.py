@@ -130,7 +130,7 @@ class Energy:
         while self.__is_running:
             try:
                 info = ", ".join([date + "->" + str(self.__surplus_daily_peeks.get(date, "")) for date in self.__surplus_daily_peeks.keys()])
-                logging.info("surplus peek " + info)
+                logging.info("surplus peeks " + info)
             except Exception as e:
                 logging.warning("error occurred on printing peek values " + str(e))
             sleep(12*60*60)
