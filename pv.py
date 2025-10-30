@@ -10,8 +10,8 @@ from utils import WattRecorder
 
 class Module:
 
-    def __init__(self, addr: str):
-        self.__shelly = ShellyMeter(addr)
+    def __init__(self, addr: str, description: str):
+        self.__shelly = ShellyMeter(addr, description)
         self.name = self.__shelly.name
         self.power = 0
         self.__pv_power_smoothen_recorder = WattRecorder()

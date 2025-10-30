@@ -47,7 +47,7 @@ class Battery:
     def __init__(self, addr: str):
         self.__listeners = set()
         self.__is_running = True
-        self.__meter = ShellyMeter.auto_select(addr)
+        self.__meter = ShellyMeter.auto_select(addr, "Battery")
         self.__power = 0
         self.__power_unloading = 0
         self.__power_loading= 0

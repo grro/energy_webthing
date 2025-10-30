@@ -257,9 +257,9 @@ class Shelly1pm(Meter):
 
 class ShellyMeter(Meter):
 
-    def __init__(self, addr: str):
+    def __init__(self, addr: str, description: str = ""):
         self.addr = addr
-        self.device = ShellyMeter.auto_select(addr)
+        self.device = ShellyMeter.auto_select(addr, description)
 
     def info(self) -> Info:
         if self.device is None:
@@ -283,12 +283,12 @@ class ShellyMeter(Meter):
         pass
 
     @staticmethod
-    def auto_select(addr: str) -> Optional[Meter]:
+    def auto_select(addr: str, description: str) -> Optional[Meter]:
         try:
             s = Shelly3em(addr)
             info = s.info()
             if info.type == "Pro3EM":
-                logging.info("detected " + info.name + " (" + info.type + ") running on " + addr)
+                logging.info(description + " detected " + info.name + " (" + info.type + ") running on " + addr)
                 return s
         except Exception as e:
             pass
@@ -297,7 +297,7 @@ class ShellyMeter(Meter):
             s = ShellyPmMini(addr)
             info = s.info()
             if info.type.startswith('MiniPMG'):
-                logging.info("detected " + info.name + " (" + info.type + ") running on " + addr)
+                logging.info(description + " detected " + info.name + " (" + info.type + ") running on " + addr)
                 return s
         except Exception as e:
             pass
@@ -306,7 +306,7 @@ class ShellyMeter(Meter):
             s = Shelly1pro(addr)
             info = s.info()
             if info.type == 'Pro1PM':
-                logging.info("detected " + info.name + " (" + info.type + ") running on " + addr)
+                logging.info(description + " detected " + info.name + " (" + info.type + ") running on " + addr)
                 return s
         except Exception as e:
             pass
@@ -314,7 +314,7 @@ class ShellyMeter(Meter):
         try:
             s = Shelly1pm(addr)
             s.info()
-            logging.info("detected shelly1pm running on " + addr)
+            logging.info(description + " detected shelly1pm running on " + addr)
             return s
         except Exception as e:
             pass
@@ -322,12 +322,12 @@ class ShellyMeter(Meter):
         try:
             s = ShellyPmMini(addr)
             s.info()
-            logging.info("detected shellyPmMini running on " + addr)
+            logging.info(description + " detected shellyPmMini running on " + addr)
             return s
         except Exception as e:
             pass
 
-        logging.warning("unsupported shelly running on " + addr)
+        logging.warning(description + " unsupported shelly running on " + addr)
         return None
 
 
