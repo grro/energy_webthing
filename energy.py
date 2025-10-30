@@ -98,7 +98,7 @@ class Energy:
     def start(self):
         Thread(target=self.__day_peek_loop, daemon=True).start()
         Thread(target=self.__peek_loop, daemon=True).start()
-        Thread(target=self.__info_loop, daemon=True).start()
+        #Thread(target=self.__info_loop, daemon=True).start()
 
     def stop(self):
         self.__is_running = False
