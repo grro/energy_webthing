@@ -48,10 +48,10 @@ class Pv:
     def __init__(self, meter_addr_pv_all: str, meter_addr_pv_channel1: str, meter_addr_pv_channel2: str, meter_addr_pv_channel3: str):
         self.__is_running = True
         self.__listeners = set()
-        self.__all = Module(meter_addr_pv_all)
-        self.__module1 = Module(meter_addr_pv_channel1)
-        self.__module2 = Module(meter_addr_pv_channel2)
-        self.__module3 = Module(meter_addr_pv_channel3)
+        self.__all = Module(meter_addr_pv_all, "PV all")
+        self.__module1 = Module(meter_addr_pv_channel1, "PV module1")
+        self.__module2 = Module(meter_addr_pv_channel2, "PV module2")
+        self.__module3 = Module(meter_addr_pv_channel3,"PV module3")
 
         self.power_downstream = 0
         self.__pv_power_smoothen_recorder = WattRecorder()
