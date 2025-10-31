@@ -6,6 +6,7 @@ from datetime import datetime
 from utils import WattRecorder
 from shelly import ShellyMeter
 from webthing import (Property, Thing, Value)
+from utils import BufferedValue
 
 
 
@@ -65,6 +66,9 @@ class Battery:
         self.__power_unloading_smoothen_recorder = WattRecorder()
         self.__power_loading_smoothen_recorder = WattRecorder()
         self.__energy = EnergySource()
+        self.__power_downstream_1m = BufferedValue()
+        self.__power_downstream_5m = BufferedValue()
+
 
     def add_listener(self,listener):
         self.__listeners.add(listener)
@@ -131,11 +135,11 @@ class Battery:
 
     @property
     def power_downstream_1m(self) -> int:
-        return self.__power_unloading_smoothen_recorder.watt_per_hour(minute_range=1)
+        return self.__power_downstream_1m.set_and_get(self.__power_unloading_smoothen_recorder.watt_per_hour(minute_range=1))
 
     @property
     def power_downstream_5m(self) -> int:
-        return self.__power_unloading_smoothen_recorder.watt_per_hour(minute_range=5)
+        return self.__power_downstream_5m.set_and_get(self.__power_unloading_smoothen_recorder.watt_per_hour(minute_range=5))
 
     def __on_update(self):
         for listener in self.__listeners:

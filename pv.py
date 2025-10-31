@@ -58,6 +58,7 @@ class Pv:
 
         self.power_downstream = 0
         self.__power_downstream_5s = BufferedValue()
+        self.__power_downstream_1m = BufferedValue()
 
         self.__pv_power_smoothen_recorder = WattRecorder()
         self.__power_per_hour = {}
@@ -77,7 +78,7 @@ class Pv:
 
     @property
     def power_downstream_1m(self) -> int:
-        return self.__pv_power_smoothen_recorder.watt_per_hour(minute_range=1)
+        return self.__power_downstream_1m.set_and_get(self.__pv_power_smoothen_recorder.watt_per_hour(minute_range=1))
 
     @property
     def power_downstream_5m(self) -> int:
