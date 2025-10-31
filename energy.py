@@ -53,7 +53,7 @@ class Energy:
                 self.__power_consumption_5m = self.provider.provider_power_5m + self.battery.power_5m + self.pv.power_downstream_5m
             except Exception as e:
                 logging.warning("error occurred on refresh " + str(e))
-            sleep(3.32)
+            sleep(4.07)
 
     @property
     def power_surplus(self) -> int:

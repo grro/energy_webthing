@@ -87,7 +87,7 @@ class Pv:
                 self.__power_downstream_5m = self.__pv_power_smoothen_recorder.watt_per_hour(minute_range=5)
             except Exception as e:
                 logging.warning("error occurred on refresh " + str(e))
-            sleep(3.01)
+            sleep(4.31)
 
     @property
     def power_downstream_60m(self) -> int:
