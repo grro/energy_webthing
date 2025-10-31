@@ -5,8 +5,7 @@ from provider import Provider
 from pv import Pv
 from battery import Battery
 from threading import Thread
-from time import sleep
-from datetime import datetime
+from value import Value
 
 
 
@@ -21,7 +20,7 @@ class Energy:
         self.provider.add_listener(self.__on_update)
         self.pv.add_listener(self.__on_update)
         self.battery.add_listener(self.__on_update)
-        self.__power_consumption_5s = 0
+        self.__power_consumption_5s = Value(window_sec=4)
 
     @property
     def power_consumption(self) -> int:
@@ -33,15 +32,7 @@ class Energy:
 
     @property
     def power_consumption_5s(self) -> int:
-        return self.__power_consumption_5s
-
-    def __power_consumption_5s_loop(self):
-        while self.__is_running:
-            try:
-                self.__power_consumption_5s = self.provider.provider_power_5s + self.battery.power_5s + self.pv.power_downstream_5s
-            except Exception as e:
-                logging.warning("error occurred on refresh " + str(e))
-            sleep(2.98)
+        return self.__power_consumption_5s.set_and_get(self.provider.provider_power_5s + self.battery.power_5s + self.pv.power_downstream_5s)
 
     @property
     def power_consumption_15s(self) -> int:
@@ -86,7 +77,7 @@ class Energy:
         self.__listeners.add(listener)
 
     def start(self):
-        Thread(target=self.__power_consumption_5s_loop, daemon=True).start()
+        pass
 
     def stop(self):
         self.__is_running = False

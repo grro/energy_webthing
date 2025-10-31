@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, UTC
 from webthing import (Property, Thing, Value)
 from shelly import ShellyMeter
 from utils import WattRecorder
+from value import Value
 from redzoo.database.simple import SimpleDB
 
 
@@ -55,9 +56,11 @@ class Pv:
         self.__module1 = Module(meter_addr_pv_channel1, "PV module1")
         self.__module2 = Module(meter_addr_pv_channel2, "PV module2")
         self.__module3 = Module(meter_addr_pv_channel3,"PV module3")
+
         self.power_downstream = 0
+        self.__power_downstream_5s = Value(window_sec=4)
+
         self.__pv_power_smoothen_recorder = WattRecorder()
-        self.__power_downstream_5s = 0
         self.__power_per_hour = {}
         self.__surplus_daily_peeks = SimpleDB("spv_daily_peek", sync_period_sec=60, directory=directory)
 
@@ -67,15 +70,7 @@ class Pv:
 
     @property
     def power_downstream_5s(self) -> int:
-        return self.__power_downstream_5s
-
-    def __power_downstream5s_loop(self):
-        while self.__is_running:
-            try:
-                self.__power_downstream_5s = self.__pv_power_smoothen_recorder.watt_per_hour(second_range=5)
-            except Exception as e:
-                logging.warning("error occurred on refresh " + str(e))
-            sleep(3.01)
+        return self.__power_downstream_5s.set_and_get(self.__pv_power_smoothen_recorder.watt_per_hour(second_range=5))
 
     @property
     def power_downstream_15s(self) -> int:
@@ -201,7 +196,6 @@ class Pv:
         Thread(target=self.__measure_loop, daemon=True).start()
         Thread(target=self.__day_peek_loop, daemon=True).start()
         Thread(target=self.__peek_loop, daemon=True).start()
-        Thread(target=self.__power_downstream5s_loop, daemon=True).start()
 
     def stop(self):
         self.__is_running = False
