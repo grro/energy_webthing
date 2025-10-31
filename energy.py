@@ -78,11 +78,13 @@ class Energy:
 
     @property
     def power_surplus_peek_hour(self) -> int:
+        hour = 0
         peeks = sorted(self.__peeks())
-        if len(peeks) == 0:
-            return 12
-        else:
-            return peeks[int(len(peeks)* 0.5)]
+        if len(peeks) > 0:
+            hour = peeks[int(len(peeks)* 0.5)]
+        if hour < 10 or hour > 14:
+            hour = 12
+        return hour
 
     def __peeks(self) -> List[int]:
         today = datetime.now(UTC)
