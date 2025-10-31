@@ -4,7 +4,7 @@ from typing import Tuple, List, Dict, Optional
 
 class BufferedValue:
 
-    def __init__(self, window_sec: int = 5, threshold: int = 100):
+    def __init__(self, window_sec: int = 5, threshold: int = 50):
         self.__window_sec = window_sec
         self._threshold = threshold
         self.__value = 0
@@ -15,10 +15,13 @@ class BufferedValue:
         self.__value = new_value
         now = datetime.now()
 
-        expired = (self.__buffer_date + timedelta(seconds = self.__window_sec)) < now
-        large_delta = abs(self.__value - self.__buffered_value) > 100
+        delta = abs(self.__value - self.__buffered_value)
+        if delta < self._threshold:
+            expired = (self.__buffer_date + timedelta(seconds = self.__window_sec)) < now
+        else:
+            expired = (self.__buffer_date + timedelta(seconds = int(self.__window_sec*0.5))) < now
 
-        if expired or large_delta:
+        if expired:
             self.__buffer_date = now
             self.__buffered_value = self.__value
 
