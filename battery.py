@@ -12,8 +12,10 @@ from webthing import (Property, Thing, Value)
 class EnergySource:
 
     def __init__(self):
+        self.__is_running = True
         self.__unloading_counter_by_hour = {}
         self.__loading_counter_by_hour = {}
+        self.__energy_wh = 0
 
     def add(self, counter_loading: int, counter_unloading: int):
         hour = datetime.now().hour
@@ -22,24 +24,32 @@ class EnergySource:
 
     @property
     def energy_wh(self) -> int:
-        try:
-            hour_now = datetime.now().hour
+        return self.__energy_wh
 
-            loading_counter_now = self.__loading_counter_by_hour.get(hour_now, 0)
-            loading_counter_4am =  self.__loading_counter_by_hour.get(4, loading_counter_now)
-            loading_counter_current_day = loading_counter_now - loading_counter_4am
+    def start(self):
+        Thread(target=self.__compute_energy_loop, daemon=True).start()
 
-            unloading_counter_now = self.__unloading_counter_by_hour.get(hour_now, 0)
-            unloading_counter_4am =  self.__unloading_counter_by_hour.get(4, unloading_counter_now)
-            unloading_counter_current_day = unloading_counter_now - unloading_counter_4am
+    def stop(self):
+        self.__is_running = False
 
-            energy_current_day = loading_counter_current_day - unloading_counter_current_day
-            return 0 if energy_current_day < 0 else energy_current_day
-        except Exception as e:
-            logging.warning(str(e))
-            return -1
+    def __compute_energy_loop(self):
+        while self.__is_running:
+            try:
+                hour_now = datetime.now().hour
 
+                loading_counter_now = self.__loading_counter_by_hour.get(hour_now, 0)
+                loading_counter_4am =  self.__loading_counter_by_hour.get(4, loading_counter_now)
+                loading_counter_current_day = loading_counter_now - loading_counter_4am
 
+                unloading_counter_now = self.__unloading_counter_by_hour.get(hour_now, 0)
+                unloading_counter_4am =  self.__unloading_counter_by_hour.get(4, unloading_counter_now)
+                unloading_counter_current_day = unloading_counter_now - unloading_counter_4am
+
+                energy_current_day = loading_counter_current_day - unloading_counter_current_day
+                self.__energy_wh  = 0 if energy_current_day < 0 else energy_current_day
+            except Exception as e:
+                 logging.warning(str(e))
+            sleep(7)
 
 
 class Battery:
@@ -133,10 +143,11 @@ class Battery:
 
     def start(self):
         Thread(target=self.__measure_loop, daemon=True).start()
-        #Thread(target=self.__info_loop, daemon=True).start()
+        self.__energy.start()
 
     def stop(self):
         self.__is_running = False
+        self.__energy.stop()
 
     def __measure_loop(self):
         while self.__is_running:

@@ -57,6 +57,7 @@ class Pv:
         self.__module3 = Module(meter_addr_pv_channel3,"PV module3")
         self.power_downstream = 0
         self.__pv_power_smoothen_recorder = WattRecorder()
+        self.__power_downstream_5m = 0
         self.__power_per_hour = {}
         self.__surplus_daily_peeks = SimpleDB("spv_daily_peek", sync_period_sec=60, directory=directory)
 
@@ -78,7 +79,15 @@ class Pv:
 
     @property
     def power_downstream_5m(self) -> int:
-        return self.__pv_power_smoothen_recorder.watt_per_hour(minute_range=5)
+        return self.__power_downstream_5m
+
+    def __power_downstream5m_loop(self):
+        while self.__is_running:
+            try:
+                self.__power_downstream_5m = self.__pv_power_smoothen_recorder.watt_per_hour(minute_range=5)
+            except Exception as e:
+                logging.warning("error occurred on refresh " + str(e))
+            sleep(3.01)
 
     @property
     def power_downstream_60m(self) -> int:
@@ -192,6 +201,7 @@ class Pv:
         Thread(target=self.__measure_loop, daemon=True).start()
         Thread(target=self.__day_peek_loop, daemon=True).start()
         Thread(target=self.__peek_loop, daemon=True).start()
+        Thread(target=self.__power_downstream5m_loop, daemon=True).start()
 
     def stop(self):
         self.__is_running = False
