@@ -4,18 +4,15 @@ from webthing import (Property, Thing, Value)
 from provider import Provider
 from pv import Pv
 from battery import Battery
-from datetime import timedelta, UTC
 from threading import Thread
 from time import sleep
 from datetime import datetime
-from typing import List
-from redzoo.database.simple import SimpleDB
 
 
 
 class Energy:
 
-    def __init__(self, provider: Provider, pv: Pv, battery: Battery, directory: str):
+    def __init__(self, provider: Provider, pv: Pv, battery: Battery):
         self.__is_running = True
         self.__listeners = set()
         self.provider = provider
@@ -24,9 +21,6 @@ class Energy:
         self.provider.add_listener(self.__on_update)
         self.pv.add_listener(self.__on_update)
         self.battery.add_listener(self.__on_update)
-        self.__power_per_hour = {}
-        self.__surplus_daily_peeks = SimpleDB("surplus_daily_peek", sync_period_sec=60, directory=directory)
-
 
     @property
     def power_consumption(self) -> int:
@@ -76,21 +70,6 @@ class Energy:
     def power_surplus_60m(self) -> int:
         return self.provider.provider_power_upstream_60m + self.battery.power_upstream_60m
 
-    @property
-    def power_surplus_peek_hour(self) -> int:
-        hour = 0
-        peeks = sorted(self.__peeks())
-        if len(peeks) > 0:
-            hour = peeks[int(len(peeks)* 0.5)]
-        if hour < 10 or hour > 14:
-            hour = 12
-        return hour
-
-    def __peeks(self) -> List[int]:
-        today = datetime.now(UTC)
-        hours = [self.__surplus_daily_peeks.get((today - timedelta(days=day_offset)).strftime("%Y-%m-%d"), -1) for day_offset in range(0, 60)]
-        return [hour for hour in hours if hour >= 0]
-
     def __on_update(self):
         [listener() for listener in self.__listeners]
 
@@ -98,44 +77,11 @@ class Energy:
         self.__listeners.add(listener)
 
     def start(self):
-        Thread(target=self.__day_peek_loop, daemon=True).start()
-        Thread(target=self.__peek_loop, daemon=True).start()
         #Thread(target=self.__info_loop, daemon=True).start()
+        pass
 
     def stop(self):
         self.__is_running = False
-
-    def __day_peek_loop(self):
-        while self.__is_running:
-            try:
-                self.__power_per_hour.get(datetime.now().hour, self.power_surplus_60m)
-            except Exception as e:
-                logging.warning("error occurred on printing peek values " + str(e))
-            sleep(1*60)
-
-    def __peek_loop(self):
-        while self.__is_running:
-            try:
-                if datetime.now().hour >= 22:
-                    peek_hour = 0
-                    peek_value = 0
-                    for hour in range(0, 23):
-                        if self.__power_per_hour.get(hour, 0) > peek_value:
-                            peek_hour = hour
-                            peek_value = self.__power_per_hour.get(hour)
-                    self.__surplus_daily_peeks.put(datetime.now(UTC).strftime("%Y-%m-%d"), peek_hour, ttl_sec=30*24*60*60)
-            except Exception as e:
-                logging.warning("error occurred on printing peek values " + str(e))
-            sleep(30*60)
-
-    def __info_loop(self):
-        while self.__is_running:
-            try:
-                info = ", ".join([date + "->" + str(self.__surplus_daily_peeks.get(date, "")) for date in self.__surplus_daily_peeks.keys()])
-                logging.info("surplus peeks " + info)
-            except Exception as e:
-                logging.warning("error occurred on printing peek values " + str(e))
-            sleep(12*60*60)
 
 
 
@@ -288,19 +234,6 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.power_surplus_peek_hour = Value(energy.power_surplus_peek_hour)
-        self.add_property(
-            Property(self,
-                     'power_surplus_peek_hour',
-                     self.power_surplus_peek_hour,
-                     metadata={
-                         'title': 'power surplus peek hour',
-                         "type": "integer",
-                         'unit': 'watt',
-                         'description': 'the surplus peek hour in UTC',
-                         'readOnly': True,
-                     }))
-
 
     def on_value_changed(self):
         self.ioloop.add_callback(self._on_value_changed)
@@ -311,7 +244,6 @@ class EnergyThing(Thing):
         self.power_surplus_15s.notify_of_external_update(self.energy.power_surplus_15s)
         self.power_surplus_1m.notify_of_external_update(self.energy.power_surplus_1m)
         self.power_surplus_5m.notify_of_external_update(self.energy.power_surplus_5m)
-        self.power_surplus_peek_hour.notify_of_external_update(self.energy.power_surplus_peek_hour)
 
         self.power_consumption.notify_of_external_update(self.energy.power_consumption)
         self.power_consumption_5s.notify_of_external_update(self.energy.power_consumption_5s)

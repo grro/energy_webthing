@@ -20,9 +20,9 @@ def run_server(port: int,
                directory: str):
 
     provider = Provider(meter_addr_provider)
-    pv = Pv(pv_all, pv_module1, pv_module2, pv_module3)
+    pv = Pv(pv_all, pv_module1, pv_module2, pv_module3, directory)
     battery = Battery(battery)
-    energy = Energy(provider, pv, battery, directory)
+    energy = Energy(provider, pv, battery)
 
     mcp_server = EnergyMCPServer(port+1, energy)
     server = WebThingServer(MultipleThings([ProviderThing(provider), PvThing(pv), BatteryThing(battery), EnergyThing(energy)], "energy"), port=port, disable_host_validation=True)

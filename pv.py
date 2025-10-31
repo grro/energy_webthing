@@ -1,11 +1,14 @@
 import tornado.ioloop
 import logging
 from threading import Thread
+from typing import List
 from time import sleep
-from datetime import datetime
+from datetime import datetime, timedelta, UTC
 from webthing import (Property, Thing, Value)
 from shelly import ShellyMeter
 from utils import WattRecorder
+from redzoo.database.simple import SimpleDB
+
 
 
 class Module:
@@ -45,16 +48,18 @@ class Module:
 
 class Pv:
 
-    def __init__(self, meter_addr_pv_all: str, meter_addr_pv_channel1: str, meter_addr_pv_channel2: str, meter_addr_pv_channel3: str):
+    def __init__(self, meter_addr_pv_all: str, meter_addr_pv_channel1: str, meter_addr_pv_channel2: str, meter_addr_pv_channel3: str, directory: str):
         self.__is_running = True
         self.__listeners = set()
         self.__all = Module(meter_addr_pv_all, "PV all")
         self.__module1 = Module(meter_addr_pv_channel1, "PV module1")
         self.__module2 = Module(meter_addr_pv_channel2, "PV module2")
         self.__module3 = Module(meter_addr_pv_channel3,"PV module3")
-
         self.power_downstream = 0
         self.__pv_power_smoothen_recorder = WattRecorder()
+        self.__power_per_hour = {}
+        self.__surplus_daily_peeks = SimpleDB("spv_daily_peek", sync_period_sec=60, directory=directory)
+
 
     def addd_listener(self,listener):
         self.__listeners.add(listener)
@@ -74,6 +79,10 @@ class Pv:
     @property
     def power_downstream_5m(self) -> int:
         return self.__pv_power_smoothen_recorder.watt_per_hour(minute_range=5)
+
+    @property
+    def power_downstream_60m(self) -> int:
+        return self.__pv_power_smoothen_recorder.watt_per_hour(minute_range=60)
 
     @property
     def power_downstream_module1(self) -> int:
@@ -160,12 +169,29 @@ class Pv:
         power4 = self.power_downstream_5m - (self.power_downstream_module1_5m + self.power_downstream_module2_5m + self.power_downstream_module3_5m)
         return 0 if power4 <0 else power4
 
+    @property
+    def power_peek_hour(self) -> int:
+        hour = 0
+        peeks = sorted(self.__peeks())
+        if len(peeks) > 0:
+            hour = peeks[int(len(peeks)* 0.5)]
+        if hour < 10 or hour > 14:
+            hour = 12
+        return hour
+
+    def __peeks(self) -> List[int]:
+        today = datetime.now(UTC)
+        hours = [self.__surplus_daily_peeks.get((today - timedelta(days=day_offset)).strftime("%Y-%m-%d"), -1) for day_offset in range(0, 60)]
+        return [hour for hour in hours if hour >= 0]
+
+
     def add_listener(self,listener):
         self.__listeners.add(listener)
 
     def start(self):
         Thread(target=self.__measure_loop, daemon=True).start()
-        #Thread(target=self.__info_loop, daemon=True).start()
+        Thread(target=self.__day_peek_loop, daemon=True).start()
+        Thread(target=self.__peek_loop, daemon=True).start()
 
     def stop(self):
         self.__is_running = False
@@ -191,6 +217,31 @@ class Pv:
             return True
         except Exception as e:
             return False
+
+    def __day_peek_loop(self):
+        while self.__is_running:
+            try:
+                self.__power_per_hour[datetime.now().hour] = self.power_downstream_60m
+            except Exception as e:
+                logging.warning("error occurred on printing peek values " + str(e))
+            sleep(1*60)
+
+    def __peek_loop(self):
+        while self.__is_running:
+            try:
+                if datetime.now().hour >= 1: ##22
+                    peek_hour = 0
+                    peek_value = 0
+                    for hour in range(0, 23):
+                        if self.__power_per_hour.get(hour, 0) > peek_value:
+                            peek_hour = hour
+                            peek_value = self.__power_per_hour.get(hour)
+                    self.__surplus_daily_peeks.put(datetime.now(UTC).strftime("%Y-%m-%d"), peek_hour, ttl_sec=30*24*60*60)
+            except Exception as e:
+                logging.warning("error occurred on printing peek values " + str(e))
+            #sleep(30*60)
+            sleep(1*60)
+
 
     def __info_loop(self):
         sleep(3 * 60)
@@ -598,6 +649,17 @@ class PvThing(Thing):
                          'readOnly': True,
                      }))
 
+        self.power_peek_hour = Value(pv.power_peek_hour)
+        self.add_property(
+            Property(self,
+                     'power_peek_hour',
+                     self.power_peek_hour,
+                     metadata={
+                         'title': 'power_peek_hour',
+                         "type": "integer",
+                         'description': 'The hour of the day when the highest PV yield was achieved',
+                         'readOnly': True,
+                     }))
 
 
     def on_value_changed(self):
@@ -636,3 +698,12 @@ class PvThing(Thing):
 
         self.power_downstream_module1u2_5m.notify_of_external_update(self.pv.power_downstream_module1_5m + self.pv.power_downstream_module2_5m)
         self.power_downstream_module1u2u3_5m.notify_of_external_update(self.pv.power_downstream_module1_5m + self.pv.power_downstream_module2_5m + self.pv.power_downstream_module3_5m)
+
+        self.power_peek_hour.notify_of_external_update(self.pv.power_peek_hour)
+
+
+'''        
+pv = Pv('http://10.1.33.53', "http://10.1.33.94", "http://10.1.33.95", "http://10.1.33.93", "c:\\temp")
+pv.start()
+sleep(4000)
+'''
