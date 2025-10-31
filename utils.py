@@ -19,7 +19,7 @@ class BufferedValue:
         if delta < self._threshold:
             expired = (self.__buffer_date + timedelta(seconds = self.__window_sec)) < now
         else:
-            expired = (self.__buffer_date + timedelta(seconds = int(self.__window_sec*0.5))) < now
+            expired = (self.__buffer_date + timedelta(seconds = int(self.__window_sec/5))) < now
 
         if expired:
             self.__buffer_date = now
