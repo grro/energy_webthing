@@ -21,7 +21,7 @@ class Energy:
         self.provider.add_listener(self.__on_update)
         self.pv.add_listener(self.__on_update)
         self.battery.add_listener(self.__on_update)
-        self.__power_consumption_5m = 0
+        self.__power_consumption_5s = 0
 
     @property
     def power_consumption(self) -> int:
@@ -33,7 +33,15 @@ class Energy:
 
     @property
     def power_consumption_5s(self) -> int:
-        return self.provider.provider_power_5s + self.battery.power_5s + self.pv.power_downstream_5s
+        return self.__power_consumption_5s
+
+    def __power_consumption_5s_loop(self):
+        while self.__is_running:
+            try:
+                self.__power_consumption_5s = self.provider.provider_power_5s + self.battery.power_5s + self.pv.power_downstream_5s
+            except Exception as e:
+                logging.warning("error occurred on refresh " + str(e))
+            sleep(2.98)
 
     @property
     def power_consumption_15s(self) -> int:
@@ -45,15 +53,7 @@ class Energy:
 
     @property
     def power_consumption_5m(self) -> int:
-        return self.__power_consumption_5m
-
-    def __power_consumption_5m_loop(self):
-        while self.__is_running:
-            try:
-                self.__power_consumption_5m = self.provider.provider_power_5m + self.battery.power_5m + self.pv.power_downstream_5m
-            except Exception as e:
-                logging.warning("error occurred on refresh " + str(e))
-            sleep(4.07)
+        return self.provider.provider_power_5m + self.battery.power_5m + self.pv.power_downstream_5m
 
     @property
     def power_surplus(self) -> int:
@@ -86,7 +86,7 @@ class Energy:
         self.__listeners.add(listener)
 
     def start(self):
-        Thread(target=self.__power_consumption_5m_loop, daemon=True).start()
+        Thread(target=self.__power_consumption_5s_loop, daemon=True).start()
 
     def stop(self):
         self.__is_running = False
