@@ -10,6 +10,7 @@ class Measure:
         self.__last_fetch_date = datetime.now()
 
     def set_and_get(self, new_value: int):
+        self.__value = new_value
         now = datetime.now()
         if self.__last_fetch_date + timedelta(seconds = self.__window_sec) < now:
             self.__last_fetch_date = now
