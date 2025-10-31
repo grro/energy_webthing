@@ -5,7 +5,7 @@ from provider import Provider
 from pv import Pv
 from battery import Battery
 from threading import Thread
-from value import Value
+from measure import Measure
 
 
 
@@ -20,7 +20,7 @@ class Energy:
         self.provider.add_listener(self.__on_update)
         self.pv.add_listener(self.__on_update)
         self.battery.add_listener(self.__on_update)
-        self.__power_consumption_5s = Value(window_sec=4)
+        self.__power_consumption_5s = Measure(window_sec=4)
 
     @property
     def power_consumption(self) -> int:

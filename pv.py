@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, UTC
 from webthing import (Property, Thing, Value)
 from shelly import ShellyMeter
 from utils import WattRecorder
-from value import Value
+from measure import Measure
 from redzoo.database.simple import SimpleDB
 
 
@@ -58,7 +58,7 @@ class Pv:
         self.__module3 = Module(meter_addr_pv_channel3,"PV module3")
 
         self.power_downstream = 0
-        self.__power_downstream_5s = Value(window_sec=4)
+        self.__power_downstream_5s = Measure(window_sec=4)
 
         self.__pv_power_smoothen_recorder = WattRecorder()
         self.__power_per_hour = {}

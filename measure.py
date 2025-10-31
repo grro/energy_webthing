@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 
-class Value:
+class Measure:
 
     def __init__(self, window_sec: int = 5):
         self.__window_sec = window_sec
