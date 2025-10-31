@@ -170,7 +170,7 @@ class Pv:
         return 0 if power4 <0 else power4
 
     @property
-    def power_peek_hour(self) -> int:
+    def power_peek_hour_utc(self) -> int:
         hour = 0
         peeks = sorted(self.__peeks())
         if len(peeks) > 0:
@@ -229,7 +229,7 @@ class Pv:
     def __peek_loop(self):
         while self.__is_running:
             try:
-                if datetime.now().hour >= 1: ##22
+                if datetime.now().hour >= 22:
                     peek_hour = 0
                     peek_value = 0
                     for hour in range(0, 23):
@@ -239,8 +239,7 @@ class Pv:
                     self.__surplus_daily_peeks.put(datetime.now(UTC).strftime("%Y-%m-%d"), peek_hour, ttl_sec=30*24*60*60)
             except Exception as e:
                 logging.warning("error occurred on printing peek values " + str(e))
-            #sleep(30*60)
-            sleep(1*60)
+            sleep(17*60)
 
 
     def __info_loop(self):
@@ -649,15 +648,15 @@ class PvThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.power_peek_hour = Value(pv.power_peek_hour)
+        self.power_peek_hour_utc = Value(pv.power_peek_hour_utc)
         self.add_property(
             Property(self,
-                     'power_peek_hour',
-                     self.power_peek_hour,
+                     'power_peek_hour_utc',
+                     self.power_peek_hour_utc,
                      metadata={
-                         'title': 'power_peek_hour',
+                         'title': 'power_peek_hour_utc',
                          "type": "integer",
-                         'description': 'The hour of the day when the highest PV yield was achieved',
+                         'description': 'The hour of the day when the highest PV yield was achieved (UTC)',
                          'readOnly': True,
                      }))
 
@@ -699,7 +698,7 @@ class PvThing(Thing):
         self.power_downstream_module1u2_5m.notify_of_external_update(self.pv.power_downstream_module1_5m + self.pv.power_downstream_module2_5m)
         self.power_downstream_module1u2u3_5m.notify_of_external_update(self.pv.power_downstream_module1_5m + self.pv.power_downstream_module2_5m + self.pv.power_downstream_module3_5m)
 
-        self.power_peek_hour.notify_of_external_update(self.pv.power_peek_hour)
+        self.power_peek_hour_utc.notify_of_external_update(self.pv.power_peek_hour_utc)
 
 
 '''        
