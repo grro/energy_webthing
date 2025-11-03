@@ -47,7 +47,7 @@ class Energy:
         return self.provider.provider_power_5m + self.battery.power_5m + self.pv.power_downstream_5m
 
     @property
-    def power_surplus_gross_1m(self) -> int:
+    def power_green_1m(self) -> int:
         return self.__power_surplus_gross_1m.set_and_get(self.pv.power_downstream_1m + self.battery.power_downstream_1m)
 
     @property
@@ -170,16 +170,16 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.power_surplus_gross_1m = Value(energy.power_surplus_gross_1m)
+        self.power_green_1m = Value(energy.power_green_1m)
         self.add_property(
             Property(self,
-                     'power_surplus_gross_1m',
-                     self.power_surplus_gross_1m,
+                     'power_green_1m',
+                     self.power_green_1m,
                      metadata={
-                         'title': 'power surplus gross 1 min',
+                         'title': 'green power 1 min',
                          "type": "integer",
                          'unit': 'watt',
-                         'description': 'the surplus pv power (pv downstream + battery downstream) smoothen over 1 minute',
+                         'description': 'the green power (pv + battery) smoothen over 1 minute',
                          'readOnly': True,
                      }))
 
@@ -259,7 +259,7 @@ class EnergyThing(Thing):
         self.power_surplus_15s.notify_of_external_update(self.energy.power_surplus_15s)
         self.power_surplus_1m.notify_of_external_update(self.energy.power_surplus_1m)
         self.power_surplus_5m.notify_of_external_update(self.energy.power_surplus_5m)
-        self.power_surplus_gross_1m.notify_of_external_update(self.energy.power_surplus_1m)
+        self.power_green_1m.notify_of_external_update(self.energy.power_green_1m)
 
         self.power_consumption.notify_of_external_update(self.energy.power_consumption)
         self.power_consumption_5s.notify_of_external_update(self.energy.power_consumption_5s)

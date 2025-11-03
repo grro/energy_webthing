@@ -177,9 +177,9 @@ class EnergyMCPServer(MCPServer):
         def get_power_surplus_5m() -> int:
             return energy.power_surplus_5m
 
-        @self.mcp.resource("resource://power_surplus_gross_1m", description="Current power surplus gross (downstream pv + downstream battery) (smoothen 5 min)")
-        def get_power_surplus_gross_1m() -> int:
-            return energy.power_surplus_gross_1m
+        @self.mcp.resource("resource://power_green_1m", description="Current green power (pv + battery) (smoothen 5 min)")
+        def get_power_green_1m() -> int:
+            return energy.power_green_1m
 
         @self.mcp.resource("resource://power_peek_hour", description="The hour of the day when the pv peak currently occurs (UTC)")
         def get_power_peek_hour() -> int:
