@@ -66,6 +66,7 @@ class Battery:
         self.__power_unloading_smoothen_recorder = WattRecorder()
         self.__power_loading_smoothen_recorder = WattRecorder()
         self.__energy = EnergySource()
+        self.__energy_wh = BufferedValue()
         self.__power_downstream_1m = BufferedValue()
         self.__power_downstream_5m = BufferedValue()
 
@@ -75,7 +76,7 @@ class Battery:
 
     @property
     def energy_wh(self) -> int:
-        return self.__energy.energy_wh
+        return self.__energy_wh.set_and_get(self.__energy.energy_wh)
 
     @property
     def power(self) -> int:
