@@ -241,8 +241,11 @@ class Pv:
                         if peek > peek_value:
                             peek_hour = hour
                             peek_value = peek
-                            logging.info("new peek on hour " + str(hour) + ", peek " + str(peek_value))
-                    self.__surplus_daily_peeks.put(datetime.now(UTC).strftime("%Y-%m-%d"), peek_hour, ttl_sec=30*24*60*60)
+
+                    date = datetime.now(UTC).strftime("%Y-%m-%d")
+                    if self.__surplus_daily_peeks.get(date, -1) != peek_hour:
+                        logging.info("peek on hour " + str(peek_hour) + ", peek " + str(peek_value))
+                    self.__surplus_daily_peeks.put(date, peek_hour, ttl_sec=30*24*60*60)
             except Exception as e:
                 logging.warning("error occurred on printing peek values " + str(e))
             sleep(17*60)
