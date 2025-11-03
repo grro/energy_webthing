@@ -237,9 +237,11 @@ class Pv:
                     peek_hour = 0
                     peek_value = 0
                     for hour in range(0, 23):
-                        if self.__power_per_hour.get(hour, 0) > peek_value:
+                        peek = self.__power_per_hour.get(hour, 0)
+                        if peek > peek_value:
                             peek_hour = hour
-                            peek_value = self.__power_per_hour.get(hour)
+                            peek_value = peek
+                            logging.info("new peek on hour " + str(hour) + ", peek " + str(peek_value))
                     self.__surplus_daily_peeks.put(datetime.now(UTC).strftime("%Y-%m-%d"), peek_hour, ttl_sec=30*24*60*60)
             except Exception as e:
                 logging.warning("error occurred on printing peek values " + str(e))
