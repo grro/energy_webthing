@@ -24,7 +24,7 @@ def run_server(port: int,
     battery = Battery(battery)
     energy = Energy(provider, pv, battery)
 
-    mcp_server = EnergyMCPServer(port+1, energy)
+    mcp_server = EnergyMCPServer(port+1, energy, pv)
     server = WebThingServer(MultipleThings([ProviderThing(provider), PvThing(pv), BatteryThing(battery), EnergyThing(energy)], "energy"), port=port, disable_host_validation=True)
 
     try:
