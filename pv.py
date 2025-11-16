@@ -56,6 +56,8 @@ class Pv:
         self.__module2 = Module(meter_addr_pv_channel2, "PV module2")
         self.__module3 = Module(meter_addr_pv_channel3,"PV module3")
 
+        self.latest_measurement_date = datetime.now()
+
         self.power_downstream = 0
         self.__power_downstream_5s = BufferedValue()
         self.__power_downstream_1m = BufferedValue()
@@ -205,23 +207,20 @@ class Pv:
         while self.__is_running:
             try:
                 self.__measure()
+                self.latest_measurement_date = datetime.now()
                 [listener() for listener in self.__listeners]
                 sleep(1.03)
             except Exception as e:
                 logging.warning("error occurred on refresh " + str(e))
                 sleep(3)
 
-    def __measure(self) -> bool:
-        try:
-            self.__module1.measure()
-            self.__module2.measure()
-            self.__module3.measure()
-            power_all = self.__all.measure()
-            self.power_downstream = 0 if power_all <0 else power_all
-            self.__pv_power_smoothen_recorder.put(self.power_downstream)
-            return True
-        except Exception as e:
-            return False
+    def __measure(self):
+        self.__module1.measure()
+        self.__module2.measure()
+        self.__module3.measure()
+        power_all = self.__all.measure()
+        self.power_downstream = 0 if power_all <0 else power_all
+        self.__pv_power_smoothen_recorder.put(self.power_downstream)
 
     def __day_peek_loop(self):
         while self.__is_running:
@@ -257,15 +256,13 @@ class Pv:
         while self.__is_running:
             try:
                 logging.info(self.__info())
-
-                sleep_time = 30 - (datetime.now().minute % 30)
-                sleep(sleep_time)
+                sleep(10*60)
             except Exception as e:
                 logging.warning("error occurred on info " + str(e))
                 sleep(3 * 60)
 
     def __info(self) -> str:
-        return "(1m smoothen) PV downstream all: " + str(int(self.power_downstream_1m)) + "W" + \
+        return "PV downstream all: " + str(int(self.power_downstream_1m)) + "W" + \
                 " (module1: " + str(int(self.power_downstream_module1_1m)) + "W," + \
                 " module2: " + str(int(self.power_downstream_module2_1m)) + "W," + \
                 " module3: " + str(int(self.power_downstream_module3_1m)) + "W," + \
@@ -670,6 +667,18 @@ class PvThing(Thing):
                          'readOnly': True,
                      }))
 
+        self.latest_measurement_date = Value(pv.latest_measurement_date)
+        self.add_property(
+            Property(self,
+                     'latest_measurement_date',
+                     self.latest_measurement_date,
+                     metadata={
+                         'title': 'latest_measurement_date',
+                         "type": "str",
+                         'description': 'latest measurement date in ISO8601',
+                         'readOnly': True,
+                     }))
+
 
     def on_value_changed(self):
         self.ioloop.add_callback(self._on_value_changed)
@@ -710,6 +719,7 @@ class PvThing(Thing):
 
         self.power_peek_hour_utc.notify_of_external_update(self.pv.power_peek_hour_utc)
 
+        self.latest_measurement_date.notify_of_external_update(self.pv.latest_measurement_date)
 
 '''        
 pv = Pv('http://10.1.33.53', "http://10.1.33.94", "http://10.1.33.95", "http://10.1.33.93", "c:\\temp")

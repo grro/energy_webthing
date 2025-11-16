@@ -59,6 +59,7 @@ class Battery:
         self.__listeners = set()
         self.__is_running = True
         self.__meter = ShellyMeter.auto_select(addr, "Battery")
+        self.latest_measurement_date = datetime.now()
         self.__power = 0
         self.__power_unloading = 0
         self.__power_loading= 0
@@ -158,6 +159,7 @@ class Battery:
         while self.__is_running:
             try:
                 self.__measure()
+                self.latest_measurement_date = datetime.now()
                 [listener() for listener in self.__listeners]
                 sleep(1.03)
             except Exception as e:
@@ -165,31 +167,25 @@ class Battery:
                 sleep(3)
 
     def __measure(self):
-        try:
-            m = self.__meter.measure()
-            power = m.total
-            if -3 < power < 3:  # ignore low values
-                power = 0
-            self.__power = power                                          # battery -> energy source
-            self.__power_unloading = 0 if power < 0 else power            #  positive power -> battery unloads
-            self.__power_loading = 0 if power > 0 else (power*-1)         #  negative power -> battery loads
+        m = self.__meter.measure()
+        power = m.total
+        if -3 < power < 3:  # ignore low values
+            power = 0
+        self.__power = power                                          # battery -> energy source
+        self.__power_unloading = 0 if power < 0 else power            #  positive power -> battery unloads
+        self.__power_loading = 0 if power > 0 else (power*-1)         #  negative power -> battery loads
 
-            self.__power_smoothen_recorder.put(self.__power)
-            self.__power_loading_smoothen_recorder.put(self.__power_loading)
-            self.__power_unloading_smoothen_recorder.put(self.__power_unloading)
-            self.__energy.add(m.energy_total, m.ret_energy_total)
-            return True
-        except Exception as e:
-            return False
+        self.__power_smoothen_recorder.put(self.__power)
+        self.__power_loading_smoothen_recorder.put(self.__power_loading)
+        self.__power_unloading_smoothen_recorder.put(self.__power_unloading)
+        self.__energy.add(m.energy_total, m.ret_energy_total)
 
     def __info_loop(self):
         sleep(3 * 60)
         while self.__is_running:
             try:
                 logging.info(self.__info())
-
-                sleep_time = 30 - (datetime.now().minute % 30)
-                sleep(sleep_time)
+                sleep(10*60)
             except Exception as e:
                 logging.warning("error occurred on info " + str(e))
                 sleep(4 * 60)
@@ -427,6 +423,17 @@ class BatteryThing(Thing):
                          'readOnly': True,
                      }))
 
+        self.latest_measurement_date = Value(battery.latest_measurement_date)
+        self.add_property(
+            Property(self,
+                     'latest_measurement_date',
+                     self.latest_measurement_date,
+                     metadata={
+                         'title': 'latest_measurement_date',
+                         "type": "str",
+                         'description': 'latest measurement date in ISO8601',
+                         'readOnly': True,
+                     }))
 
     def on_value_changed(self):
         self.ioloop.add_callback(self._on_value_changed)
@@ -449,6 +456,8 @@ class BatteryThing(Thing):
         self.power_downstream_15s.notify_of_external_update(self.battery.power_downstream_15s)
         self.power_downstream_1m.notify_of_external_update(self.battery.power_downstream_1m)
         self.power_downstream_5m.notify_of_external_update(self.battery.power_downstream_5m)
+
+        self.latest_measurement_date.notify_of_external_update(self.battery.latest_measurement_date)
 
         self.energy_wh.notify_of_external_update(self.battery.energy_wh)
 

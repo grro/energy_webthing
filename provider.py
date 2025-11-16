@@ -21,6 +21,8 @@ class Provider:
         self.provider_power_downstream = 0
         self.provider_power_upstream = 0
 
+        self.latest_measurement_date = datetime.now()
+
         self.__provider_power_smoothen_recorder = WattRecorder()
         self.__provider_power_downstream_smoothen_recorder = WattRecorder()
         self.__provider_power_upstream_smoothen_recorder = WattRecorder()
@@ -92,43 +94,38 @@ class Provider:
         while self.__is_running:
             try:
                 self.__measure()
+                self.latest_measurement_date = datetime.now()
                 [listener() for listener in self.__listeners]
                 sleep(1.03)
             except Exception as e:
                 logging.warning("error occurred on refresh " + str(e))
                 sleep(3)
 
-    def __measure(self) -> bool:
-        try:
-            power = self.__provider_shelly.measure().total
-            downstream_power = 0 if power < 0 else power
-            upstream_power = 0 if power > 0 else (power*-1)
+    def __measure(self):
+        power = self.__provider_shelly.measure().total
+        downstream_power = 0 if power < 0 else power
+        upstream_power = 0 if power > 0 else (power*-1)
 
-            self.provider_power = power
-            self.provider_power_downstream = downstream_power
-            self.provider_power_upstream = upstream_power
+        self.provider_power = power
+        self.provider_power_downstream = downstream_power
+        self.provider_power_upstream = upstream_power
 
-            self.__provider_power_smoothen_recorder.put(power)
-            self.__provider_power_downstream_smoothen_recorder.put(downstream_power)
-            self.__provider_power_upstream_smoothen_recorder.put(upstream_power)
-            return True
-        except Exception as e:
-            return False
+        self.__provider_power_smoothen_recorder.put(power)
+        self.__provider_power_downstream_smoothen_recorder.put(downstream_power)
+        self.__provider_power_upstream_smoothen_recorder.put(upstream_power)
 
     def __info_loop(self):
         sleep(3 * 60)
         while self.__is_running:
             try:
                 logging.info(self.__info())
-
-                sleep_time = 30 - (datetime.now().minute % 30)
-                sleep(sleep_time)
+                sleep(10*60)
             except Exception as e:
                 logging.warning("error occurred on info " + str(e))
                 sleep(4 * 60)
 
     def __info(self) -> str:
-        return "(1m smoothen) Provider " + str(int(self.provider_power_1m)) + "W"
+        return "Provider " + str(int(self.provider_power_1m)) + "W"
 
 
 
@@ -364,6 +361,18 @@ class ProviderThing(Thing):
                          'readOnly': True,
                      }))
 
+        self.latest_measurement_date = Value(provider.latest_measurement_date)
+        self.add_property(
+            Property(self,
+                     'latest_measurement_date',
+                     self.latest_measurement_date,
+                     metadata={
+                         'title': 'latest_measurement_date',
+                         "type": "str",
+                         'description': 'latest measurement date in ISO8601',
+                         'readOnly': True,
+                     }))
+
     def on_value_changed(self):
         self.ioloop.add_callback(self._on_value_changed)
 
@@ -385,4 +394,6 @@ class ProviderThing(Thing):
         self.provider_power_upstream_15s.notify_of_external_update(self.provider.provider_power_upstream_15s)
         self.provider_power_upstream_1m.notify_of_external_update(self.provider.provider_power_upstream_1m)
         self.provider_power_upstream_5m.notify_of_external_update(self.provider.provider_power_upstream_5m)
+
+        self.latest_measurement_date.notify_of_external_update(self.latest_measurement_date)
 
