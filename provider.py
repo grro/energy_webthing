@@ -27,57 +27,60 @@ class Provider:
         self.__provider_power_downstream_smoothen_recorder = WattRecorder()
         self.__provider_power_upstream_smoothen_recorder = WattRecorder()
 
+    def elapsed_since_last_measurement_sec(self):
+        return (datetime.now() - self.latest_measurement_date).total_seconds()
+
     @property
     def provider_power_5s(self) -> int:
-        return self.__provider_power_smoothen_recorder.watt_per_hour(second_range=5)
+        return self.__provider_power_smoothen_recorder.watt_per_hour(second_range=5) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def provider_power_15s(self) -> int:
-        return self.__provider_power_smoothen_recorder.watt_per_hour(second_range=15)
+        return self.__provider_power_smoothen_recorder.watt_per_hour(second_range=15) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def provider_power_1m(self) -> int:
-        return self.__provider_power_smoothen_recorder.watt_per_hour(minute_range=1)
+        return self.__provider_power_smoothen_recorder.watt_per_hour(minute_range=1) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def provider_power_5m(self) -> int:
-        return self.__provider_power_smoothen_recorder.watt_per_hour(minute_range=5)
+        return self.__provider_power_smoothen_recorder.watt_per_hour(minute_range=5) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def provider_power_downstream_5s(self) -> int:
-        return self.__provider_power_downstream_smoothen_recorder.watt_per_hour(second_range=5)
+        return self.__provider_power_downstream_smoothen_recorder.watt_per_hour(second_range=5) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def provider_power_downstream_15s(self) -> int:
-        return self.__provider_power_downstream_smoothen_recorder.watt_per_hour(second_range=15)
+        return self.__provider_power_downstream_smoothen_recorder.watt_per_hour(second_range=15) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def provider_power_downstream_1m(self) -> int:
-        return self.__provider_power_downstream_smoothen_recorder.watt_per_hour(minute_range=1)
+        return self.__provider_power_downstream_smoothen_recorder.watt_per_hour(minute_range=1) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def provider_power_downstream_5m(self) -> int:
-        return self.__provider_power_downstream_smoothen_recorder.watt_per_hour(minute_range=5)
+        return self.__provider_power_downstream_smoothen_recorder.watt_per_hour(minute_range=5) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def provider_power_upstream_5s(self) -> int:
-        return self.__provider_power_upstream_smoothen_recorder.watt_per_hour(second_range=5)
+        return self.__provider_power_upstream_smoothen_recorder.watt_per_hour(second_range=5) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def provider_power_upstream_15s(self) -> int:
-        return self.__provider_power_upstream_smoothen_recorder.watt_per_hour(second_range=15)
+        return self.__provider_power_upstream_smoothen_recorder.watt_per_hour(second_range=15) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def provider_power_upstream_1m(self) -> int:
-        return self.__provider_power_upstream_smoothen_recorder.watt_per_hour(minute_range=1)
+        return self.__provider_power_upstream_smoothen_recorder.watt_per_hour(minute_range=1) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def provider_power_upstream_5m(self) -> int:
-        return self.__provider_power_upstream_smoothen_recorder.watt_per_hour(minute_range=5)
+        return self.__provider_power_upstream_smoothen_recorder.watt_per_hour(minute_range=5) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def provider_power_upstream_60m(self) -> int:
-        return self.__provider_power_upstream_smoothen_recorder.watt_per_hour(minute_range=60)
+        return self.__provider_power_upstream_smoothen_recorder.watt_per_hour(minute_range=60) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
 
     def add_listener(self,listener):

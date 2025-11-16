@@ -66,29 +66,31 @@ class Pv:
         self.__power_per_hour = {}
         self.__surplus_daily_peeks = SimpleDB("spv_daily_peek", sync_period_sec=60, directory=directory)
 
+    def elapsed_since_last_measurement_sec(self):
+        return (datetime.now() - self.latest_measurement_date).total_seconds()
 
     def addd_listener(self,listener):
         self.__listeners.add(listener)
 
     @property
     def power_downstream_5s(self) -> int:
-        return self.__power_downstream_5s.set_and_get(self.__pv_power_smoothen_recorder.watt_per_hour(second_range=5))
+        return self.__power_downstream_5s.set_and_get(self.__pv_power_smoothen_recorder.watt_per_hour(second_range=5)) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def power_downstream_15s(self) -> int:
-        return self.__pv_power_smoothen_recorder.watt_per_hour(second_range=15)
+        return self.__pv_power_smoothen_recorder.watt_per_hour(second_range=15) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def power_downstream_1m(self) -> int:
-        return self.__power_downstream_1m.set_and_get(self.__pv_power_smoothen_recorder.watt_per_hour(minute_range=1))
+        return self.__power_downstream_1m.set_and_get(self.__pv_power_smoothen_recorder.watt_per_hour(minute_range=1)) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def power_downstream_5m(self) -> int:
-        return  self.__pv_power_smoothen_recorder.watt_per_hour(minute_range=5)
+        return  self.__pv_power_smoothen_recorder.watt_per_hour(minute_range=5) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def power_downstream_60m(self) -> int:
-        return self.__pv_power_smoothen_recorder.watt_per_hour(minute_range=60)
+        return self.__pv_power_smoothen_recorder.watt_per_hour(minute_range=60) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def power_downstream_module1(self) -> int:
