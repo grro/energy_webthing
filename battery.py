@@ -2,7 +2,7 @@ import tornado.ioloop
 import logging
 from threading import Thread
 from time import sleep
-from datetime import datetime, timezone, UTC
+from datetime import datetime, UTC
 from utils import WattRecorder
 from shelly import ShellyMeter
 from webthing import (Property, Thing, Value)
@@ -161,8 +161,8 @@ class Battery:
         while self.__is_running:
             try:
                 self.__measure()
-                self.latest_measurement_date = datetime.now(UTC)
                 [listener() for listener in self.__listeners]
+                self.latest_measurement_date = datetime.now(UTC)
                 sleep(1.03)
             except Exception as e:
                 #logging.warning("error occurred on battery refresh " + str(e))

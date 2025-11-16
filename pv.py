@@ -209,8 +209,8 @@ class Pv:
         while self.__is_running:
             try:
                 self.__measure()
-                self.latest_measurement_date = datetime.now(UTC)
                 [listener() for listener in self.__listeners]
+                self.latest_measurement_date = datetime.now(UTC)
                 sleep(1.03)
             except Exception as e:
                 logging.warning("error occurred on pv refresh " + str(e))
