@@ -669,7 +669,7 @@ class PvThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.latest_measurement_date = Value(pv.latest_measurement_date)
+        self.latest_measurement_date = Value(pv.latest_measurement_date.strftime("%Y-%m-%dT%H:%M:%S"))
         self.add_property(
             Property(self,
                      'latest_measurement_date',
@@ -721,7 +721,7 @@ class PvThing(Thing):
 
         self.power_peek_hour_utc.notify_of_external_update(self.pv.power_peek_hour_utc)
 
-        self.latest_measurement_date.notify_of_external_update(self.pv.latest_measurement_date)
+        self.latest_measurement_date.notify_of_external_update(self.pv.latest_measurement_date.strftime("%Y-%m-%dT%H:%M:%S"))
 
 '''        
 pv = Pv('http://10.1.33.53', "http://10.1.33.94", "http://10.1.33.95", "http://10.1.33.93", "c:\\temp")

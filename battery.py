@@ -425,7 +425,7 @@ class BatteryThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.latest_measurement_date = Value(battery.latest_measurement_date)
+        self.latest_measurement_date = Value(battery.latest_measurement_date.strftime("%Y-%m-%dT%H:%M:%S"))
         self.add_property(
             Property(self,
                      'latest_measurement_date',
@@ -459,7 +459,7 @@ class BatteryThing(Thing):
         self.power_downstream_1m.notify_of_external_update(self.battery.power_downstream_1m)
         self.power_downstream_5m.notify_of_external_update(self.battery.power_downstream_5m)
 
-        self.latest_measurement_date.notify_of_external_update(self.battery.latest_measurement_date)
+        self.latest_measurement_date.notify_of_external_update(self.battery.latest_measurement_date.strftime("%Y-%m-%dT%H:%M:%S"))
 
         self.energy_wh.notify_of_external_update(self.battery.energy_wh)
 

@@ -364,7 +364,7 @@ class ProviderThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.latest_measurement_date = Value(provider.latest_measurement_date)
+        self.latest_measurement_date = Value(provider.latest_measurement_date.strftime("%Y-%m-%dT%H:%M:%S"))
         self.add_property(
             Property(self,
                      'latest_measurement_date',
@@ -398,5 +398,5 @@ class ProviderThing(Thing):
         self.provider_power_upstream_1m.notify_of_external_update(self.provider.provider_power_upstream_1m)
         self.provider_power_upstream_5m.notify_of_external_update(self.provider.provider_power_upstream_5m)
 
-        self.latest_measurement_date.notify_of_external_update(self.latest_measurement_date)
+        self.latest_measurement_date.notify_of_external_update(self.provider.latest_measurement_date.strftime("%Y-%m-%dT%H:%M:%S"))
 
