@@ -128,7 +128,7 @@ class Provider:
                 sleep(4 * 60)
 
     def __info(self) -> str:
-        return "Provider " + str(int(self.provider_power_1m)) + "W - last measurement: " + self.latest_measurement_date.strftime("%H:%M")
+        return "Provider " + str(int(self.provider_power_1m)) + "W; measured at" + self.latest_measurement_date.strftime("%H:%M")
 
 
 

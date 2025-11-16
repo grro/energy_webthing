@@ -28,13 +28,13 @@ def run_server(port: int,
     server = WebThingServer(MultipleThings([ProviderThing(provider), PvThing(pv), BatteryThing(battery), EnergyThing(energy)], "energy"), port=port, disable_host_validation=True)
 
     try:
-        logging.info('starting the server http://localhost:' + str(port))
         provider.start()
         pv.start()
         battery.start()
         energy.start()
         mcp_server.start()
         server.start()
+        logging.info('websocket server running on http://localhost:' + str(port))
         sleep(5555)
     except KeyboardInterrupt:
         logging.info('stopping the server')
