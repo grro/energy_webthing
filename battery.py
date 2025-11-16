@@ -2,7 +2,7 @@ import tornado.ioloop
 import logging
 from threading import Thread
 from time import sleep
-from datetime import datetime, timezone
+from datetime import datetime, timezone, UTC
 from utils import WattRecorder
 from shelly import ShellyMeter
 from webthing import (Property, Thing, Value)
@@ -59,7 +59,7 @@ class Battery:
         self.__listeners = set()
         self.__is_running = True
         self.__meter = ShellyMeter.auto_select(addr, "Battery")
-        self.latest_measurement_date = datetime.now(timezone.utc)
+        self.latest_measurement_date = datetime.now(UTC)
         self.__power = 0
         self.__power_unloading = 0
         self.__power_loading= 0
@@ -72,7 +72,7 @@ class Battery:
         self.__power_downstream_5m = BufferedValue()
 
     def elapsed_since_last_measurement_sec(self):
-        return (datetime.now(timezone.utc) - self.latest_measurement_date).total_seconds()
+        return (datetime.now(UTC) - self.latest_measurement_date).total_seconds()
 
     def add_listener(self,listener):
         self.__listeners.add(listener)
@@ -161,7 +161,7 @@ class Battery:
         while self.__is_running:
             try:
                 self.__measure()
-                self.latest_measurement_date = datetime.now(timezone.utc)
+                self.latest_measurement_date = datetime.now(UTC)
                 [listener() for listener in self.__listeners]
                 sleep(1.03)
             except Exception as e:

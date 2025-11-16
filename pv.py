@@ -3,7 +3,7 @@ import logging
 from threading import Thread
 from typing import List
 from time import sleep
-from datetime import datetime, timedelta, UTC, timezone
+from datetime import datetime, timedelta, UTC
 from webthing import (Property, Thing, Value)
 from shelly import ShellyMeter
 from utils import WattRecorder, BufferedValue
@@ -56,7 +56,7 @@ class Pv:
         self.__module2 = Module(meter_addr_pv_channel2, "PV module2")
         self.__module3 = Module(meter_addr_pv_channel3,"PV module3")
 
-        self.latest_measurement_date = datetime.now(timezone.utc)
+        self.latest_measurement_date = datetime.now(UTC)
 
         self.power_downstream = 0
         self.__power_downstream_5s = BufferedValue()
@@ -67,7 +67,7 @@ class Pv:
         self.__surplus_daily_peeks = SimpleDB("spv_daily_peek", sync_period_sec=60, directory=directory)
 
     def elapsed_since_last_measurement_sec(self):
-        return (datetime.now(timezone.utc) - self.latest_measurement_date).total_seconds()
+        return (datetime.now(UTC) - self.latest_measurement_date).total_seconds()
 
     def addd_listener(self,listener):
         self.__listeners.add(listener)
@@ -209,7 +209,7 @@ class Pv:
         while self.__is_running:
             try:
                 self.__measure()
-                self.latest_measurement_date = datetime.now(timezone.utc)
+                self.latest_measurement_date = datetime.now(UTC)
                 [listener() for listener in self.__listeners]
                 sleep(1.03)
             except Exception as e:
