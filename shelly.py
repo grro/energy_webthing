@@ -58,8 +58,9 @@ class Shelly3em(Meter):
                 except Exception as e:
                     ex =  Exception("ShellyPmMini called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
-                self.__renew_session()
-                ex = Exception("ShellyPmMini called " + uri + " got " + str(e))
+                reason = "ShellyPmMini called " + uri + " got " + str(e)
+                self.__renew_session(reason)
+                ex = Exception(reason)
             sleep(1)
         if ex is not None:
             raise ex
@@ -77,14 +78,15 @@ class Shelly3em(Meter):
                 except Exception as e:
                     ex = Exception("Shelly3em called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
-                self.__renew_session()
-                ex = Exception("Shelly3em called " + uri + " got " + str(e))
+                reason = "Shelly3em called " + uri + " got " + str(e)
+                self.__renew_session(reason)
+                ex = Exception(reason)
             sleep(1)
         if ex is not None:
             raise ex
 
-    def __renew_session(self):
-        logging.info("renew session for " + self.addr)
+    def __renew_session(self, reason: str = None):
+        logging.info("renew session for " + self.addr + ((" reason: " + reason) if reason is not None else ""))
         try:
             self.__session.close()
         except Exception as e:
@@ -111,8 +113,9 @@ class Shelly1pro(Meter):
                 except Exception as e:
                     ex =  Exception("ShellyPmMini called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
-                self.__renew_session()
-                ex = Exception("ShellyPmMini called " + uri + " got " + str(e))
+                reason = "ShellyPmMini called " + uri + " got " + str(e)
+                self.__renew_session(reason)
+                ex = Exception(reason)
             sleep(1)
         if ex is not None:
             raise ex
@@ -130,14 +133,15 @@ class Shelly1pro(Meter):
                 except Exception as e:
                     ex = Exception("Shelly1pro called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
-                self.__renew_session()
-                ex = Exception("Shelly1pro called " + uri + " got " + str(e))
+                reason = "Shelly1pro called " + uri + " got " + str(e)
+                self.__renew_session(reason)
+                ex = Exception(reason)
             sleep(1)
         if ex is not None:
             raise ex
 
-    def __renew_session(self):
-        logging.info("renew session for " + self.addr)
+    def __renew_session(self, reason: str = None):
+        logging.info("renew session for " + self.addr + ((" reason: " + reason) if reason is not None else ""))
         try:
             self.__session.close()
         except Exception as e:
@@ -164,8 +168,9 @@ class ShellyPmMini(Meter):
                 except Exception as e:
                     ex =  Exception("ShellyPmMini called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
-                self.__renew_session()
-                ex = Exception("ShellyPmMini called " + uri + " got " + str(e))
+                reason = "ShellyPmMini called " + uri + " got " + str(e)
+                self.__renew_session(reason)
+                ex = Exception(reason)
             sleep(1)
         if ex is not None:
             raise ex
@@ -185,14 +190,15 @@ class ShellyPmMini(Meter):
                 except Exception as e:
                     ex =  Exception("ShellyPmMini called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
-                self.__renew_session()
-                ex = Exception("ShellyPmMini called " + uri + " got " + str(e))
+                reason = "ShellyPmMini called " + uri + " got " + str(e)
+                self.__renew_session(reason)
+                ex = Exception(reason)
             sleep(1)
         if ex is not None:
             raise ex
 
-    def __renew_session(self):
-        logging.info("renew session for " + self.addr)
+    def __renew_session(self, reason: str = None):
+        logging.info("renew session for " + self.addr + ((" reason: " + reason) if reason is not None else ""))
         try:
             self.__session.close()
         except Exception as e:
@@ -219,8 +225,9 @@ class Shelly1pm(Meter):
                 except Exception as e:
                     ex =  Exception("ShellyPmMini called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
-                self.__renew_session()
-                ex = Exception("ShellyPmMini called " + uri + " got " + str(e))
+                reason = "ShellyPmMini called " + uri + " got " + str(e)
+                self.__renew_session(reason)
+                ex = Exception(reason)
             sleep(1)
         if ex is not None:
             raise ex
@@ -239,15 +246,16 @@ class Shelly1pm(Meter):
                 except Exception as e:
                     ex = Exception("Shelly1pm called " + uri + " got " + str(resp.status_code) + " " + resp.text + " " + str(e))
             except Exception as e:
-                self.__renew_session()
-                ex = Exception("Shelly1pm called " + uri + " got " + str(e))
+                reason = "Shelly1pm called " + uri + " got " + str(e)
+                self.__renew_session(reason)
+                ex = Exception(reason)
             sleep(1)
         if ex is not None:
             raise ex
 
 
-    def __renew_session(self):
-        logging.info("renew session for " + self.addr)
+    def __renew_session(self, reason: str = None):
+        logging.info("renew session for " + self.name + " running on " + self.addr + ((" reason: " + reason) if reason is not None else ""))
         try:
             self.__session.close()
         except Exception as e:

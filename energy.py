@@ -19,6 +19,7 @@ class Energy:
         self.pv.add_listener(self.__on_update)
         self.battery.add_listener(self.__on_update)
         self.__power_consumption_5s = BufferedValue()
+        self.__power_consumption_15s = BufferedValue()
         self.__power_consumption_1m = BufferedValue()
         self.__power_surplus_gross_1m = BufferedValue()
 
@@ -36,7 +37,7 @@ class Energy:
 
     @property
     def power_consumption_15s(self) -> int:
-        return self.provider.provider_power_5s + self.battery.power_15s + self.pv.power_downstream_15s
+        return self.__power_consumption_15s.set_and_get(self.provider.provider_power_5s + self.battery.power_15s + self.pv.power_downstream_15s)
 
     @property
     def power_consumption_1m(self) -> int:

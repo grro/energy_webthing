@@ -4,8 +4,6 @@ from pv import Pv
 
 
 
-
-
 class EnergyMCPServer(MCPServer):
 
     def __init__(self,port: int, energy: Energy, pv: Pv):
