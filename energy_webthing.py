@@ -33,8 +33,8 @@ def run_server(port: int,
         battery.start()
         energy.start()
         mcp_server.start()
+        logging.info('Webthing Server running on http://localhost:' + str(port))
         server.start()
-        logging.info('websocket server running on http://localhost:' + str(port))
         sleep(5555)
     except KeyboardInterrupt:
         logging.info('stopping the server')

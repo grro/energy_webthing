@@ -1,7 +1,7 @@
 import tornado.ioloop
 import logging
 from threading import Thread
-from datetime import datetime
+from datetime import datetime, timezone
 from time import sleep
 from webthing import (Property, Thing, Value)
 from shelly import ShellyMeter
@@ -21,14 +21,14 @@ class Provider:
         self.provider_power_downstream = 0
         self.provider_power_upstream = 0
 
-        self.latest_measurement_date = datetime.now()
+        self.latest_measurement_date = datetime.now(timezone.utc)
 
         self.__provider_power_smoothen_recorder = WattRecorder()
         self.__provider_power_downstream_smoothen_recorder = WattRecorder()
         self.__provider_power_upstream_smoothen_recorder = WattRecorder()
 
     def elapsed_since_last_measurement_sec(self):
-        return (datetime.now() - self.latest_measurement_date).total_seconds()
+        return (datetime.now(timezone.utc) - self.latest_measurement_date).total_seconds()
 
     @property
     def provider_power_5s(self) -> int:
@@ -97,7 +97,7 @@ class Provider:
         while self.__is_running:
             try:
                 self.__measure()
-                self.latest_measurement_date = datetime.now()
+                self.latest_measurement_date = datetime.now(timezone.utc)
                 [listener() for listener in self.__listeners]
                 sleep(1.03)
             except Exception as e:
@@ -128,7 +128,7 @@ class Provider:
                 sleep(4 * 60)
 
     def __info(self) -> str:
-        return "Provider " + str(int(self.provider_power_1m)) + "W; measured at" + self.latest_measurement_date.strftime("%H:%M")
+        return "Provider " + str(int(self.provider_power_1m)) + "W; measured at " + self.latest_measurement_date.strftime("%H:%M") + " UTC"
 
 
 
