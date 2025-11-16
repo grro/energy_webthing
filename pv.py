@@ -268,7 +268,7 @@ class Pv:
                 " (module1: " + str(int(self.power_downstream_module1_1m)) + "W," + \
                 " module2: " + str(int(self.power_downstream_module2_1m)) + "W," + \
                 " module3: " + str(int(self.power_downstream_module3_1m)) + "W," + \
-                " module4: " + str(int(self.power_downstream_module4_1m)) + "W)"
+                " module4: " + str(int(self.power_downstream_module4_1m)) + "W) - last measurement: " + self.latest_measurement_date.strftime("%H:%M")
 
 
 

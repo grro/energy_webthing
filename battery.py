@@ -193,7 +193,7 @@ class Battery:
                 sleep(4 * 60)
 
     def __info(self) -> str:
-        return "(1m smoothen) Battery " + str(int(self.power_1m)) + "W"
+        return "(1m smoothen) Battery " + str(int(self.power_1m)) + "W - last measurement: " + self.latest_measurement_date.strftime("%H:%M")
 
 
 
