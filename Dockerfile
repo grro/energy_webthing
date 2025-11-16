@@ -1,12 +1,12 @@
 FROM python:3-alpine
 
 ENV port 8343
-ENV provider  http://example.org
-ENV pv_all http://example.org
-ENV pv_module1 http://example.org
-ENV pv_module2 http://example.org
-ENV pv_module3 http://example.org
-ENV battery http://example.org
+ENV provider  http://noexists.example.org
+ENV pv_all http://noexists.example.org
+ENV pv_module1 http://noexists.example.org
+ENV pv_module2 http://noexists.example.org
+ENV pv_module3 http://noexists.example.org
+ENV battery http://noexists.example.org
 ENV directory /app/energy
 
 
