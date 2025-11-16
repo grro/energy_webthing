@@ -213,7 +213,7 @@ class Pv:
                 [listener() for listener in self.__listeners]
                 sleep(1.03)
             except Exception as e:
-                logging.warning("error occurred on refresh " + str(e))
+                logging.warning("error occurred on pv refresh " + str(e))
                 sleep(3)
 
     def __measure(self):
@@ -254,7 +254,7 @@ class Pv:
 
 
     def __info_loop(self):
-        sleep(3 * 60)
+        sleep(1 * 60)
         while self.__is_running:
             try:
                 logging.info(self.__info())

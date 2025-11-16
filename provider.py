@@ -101,7 +101,7 @@ class Provider:
                 [listener() for listener in self.__listeners]
                 sleep(1.03)
             except Exception as e:
-                logging.warning("error occurred on refresh " + str(e))
+                logging.warning("error occurred on provider refresh " + str(e))
                 sleep(3)
 
     def __measure(self):
@@ -118,7 +118,7 @@ class Provider:
         self.__provider_power_upstream_smoothen_recorder.put(upstream_power)
 
     def __info_loop(self):
-        sleep(3 * 60)
+        sleep(1 * 60)
         while self.__is_running:
             try:
                 logging.info(self.__info())
