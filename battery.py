@@ -10,49 +10,6 @@ from utils import BufferedValue
 
 
 
-class EnergySource:
-
-    def __init__(self):
-        self.__is_running = True
-        self.__unloading_counter_by_hour = {}
-        self.__loading_counter_by_hour = {}
-        self.__energy_wh = 0
-
-    def add(self, counter_loading: int, counter_unloading: int):
-        hour = datetime.now().hour
-        self.__unloading_counter_by_hour[hour] = counter_unloading
-        self.__loading_counter_by_hour[hour] = counter_loading
-
-    @property
-    def energy_wh(self) -> int:
-        return self.__energy_wh
-
-    def start(self):
-        Thread(target=self.__compute_energy_loop, daemon=True).start()
-
-    def stop(self):
-        self.__is_running = False
-
-    def __compute_energy_loop(self):
-        while self.__is_running:
-            try:
-                hour_now = datetime.now().hour
-
-                loading_counter_now = self.__loading_counter_by_hour.get(hour_now, 0)
-                loading_counter_4am =  self.__loading_counter_by_hour.get(4, loading_counter_now)
-                loading_counter_current_day = loading_counter_now - loading_counter_4am
-
-                unloading_counter_now = self.__unloading_counter_by_hour.get(hour_now, 0)
-                unloading_counter_4am =  self.__unloading_counter_by_hour.get(4, unloading_counter_now)
-                unloading_counter_current_day = unloading_counter_now - unloading_counter_4am
-
-                energy_current_day = loading_counter_current_day - unloading_counter_current_day
-                self.__energy_wh  = 0 if energy_current_day < 0 else energy_current_day
-            except Exception as e:
-                 logging.warning(str(e))
-            sleep(7)
-
-
 class Battery:
 
     def __init__(self, addr: str):
@@ -63,11 +20,10 @@ class Battery:
         self.__power = 0
         self.__power_unloading = 0
         self.__power_loading= 0
+        self.__energy_uploading_total = 0
         self.__power_smoothen_recorder = WattRecorder()
         self.__power_unloading_smoothen_recorder = WattRecorder()
         self.__power_loading_smoothen_recorder = WattRecorder()
-        self.__energy = EnergySource()
-        self.__energy_wh = BufferedValue()
         self.__power_downstream_1m = BufferedValue()
         self.__power_downstream_5m = BufferedValue()
 
@@ -79,7 +35,7 @@ class Battery:
 
     @property
     def energy_wh(self) -> int:
-        return self.__energy_wh.set_and_get(self.__energy.energy_wh)  if self.elapsed_since_last_measurement_sec() < 60 else 0
+        return self.__energy_uploading_total
 
     @property
     def power(self) -> int:
@@ -151,11 +107,10 @@ class Battery:
 
     def start(self):
         Thread(target=self.__measure_loop, daemon=True).start()
-        self.__energy.start()
+        Thread(target=self.__reset_loop, daemon=True).start()
 
     def stop(self):
         self.__is_running = False
-        self.__energy.stop()
 
     def __measure_loop(self):
         while self.__is_running:
@@ -168,9 +123,24 @@ class Battery:
                 #logging.warning("error occurred on battery refresh " + str(e))
                 sleep(3)
 
+    def __reset_loop(self):
+        while self.__is_running:
+            try:
+                hour = datetime.now().hour
+                if hour == 5:
+                    # reset uploaded energy counter at 5 am (energy should be consumed meanwhile)
+                    self.__meter.reset_counter()
+                sleep(29*60)
+            except Exception as e:
+                sleep(3)
+
+
     def __measure(self):
         m = self.__meter.measure()
         power = m.total
+
+        self.__energy_uploading_total = m.energy_total
+
         if -3 < power < 3:  # ignore low values
             power = 0
         self.__power = power                                          # battery -> energy source
@@ -180,7 +150,6 @@ class Battery:
         self.__power_smoothen_recorder.put(self.__power)
         self.__power_loading_smoothen_recorder.put(self.__power_loading)
         self.__power_unloading_smoothen_recorder.put(self.__power_unloading)
-        self.__energy.add(m.energy_total, m.ret_energy_total)
 
     def __info_loop(self):
         sleep(1 * 60)
@@ -463,8 +432,9 @@ class BatteryThing(Thing):
 
         self.energy_wh.notify_of_external_update(self.battery.energy_wh)
 
+
 '''
-b = Battery("http://10.1.33.94")
+b = Battery("http://10.1.33.100")
 b.start()
 sleep(2)
 

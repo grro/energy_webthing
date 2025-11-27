@@ -31,6 +31,9 @@ class Meter(ABC):
     def measure(self) -> Optional[Measure]:
         pass
 
+    def reset_counter(self):
+        pass
+
     @property
     def name(self) -> str:
         return self.info().name
@@ -175,6 +178,16 @@ class ShellyPmMini(Meter):
         if ex is not None:
             raise ex
 
+    def reset_counter(self):
+        uri = self.addr + '/rpc/PM1.ResetCounters?id=0&type=["aenergy","ret_aenergy"]'
+        try:
+            resp = self.__session.get(uri, timeout=20)
+            resp.raise_for_status()
+        except Exception as e:
+            reason = "ShellyPmMini called " + uri + " got " + str(e)
+            self.__renew_session(reason)
+            raise e
+
     def measure(self) -> Optional[Measure]:
         ex = None
         for i in range(0,3):
@@ -267,11 +280,12 @@ class ShellyMeter(Meter):
 
     def __init__(self, addr: str, description: str = ""):
         self.addr = addr
+        self.description = description
         self.device = ShellyMeter.auto_select(addr, description)
 
     def info(self) -> Info:
         if self.device is None:
-            self.device = ShellyMeter.auto_select(self.addr)
+            self.device = ShellyMeter.auto_select(self.addr, self.description)
         try:
             return self.device.info()
         except Exception as e:
@@ -280,7 +294,7 @@ class ShellyMeter(Meter):
 
     def measure(self) -> Optional[Measure]:
         if self.device is None:
-            self.device = ShellyMeter.auto_select(self.addr)
+            self.device = ShellyMeter.auto_select(self.addr, self.description)
         try:
             return self.device.measure()
         except Exception as e:
