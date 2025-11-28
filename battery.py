@@ -41,7 +41,7 @@ class Battery:
         return (datetime.now() - self.__reset_date).total_seconds() / (60*60)
 
     @property
-    def energy_wh(self) -> int:
+    def energy(self) -> int:
         energy_uploaded =  self.__energy_charging_total - (self.__elapsed_hours_since_reset * self.__idle_consumption)
         if energy_uploaded < 0:
             energy_uploaded = 0
@@ -186,7 +186,7 @@ class Battery:
         else:
             state = 'idling'
 
-        return "Battery " + str(int(self.power_1m)) + "W (" + state + ")"
+        return "Battery " + str(int(self.energy)) + "W (" + state + ")"
 
 
 
@@ -405,16 +405,16 @@ class BatteryThing(Thing):
                      }))
 
 
-        self.energy_wh = Value(battery.energy_wh)
+        self.energy = Value(battery.energy)
         self.add_property(
             Property(self,
-                     'energy_wh',
-                     self.energy_wh,
+                     'energy',
+                     self.energy,
                      metadata={
                          'title': 'energy',
                          "type": "integer",
                          'unit': 'watt',
-                         'description': 'the battery power (watt per hour)',
+                         'description': 'the available battery power',
                          'readOnly': True,
                      }))
 
@@ -454,7 +454,7 @@ class BatteryThing(Thing):
 
         self.latest_measurement_date.notify_of_external_update(self.battery.latest_measurement_date.strftime("%Y-%m-%dT%H:%M:%S"))
 
-        self.energy_wh.notify_of_external_update(self.battery.energy_wh)
+        self.energy.notify_of_external_update(self.battery.energy)
 
 
 '''
