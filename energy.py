@@ -21,35 +21,31 @@ class Energy:
         self.__power_consumption_5s = BufferedValue()
         self.__power_consumption_15s = BufferedValue()
         self.__power_consumption_1m = BufferedValue()
-        self.__power_surplus_gross_1m = BufferedValue()
+        self.__power_green_1m = BufferedValue()
 
     @property
     def power_consumption(self) -> int:
-        # energy source
-        #   provider: may be negative by uploading surplus
-        #   battery: may be negative by discharging
-        #   pv: positive only by producing
-        return self.provider.provider_power + self.battery.power_downstream + self.pv.power_downstream
+        return self.provider.provider_power + self.battery.power_downstream + (self.pv.power_downstream - self.battery.power_upstream)
 
     @property
     def power_consumption_5s(self) -> int:
-        return self.__power_consumption_5s.set_and_get(self.provider.provider_power_5s + self.battery.power_downstream_5s + self.pv.power_downstream_5s)
+        return self.__power_consumption_5s.set_and_get(self.provider.provider_power_5s + self.battery.power_downstream_5s + (self.pv.power_downstream_5s - self.battery.power_upstream_5s))
 
     @property
     def power_consumption_15s(self) -> int:
-        return self.__power_consumption_15s.set_and_get(self.provider.provider_power_5s + self.battery.power_downstream_15s + self.pv.power_downstream_15s)
+        return self.__power_consumption_15s.set_and_get(self.provider.provider_power_5s + self.battery.power_downstream_15s + (self.pv.power_downstream_15s - self.battery.power_upstream_15s))
 
     @property
     def power_consumption_1m(self) -> int:
-        return self.__power_consumption_1m.set_and_get(self.provider.provider_power_1m + self.battery.power_downstream_1m + self.pv.power_downstream_1m)
+        return self.__power_consumption_1m.set_and_get(self.provider.provider_power_1m + self.battery.power_downstream_1m + (self.pv.power_downstream_1m - self.battery.power_upstream_1m))
 
     @property
     def power_consumption_5m(self) -> int:
-        return self.provider.provider_power_5m + self.battery.power_upstream_5m + self.pv.power_downstream_5m
+        return self.provider.provider_power_5m + self.battery.power_downstream_5m + (self.pv.power_downstream_5m - self.battery.power_upstream_5m)
 
     @property
     def power_green_1m(self) -> int:
-        return self.__power_surplus_gross_1m.set_and_get(self.pv.power_downstream_1m + self.battery.power_downstream_1m)
+        return self.__power_green_1m.set_and_get(self.pv.power_downstream_1m + self.battery.power_downstream_1m)
 
     @property
     def power_surplus(self) -> int:
