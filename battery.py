@@ -35,9 +35,12 @@ class Battery:
         self.__listeners.add(listener)
 
     @property
+    def __elapsed_hours_since_reset(self) -> float:
+        return (datetime.now() - self.__reset_date).total_seconds() / (60*60)
+
+    @property
     def energy_wh(self) -> int:
-        elapsed_hour = ((datetime.now() - self.__reset_date).total_seconds() / (60*60))
-        idle_consumption = elapsed_hour * 0.7     # idle consumption hoymiles: ~0.7 Wh  (shelly pm: ~1.2 Wh)
+        idle_consumption = self.__elapsed_hours_since_reset * 0.7     # idle consumption hoymiles: ~0.7 W/h  (shelly pm: ~1.2 W/h)
         energy_uploaded = self.__energy_uploading_total - idle_consumption
         energy_effective = energy_uploaded * 0.86  # efficiency round-trip  ~86%
         return 0 if energy_effective < 0 else energy_effective
@@ -134,10 +137,11 @@ class Battery:
             try:
                 hour = datetime.now().hour
                 if hour == 5:
-                    # reset uploaded energy counter at 5 am (energy should be consumed meanwhile)
-                    self.__meter.reset_counter()
-                    self.__reset_date = datetime.now()
-                sleep(29*60)
+                    if self.__elapsed_hours_since_reset > 1.2:
+                        # reset uploaded energy counter at 5 am (energy should be consumed meanwhile)
+                        self.__meter.reset_counter()
+                        self.__reset_date = datetime.now()
+                sleep(60)
             except Exception as e:
                 sleep(3)
 
