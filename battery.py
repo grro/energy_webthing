@@ -2,7 +2,9 @@ import tornado.ioloop
 import logging
 from threading import Thread
 from time import sleep
-from datetime import datetime, UTC
+from datetime import UTC, datetime, time, timedelta
+from zoneinfo import ZoneInfo
+
 from utils import WattRecorder
 from shelly import ShellyMeter
 from webthing import (Property, Thing, Value)
@@ -11,6 +13,8 @@ from utils import BufferedValue
 
 
 class Battery:
+
+    RESET_HOUR = 5
 
     def __init__(self, addr: str):
         self.__listeners = set()
@@ -22,7 +26,6 @@ class Battery:
         self.__power_charging = 0
         self.__energy_charging_total = 0
         self.__energy_discharging_total = 0
-        self.__reset_date = datetime.now()
         self.__power_charging_smoothen_recorder = WattRecorder()
         self.__power_discharging_smoothen_recorder = WattRecorder()
         self.__power_downstream_1m = BufferedValue()
@@ -34,13 +37,17 @@ class Battery:
     def add_listener(self,listener):
         self.__listeners.add(listener)
 
-    @property
-    def __elapsed_hours_since_reset(self) -> float:
-        return (datetime.now() - self.__reset_date).total_seconds() / (60*60)
 
     @property
     def energy(self) -> int:
-        energy_uploaded =  self.__energy_charging_total - (self.__elapsed_hours_since_reset * self.__idle_consumption)
+        now = datetime.now()
+        today = now.date()
+        offset = datetime.combine(today, time(self.RESET_HOUR))
+        start = offset if now >= offset else datetime.combine(today - timedelta(days=1), time(self.RESET_HOUR))
+        elapsed_hours = (now - start).total_seconds() / 3600
+
+        idle_energy = elapsed_hours * self.__idle_consumption
+        energy_uploaded =  self.__energy_charging_total - idle_energy
         if energy_uploaded < 0:
             energy_uploaded = 0
 
@@ -124,13 +131,11 @@ class Battery:
         while self.__is_running:
             try:
                 hour = datetime.now().hour
-                if hour == 5:
-                    if self.__elapsed_hours_since_reset > 1.2:
-                        # reset uploaded energy counter at 5 am (energy should be consumed meanwhile)
-                        logging.info("counter reset")
-                        self.__meter.reset_counter()
-                        self.__reset_date = datetime.now()
-                sleep(60)
+                if hour == self.RESET_HOUR:
+                    # reset uploaded energy counter at 5 am (energy should be consumed meanwhile)
+                    logging.info("counter reset")
+                    self.__meter.reset_counter()
+                sleep(10*60)
             except Exception as e:
                 sleep(3)
 
