@@ -18,13 +18,11 @@ class Battery:
         self.__meter = ShellyMeter.auto_select(addr, "Battery")
         self.latest_measurement_date = datetime.now(UTC)
         self.__idle_consumption = 2.4
-        self.__power = 0
         self.__power_discharging = 0
         self.__power_charging = 0
         self.__energy_charging_total = 0
         self.__energy_discharging_total = 0
         self.__reset_date = datetime.now()
-        self.__power_smoothen_recorder = WattRecorder()
         self.__power_charging_smoothen_recorder = WattRecorder()
         self.__power_discharging_smoothen_recorder = WattRecorder()
         self.__power_downstream_1m = BufferedValue()
@@ -51,27 +49,9 @@ class Battery:
             available_energy = 0
 
         energy_effective = round(available_energy * 0.86)     # efficiency round-trip  ~86%
-        return 0 if energy_effective < 0 else energy_effective
-
-    @property
-    def power(self) -> int:
-        return self.__power if self.elapsed_since_last_measurement_sec() < 60 else 0
-
-    @property
-    def power_5s(self) -> int:
-        return self.__power_smoothen_recorder.watt_per_hour(second_range=5) if self.elapsed_since_last_measurement_sec() < 60 else 0
-
-    @property
-    def power_15s(self) -> int:
-        return self.__power_smoothen_recorder.watt_per_hour(second_range=15) if self.elapsed_since_last_measurement_sec() < 60 else 0
-
-    @property
-    def power_1m(self) -> int:
-        return self.__power_smoothen_recorder.watt_per_hour(minute_range=1) if self.elapsed_since_last_measurement_sec() < 60 else 0
-
-    @property
-    def power_5m(self) -> int:
-        return self.__power_smoothen_recorder.watt_per_hour(minute_range=5) if self.elapsed_since_last_measurement_sec() < 60 else 0
+        if energy_effective < 5:
+            energy_effective = 0
+        return energy_effective
 
     @property
     def power_upstream(self) -> int:
@@ -160,11 +140,9 @@ class Battery:
         self.__energy_charging_total = m.energy_total
         self.__energy_discharging_total = m.ret_energy_total
 
-        self.__power = power                                                          # battery -> energy source
         self.__power_discharging = 0 if power >= 0 else (power*-1)                    # negative power -> battery discharging
         self.__power_charging = 0 if power <= self.__idle_consumption else power      # positive power -> battery charging
 
-        self.__power_smoothen_recorder.put(self.__power)
         self.__power_charging_smoothen_recorder.put(self.__power_charging)
         self.__power_discharging_smoothen_recorder.put(self.__power_discharging)
 
@@ -207,71 +185,6 @@ class BatteryThing(Thing):
         self.battery = battery
         self.battery.add_listener(self.on_value_changed)
 
-
-        self.power = Value(battery.power)
-        self.add_property(
-            Property(self,
-                     'power',
-                     self.power,
-                     metadata={
-                         'title': 'power',
-                         "type": "integer",
-                         'unit': 'watt',
-                         'description': 'the battery power (may be negative by loading)',
-                         'readOnly': True,
-                     }))
-
-        self.power_5s = Value(battery.power_5s)
-        self.add_property(
-            Property(self,
-                     'power_5s',
-                     self.power_5s,
-                     metadata={
-                         'title': 'power 5 sec',
-                         "type": "integer",
-                         'unit': 'watt',
-                         'description': 'the battery power (may be negative by loading; smoothen over 5 sec)',
-                         'readOnly': True,
-                     }))
-
-        self.power_15s = Value(battery.power_15s)
-        self.add_property(
-            Property(self,
-                     'power_15s',
-                     self.power_15s,
-                     metadata={
-                         'title': 'power 15 sec',
-                         "type": "integer",
-                         'unit': 'watt',
-                         'description': 'the battery power (may be negative by loading; smoothen over 15 sec)',
-                         'readOnly': True,
-                     }))
-
-        self.power_1m = Value(battery.power_1m)
-        self.add_property(
-            Property(self,
-                     'power_1m',
-                     self.power_1m,
-                     metadata={
-                         'title': 'power 1 min',
-                         "type": "integer",
-                         'unit': 'watt',
-                         'description': 'the battery power (may be negative by loading; smoothen over 1 min)',
-                         'readOnly': True,
-                     }))
-
-        self.power_5m = Value(battery.power_5m)
-        self.add_property(
-            Property(self,
-                     'power_5m',
-                     self.power_5m,
-                     metadata={
-                         'title': 'power 5 min',
-                         "type": "integer",
-                         'unit': 'watt',
-                         'description': 'the battery power (may be negative by loading; smoothen over 5 min)',
-                         'readOnly': True,
-                     }))
 
         self.power_upstream = Value(battery.power_upstream)
         self.add_property(
@@ -434,9 +347,6 @@ class BatteryThing(Thing):
         self.ioloop.add_callback(self._on_value_changed)
 
     def _on_value_changed(self):
-        self.power.notify_of_external_update(self.battery.power)
-        self.power_5s.notify_of_external_update(self.battery.power_5m)
-        self.power_15s.notify_of_external_update(self.battery.power_15s)
         self.power_downstream_1m.notify_of_external_update(self.battery.power_downstream_1m)
         self.power_downstream_5m.notify_of_external_update(self.battery.power_downstream_5m)
 
@@ -456,13 +366,12 @@ class BatteryThing(Thing):
 
         self.energy.notify_of_external_update(self.battery.energy)
 
-
 '''
 b = Battery("http://10.1.33.100")
 b.start()
 sleep(2)
 
 while True:
-    print("energy " + str(b.energy_wh))
+    print("energy " + str(b.energy))
     sleep(5)
 '''
