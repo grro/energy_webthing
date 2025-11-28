@@ -149,7 +149,6 @@ class Battery:
     def __measure(self):
         m = self.__meter.measure()
         power = m.total
-
         self.__energy_uploading_total = m.energy_total
 
         if -3 < power < 3:  # ignore low values
@@ -173,7 +172,14 @@ class Battery:
                 sleep(4 * 60)
 
     def __info(self) -> str:
-        return "Battery " + str(int(self.power_1m)) + "W; measured at " + self.latest_measurement_date.strftime("%H:%M") + " UTC"
+        if self.power_upstream > 3:
+            state = 'charging with ' + str(int(self.power_upstream)) + 'W'
+        elif self.power_downstream > 3:
+            state = 'discharging with ' + str(int(self.power_downstream)) + 'W'
+        else:
+            state = 'idling'
+
+        return "Battery " + str(int(self.power_1m)) + "W (" + state + "); measured at " + self.latest_measurement_date.strftime("%H:%M") + " UTC"
 
 
 
