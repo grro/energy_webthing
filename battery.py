@@ -113,6 +113,7 @@ class Battery:
     def start(self):
         Thread(target=self.__measure_loop, daemon=True).start()
         Thread(target=self.__reset_loop, daemon=True).start()
+        Thread(target=self.__info_loop, daemon=True).start()
 
     def stop(self):
         self.__is_running = False
@@ -139,7 +140,6 @@ class Battery:
                 sleep(29*60)
             except Exception as e:
                 sleep(3)
-
 
     def __measure(self):
         m = self.__meter.measure()
@@ -168,7 +168,7 @@ class Battery:
                 sleep(4 * 60)
 
     def __info(self) -> str:
-        return "(1m smoothen) Battery " + str(int(self.power_1m)) + "W; measured at " + self.latest_measurement_date.strftime("%H:%M") + " UTC"
+        return "Battery " + str(int(self.power_1m)) + "W; measured at " + self.latest_measurement_date.strftime("%H:%M") + " UTC"
 
 
 
