@@ -39,8 +39,8 @@ class Battery:
         elapsed_hour = ((datetime.now() - self.__reset_date).total_seconds() / (60*60))
         idle_consumption = elapsed_hour * 0.7     # idle consumption hoymiles: ~0.7 Wh  (shelly pm: ~1.2 Wh)
         energy_uploaded = self.__energy_uploading_total - idle_consumption
-        energy_available = energy_uploaded * 0.86  # efficiency round-trip  ~86%
-        return 0 if energy_available < 0 else energy_available
+        energy_effective = energy_uploaded * 0.86  # efficiency round-trip  ~86%
+        return 0 if energy_effective < 0 else energy_effective
 
     @property
     def power(self) -> int:
