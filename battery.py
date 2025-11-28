@@ -17,14 +17,16 @@ class Battery:
         self.__is_running = True
         self.__meter = ShellyMeter.auto_select(addr, "Battery")
         self.latest_measurement_date = datetime.now(UTC)
+        self.__idle_consumption = 2.4
         self.__power = 0
-        self.__power_unloading = 0
-        self.__power_loading= 0
-        self.__energy_uploading_total = 0
+        self.__power_discharging = 0
+        self.__power_charging = 0
+        self.__energy_charging_total = 0
+        self.__energy_discharging_total = 0
         self.__reset_date = datetime.now()
         self.__power_smoothen_recorder = WattRecorder()
-        self.__power_unloading_smoothen_recorder = WattRecorder()
-        self.__power_loading_smoothen_recorder = WattRecorder()
+        self.__power_charging_smoothen_recorder = WattRecorder()
+        self.__power_discharging_smoothen_recorder = WattRecorder()
         self.__power_downstream_1m = BufferedValue()
         self.__power_downstream_5m = BufferedValue()
 
@@ -40,9 +42,15 @@ class Battery:
 
     @property
     def energy_wh(self) -> int:
-        idle_consumption = self.__elapsed_hours_since_reset * 0.7     # idle consumption hoymiles: ~0.7 W/h  (shelly pm: ~1.2 W/h)
-        energy_uploaded = self.__energy_uploading_total - idle_consumption
-        energy_effective = energy_uploaded * 0.86  # efficiency round-trip  ~86%
+        energy_uploaded =  self.__energy_charging_total - (self.__elapsed_hours_since_reset * self.__idle_consumption)
+        if energy_uploaded < 0:
+            energy_uploaded = 0
+
+        available_energy = energy_uploaded - self.__energy_discharging_total
+        if available_energy < 0:
+            available_energy = 0
+
+        energy_effective = round(available_energy * 0.86)     # efficiency round-trip  ~86%
         return 0 if energy_effective < 0 else energy_effective
 
     @property
@@ -67,47 +75,47 @@ class Battery:
 
     @property
     def power_upstream(self) -> int:
-        return self.__power_loading
+        return self.__power_charging
 
     @property
     def power_upstream_5s(self) -> int:
-        return self.__power_loading_smoothen_recorder.watt_per_hour(second_range=5) if self.elapsed_since_last_measurement_sec() < 60 else 0
+        return self.__power_charging_smoothen_recorder.watt_per_hour(second_range=5) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def power_upstream_15s(self) -> int:
-        return self.__power_loading_smoothen_recorder.watt_per_hour(second_range=15) if self.elapsed_since_last_measurement_sec() < 60 else 0
+        return self.__power_charging_smoothen_recorder.watt_per_hour(second_range=15) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def power_upstream_1m(self) -> int:
-        return self.__power_loading_smoothen_recorder.watt_per_hour(minute_range=1) if self.elapsed_since_last_measurement_sec() < 60 else 0
+        return self.__power_charging_smoothen_recorder.watt_per_hour(minute_range=1) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def power_upstream_5m(self) -> int:
-        return self.__power_loading_smoothen_recorder.watt_per_hour(minute_range=5) if self.elapsed_since_last_measurement_sec() < 60 else 0
+        return self.__power_charging_smoothen_recorder.watt_per_hour(minute_range=5) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def power_upstream_60m(self) -> int:
-        return self.__power_loading_smoothen_recorder.watt_per_hour(minute_range=60) if self.elapsed_since_last_measurement_sec() < 60 else 0
+        return self.__power_charging_smoothen_recorder.watt_per_hour(minute_range=60) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def power_downstream(self) -> int:
-        return self.__power_unloading_smoothen_recorder.watt_per_hour(second_range=1) if self.elapsed_since_last_measurement_sec() < 60 else 0
+        return self.__power_discharging_smoothen_recorder.watt_per_hour(second_range=1) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def power_downstream_5s(self) -> int:
-        return self.__power_unloading_smoothen_recorder.watt_per_hour(second_range=5) if self.elapsed_since_last_measurement_sec() < 60 else 0
+        return self.__power_discharging_smoothen_recorder.watt_per_hour(second_range=5) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def power_downstream_15s(self) -> int:
-        return self.__power_unloading_smoothen_recorder.watt_per_hour(second_range=15) if self.elapsed_since_last_measurement_sec() < 60 else 0
+        return self.__power_discharging_smoothen_recorder.watt_per_hour(second_range=15) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def power_downstream_1m(self) -> int:
-        return self.__power_downstream_1m.set_and_get(self.__power_unloading_smoothen_recorder.watt_per_hour(minute_range=1)) if self.elapsed_since_last_measurement_sec() < 60 else 0
+        return self.__power_downstream_1m.set_and_get(self.__power_discharging_smoothen_recorder.watt_per_hour(minute_range=1)) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def power_downstream_5m(self) -> int:
-        return self.__power_downstream_5m.set_and_get(self.__power_unloading_smoothen_recorder.watt_per_hour(minute_range=5)) if self.elapsed_since_last_measurement_sec() < 60 else 0
+        return self.__power_downstream_5m.set_and_get(self.__power_discharging_smoothen_recorder.watt_per_hour(minute_range=5)) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     def __on_update(self):
         for listener in self.__listeners:
@@ -149,17 +157,16 @@ class Battery:
     def __measure(self):
         m = self.__meter.measure()
         power = m.total
-        self.__energy_uploading_total = m.energy_total
+        self.__energy_charging_total = m.energy_total
+        self.__energy_discharging_total = m.ret_energy_total
 
-        if -3 < power < 3:  # ignore low values
-            power = 0
-        self.__power = power                                          # battery -> energy source
-        self.__power_unloading = 0 if power < 0 else power            #  positive power -> battery unloads
-        self.__power_loading = 0 if power > 0 else (power*-1)         #  negative power -> battery loads
+        self.__power = power                                                          # battery -> energy source
+        self.__power_discharging = 0 if power >= 0 else (power*-1)                    # negative power -> battery discharging
+        self.__power_charging = 0 if power <= self.__idle_consumption else power      # positive power -> battery charging
 
         self.__power_smoothen_recorder.put(self.__power)
-        self.__power_loading_smoothen_recorder.put(self.__power_loading)
-        self.__power_unloading_smoothen_recorder.put(self.__power_unloading)
+        self.__power_charging_smoothen_recorder.put(self.__power_charging)
+        self.__power_discharging_smoothen_recorder.put(self.__power_discharging)
 
     def __info_loop(self):
         sleep(1 * 60)
@@ -451,7 +458,6 @@ class BatteryThing(Thing):
 
 
 
-'''
 b = Battery("http://10.1.33.100")
 b.start()
 sleep(2)
@@ -459,4 +465,3 @@ sleep(2)
 while True:
     print("energy " + str(b.energy_wh))
     sleep(5)
-'''
