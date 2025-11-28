@@ -457,7 +457,7 @@ class BatteryThing(Thing):
         self.energy_wh.notify_of_external_update(self.battery.energy_wh)
 
 
-
+'''
 b = Battery("http://10.1.33.100")
 b.start()
 sleep(2)
@@ -465,3 +465,4 @@ sleep(2)
 while True:
     print("energy " + str(b.energy_wh))
     sleep(5)
+'''
