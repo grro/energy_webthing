@@ -179,7 +179,7 @@ class Battery:
         else:
             state = 'idling'
 
-        return "Battery " + str(int(self.power_1m)) + "W (" + state + "); measured at " + self.latest_measurement_date.strftime("%H:%M") + " UTC"
+        return "Battery " + str(int(self.power_1m)) + "W (" + state + ")"
 
 
 

@@ -135,7 +135,7 @@ class Provider:
                 sleep(4 * 60)
 
     def __info(self) -> str:
-        return "Provider " + str(int(self.provider_power_1m)) + "W (a: " + str(int(self.provider_power_a)) + "W, b: " + str(int(self.provider_power_b)) + "W, c: " + str(int(self.provider_power_c)) + "W); measured at " + self.latest_measurement_date.strftime("%H:%M") + " UTC"
+        return "Provider " + str(int(self.provider_power_1m)) + "W (a: " + str(int(self.provider_power_a)) + "W, b: " + str(int(self.provider_power_b)) + "W, c: " + str(int(self.provider_power_c)) + "W)"
 
 
 
