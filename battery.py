@@ -139,6 +139,7 @@ class Battery:
                 if hour == 5:
                     if self.__elapsed_hours_since_reset > 1.2:
                         # reset uploaded energy counter at 5 am (energy should be consumed meanwhile)
+                        logging.info("counter reset")
                         self.__meter.reset_counter()
                         self.__reset_date = datetime.now()
                 sleep(60)
