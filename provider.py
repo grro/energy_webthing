@@ -18,6 +18,9 @@ class Provider:
         self.__provider_shelly = ShellyMeter(meter_addr_provider, "Meter provider")
         self.name = self.__provider_shelly.info().name
         self.provider_power = 0
+        self.provider_power_a = 0
+        self.provider_power_b = 0
+        self.provider_power_c = 0
         self.provider_power_downstream = 0
         self.provider_power_upstream = 0
 
@@ -105,11 +108,15 @@ class Provider:
                 sleep(3)
 
     def __measure(self):
-        power = self.__provider_shelly.measure().total
+        m = self.__provider_shelly.measure()
+        power = m.total
         downstream_power = 0 if power < 0 else power
         upstream_power = 0 if power > 0 else (power*-1)
 
         self.provider_power = power
+        self.provider_power_a = m.channel_a
+        self.provider_power_b = m.channel_b
+        self.provider_power_c = m.channel_c
         self.provider_power_downstream = downstream_power
         self.provider_power_upstream = upstream_power
 
@@ -128,7 +135,7 @@ class Provider:
                 sleep(4 * 60)
 
     def __info(self) -> str:
-        return "Provider " + str(int(self.provider_power_1m)) + "W; measured at " + self.latest_measurement_date.strftime("%H:%M") + " UTC"
+        return "Provider " + str(int(self.provider_power_1m)) + "W (a: " + str(int(self.provider_power_a)) + "W, b: " + str(int(self.provider_power_b)) + "W, c: " + str(int(self.provider_power_c)) + "W); measured at " + self.latest_measurement_date.strftime("%H:%M") + " UTC"
 
 
 
