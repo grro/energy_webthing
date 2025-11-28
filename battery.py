@@ -21,6 +21,7 @@ class Battery:
         self.__power_unloading = 0
         self.__power_loading= 0
         self.__energy_uploading_total = 0
+        self.__reset_date = datetime.now()
         self.__power_smoothen_recorder = WattRecorder()
         self.__power_unloading_smoothen_recorder = WattRecorder()
         self.__power_loading_smoothen_recorder = WattRecorder()
@@ -35,7 +36,11 @@ class Battery:
 
     @property
     def energy_wh(self) -> int:
-        return self.__energy_uploading_total
+        elapsed_hour = ((datetime.now() - self.__reset_date).total_seconds() / (60*60))
+        idle_consumption = elapsed_hour * 0.7     # idle consumption hoymiles: ~0.7 Wh  (shelly pm: ~1.2 Wh)
+        energy_uploaded = self.__energy_uploading_total - idle_consumption
+        energy_available = energy_uploaded * 0.86  # efficiency round-trip  ~86%
+        return 0 if energy_available < 0 else energy_available
 
     @property
     def power(self) -> int:
@@ -130,6 +135,7 @@ class Battery:
                 if hour == 5:
                     # reset uploaded energy counter at 5 am (energy should be consumed meanwhile)
                     self.__meter.reset_counter()
+                    self.__reset_date = datetime.now()
                 sleep(29*60)
             except Exception as e:
                 sleep(3)
@@ -431,6 +437,7 @@ class BatteryThing(Thing):
         self.latest_measurement_date.notify_of_external_update(self.battery.latest_measurement_date.strftime("%Y-%m-%dT%H:%M:%S"))
 
         self.energy_wh.notify_of_external_update(self.battery.energy_wh)
+
 
 
 '''
