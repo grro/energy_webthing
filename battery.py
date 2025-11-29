@@ -3,7 +3,6 @@ import logging
 from threading import Thread
 from time import sleep
 from datetime import UTC, datetime, time, timedelta
-from zoneinfo import ZoneInfo
 
 from utils import WattRecorder
 from shelly import ShellyMeter
@@ -15,6 +14,7 @@ from utils import BufferedValue
 class Battery:
 
     RESET_HOUR = 5
+    TRANSFORMATION_LOST = 0.86    # efficiency round-trip  ~86%
 
     def __init__(self, addr: str):
         self.__listeners = set()
@@ -37,28 +37,43 @@ class Battery:
     def add_listener(self,listener):
         self.__listeners.add(listener)
 
-
     @property
-    def energy(self) -> int:
+    def __energy_uploaded_since_reset(self) -> int:
         now = datetime.now()
         today = now.date()
         offset = datetime.combine(today, time(self.RESET_HOUR))
         start = offset if now >= offset else datetime.combine(today - timedelta(days=1), time(self.RESET_HOUR))
         elapsed_hours = (now - start).total_seconds() / 3600
 
+        # subtract idle consumption
         idle_energy = elapsed_hours * self.__idle_consumption
         energy_uploaded =  self.__energy_charging_total - idle_energy
+
         if energy_uploaded < 0:
-            energy_uploaded = 0
+            return 0
+        else:
+            return int(energy_uploaded * self.TRANSFORMATION_LOST)
 
-        available_energy = energy_uploaded - self.__energy_discharging_total
-        if available_energy < 0:
-            available_energy = 0
 
-        energy_effective = round(available_energy * 0.86)     # efficiency round-trip  ~86%
-        if energy_effective < 5:
-            energy_effective = 0
-        return energy_effective
+    @property
+    def __energy_downloaded_since_reset(self) -> int:
+        return self.__energy_discharging_total
+
+
+    @property
+    def energy(self) -> int:
+        available_energy = self.__energy_uploaded_since_reset - self.__energy_downloaded_since_reset
+        if available_energy <= 0:
+            return 0
+        else:
+            return available_energy
+
+    @property
+    def charge_level(self) -> int:
+        if self.energy > 0:
+            return round(self.energy * 100 / 19200)
+        else:
+            return 0
 
     @property
     def power_upstream(self) -> int:
@@ -335,6 +350,20 @@ class BatteryThing(Thing):
                          'readOnly': True,
                      }))
 
+
+        self.charge_level = Value(battery.charge_level)
+        self.add_property(
+            Property(self,
+                     'charge_level',
+                     self.charge_level,
+                     metadata={
+                         'title': 'charge_level',
+                         "type": "integer",
+                         'unit': 'percent',
+                         'description': 'the battery charge level',
+                         'readOnly': True,
+                     }))
+
         self.latest_measurement_date = Value(battery.latest_measurement_date.strftime("%Y-%m-%dT%H:%M:%S"))
         self.add_property(
             Property(self,
@@ -369,3 +398,4 @@ class BatteryThing(Thing):
         self.latest_measurement_date.notify_of_external_update(self.battery.latest_measurement_date.strftime("%Y-%m-%dT%H:%M:%S"))
 
         self.energy.notify_of_external_update(self.battery.energy)
+        self.charge_level.notify_of_external_update(self.battery.charge_level)
