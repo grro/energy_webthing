@@ -57,6 +57,13 @@ class Battery:
         return percent
 
     @property
+    def status(self) -> str:
+        if self.power_upstream > 0 or self.power_downstream > 0:
+            return str(int(self.charge_level)) + "% (" + str(self.power) + "W)"
+        else:
+            return str(int(self.charge_level)) + "%"
+
+    @property
     def power(self) -> int:
         return self.__power.set_and_get(self.power_upstream if self.power_upstream > 0 else (self.power_downstream * -1))
 
@@ -333,7 +340,6 @@ class BatteryThing(Thing):
                          'readOnly': True,
                      }))
 
-
         self.charge_level = Value(battery.charge_level)
         self.add_property(
             Property(self,
@@ -344,6 +350,19 @@ class BatteryThing(Thing):
                          "type": "integer",
                          'unit': 'percent',
                          'description': 'the battery charge level',
+                         'readOnly': True,
+                     }))
+
+
+        self.status = Value(battery.status)
+        self.add_property(
+            Property(self,
+                     'status',
+                     self.status,
+                     metadata={
+                         'title': 'status',
+                         "type": "string",
+                         'description': 'the battery status',
                          'readOnly': True,
                      }))
 
@@ -364,6 +383,8 @@ class BatteryThing(Thing):
 
     def _on_value_changed(self):
         self.power.notify_of_external_update(self.battery.power)
+
+        self.status.notify_of_external_update(self.battery.status)
 
         self.power_downstream_1m.notify_of_external_update(self.battery.power_downstream_1m)
         self.power_downstream_5m.notify_of_external_update(self.battery.power_downstream_5m)
