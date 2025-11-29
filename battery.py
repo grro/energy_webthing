@@ -14,7 +14,6 @@ from utils import BufferedValue
 class Battery:
 
     RESET_HOUR = 5
-    TRANSFORMATION_LOST = 0.86    # efficiency round-trip  ~86%
 
     def __init__(self, addr: str):
         self.__listeners = set()
@@ -44,8 +43,8 @@ class Battery:
         return 0 if energy < 0 else energy
 
     @property
-    def charge_level(self) -> float:
-        percent = 0 if self.energy <= 0 else round(self.energy * 100 / 1920, 1)   # max capacity is 1920
+    def charge_level(self) -> int:
+        percent = 0 if self.energy <= 0 else round(self.energy * 100 / 1920)   # max capacity is 1920
         return 100 if percent >= 100 else percent
 
     @property
@@ -347,7 +346,7 @@ class BatteryThing(Thing):
                      self.charge_level,
                      metadata={
                          'title': 'charge_level',
-                         "type": "float",
+                         "type": "integer",
                          'unit': 'percent',
                          'description': 'the battery charge level',
                          'readOnly': True,
