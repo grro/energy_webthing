@@ -2,8 +2,7 @@ import tornado.ioloop
 import logging
 from threading import Thread
 from time import sleep
-from datetime import UTC, datetime
-
+from datetime import UTC, datetime, timedelta, time
 from utils import WattRecorder
 from shelly import ShellyMeter
 from webthing import (Property, Thing, Value)
@@ -14,7 +13,6 @@ from utils import BufferedValue
 class Battery:
 
     RESET_HOUR = 5
-    IDLE_CONSUMPTION = 2
 
     def __init__(self, addr: str):
         self.__listeners = set()
@@ -38,14 +36,25 @@ class Battery:
         self.__listeners.add(listener)
 
     @property
-    def energy(self) -> int:
-        energy = self.__energy_charging_total - self.__energy_discharging_total
-        return 0 if energy < 0 else energy
+    def __idle_consumption_since_reset(self) -> int:
+        now = datetime.now()
+        today = now.date()
+        offset = datetime.combine(today, time(self.RESET_HOUR))
+        start = offset if now >= offset else datetime.combine(today - timedelta(days=1), time(self.RESET_HOUR))
+        elapsed_hours = (now - start).total_seconds() / 3600
+        idle_energy = round(elapsed_hours * 4)
+        return idle_energy
 
     @property
     def charge_level(self) -> int:
-        percent = 0 if self.energy <= 0 else round(self.energy * 100 / 1920)   # max capacity is 1920
-        return 100 if percent >= 100 else percent
+        charged = self.__energy_charging_total - self.__idle_consumption_since_reset
+        charged_effective = charged * 0.86              # round trip lost
+        discharged = self.__energy_discharging_total
+        available_energy = charged_effective - discharged
+        percent = 0 if available_energy <= 0 else round(available_energy * 100 / 1920)   # max capacity is 1920
+        percent = 100 if percent >= 100 else percent
+        percent = 0 if percent < 3 else percent
+        return percent
 
     @property
     def power(self) -> int:
@@ -136,7 +145,7 @@ class Battery:
         self.__energy_discharging_total = m.ret_energy_total
 
         self.__power_discharging = 0 if power >= 0 else (power*-1)                    # negative power -> battery discharging
-        self.__power_charging = 0 if power <= self.IDLE_CONSUMPTION else power        # positive power -> battery charging
+        self.__power_charging = 0 if power <= 4 else power                            # positive power -> battery charging
 
         self.__power_charging_smoothen_recorder.put(self.__power_charging)
         self.__power_discharging_smoothen_recorder.put(self.__power_discharging)
@@ -325,20 +334,6 @@ class BatteryThing(Thing):
                      }))
 
 
-        self.energy = Value(battery.energy)
-        self.add_property(
-            Property(self,
-                     'energy',
-                     self.energy,
-                     metadata={
-                         'title': 'energy',
-                         "type": "integer",
-                         'unit': 'watt',
-                         'description': 'the available battery power',
-                         'readOnly': True,
-                     }))
-
-
         self.charge_level = Value(battery.charge_level)
         self.add_property(
             Property(self,
@@ -387,5 +382,4 @@ class BatteryThing(Thing):
 
         self.latest_measurement_date.notify_of_external_update(self.battery.latest_measurement_date.strftime("%Y-%m-%dT%H:%M:%S"))
 
-        self.energy.notify_of_external_update(self.battery.energy)
         self.charge_level.notify_of_external_update(self.battery.charge_level)
