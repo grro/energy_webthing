@@ -21,7 +21,7 @@ class Battery:
         self.__is_running = True
         self.__meter = ShellyMeter.auto_select(addr, "Battery")
         self.latest_measurement_date = datetime.now(UTC)
-        self.__idle_consumption = 2.4
+        self.__idle_consumption = 4
         self.__power_discharging = 0
         self.__power_charging = 0
         self.__energy_charging_total = 0
@@ -130,8 +130,7 @@ class Battery:
     def __reset_loop(self):
         while self.__is_running:
             try:
-                hour = datetime.now().hour
-                if hour == self.RESET_HOUR:
+                if datetime.now().hour == self.RESET_HOUR:
                     # reset uploaded energy counter at 5 am (energy should be consumed meanwhile)
                     logging.info("counter reset")
                     self.__meter.reset_counter()
@@ -370,13 +369,3 @@ class BatteryThing(Thing):
         self.latest_measurement_date.notify_of_external_update(self.battery.latest_measurement_date.strftime("%Y-%m-%dT%H:%M:%S"))
 
         self.energy.notify_of_external_update(self.battery.energy)
-
-'''
-b = Battery("http://10.1.33.100")
-b.start()
-sleep(2)
-
-while True:
-    print("energy " + str(b.energy))
-    sleep(5)
-'''
