@@ -52,7 +52,7 @@ class Battery:
         if energy_uploaded < 0:
             return 0
         else:
-            return int(energy_uploaded * self.TRANSFORMATION_LOST)
+            return round(energy_uploaded * self.TRANSFORMATION_LOST)
 
 
     @property
@@ -62,18 +62,13 @@ class Battery:
 
     @property
     def energy(self) -> int:
-        available_energy = self.__energy_uploaded_since_reset - self.__energy_downloaded_since_reset
-        if available_energy <= 0:
-            return 0
-        else:
-            return available_energy
+        energy = self.__energy_uploaded_since_reset - self.__energy_downloaded_since_reset
+        return 0 if energy < 0 else energy
 
     @property
     def charge_level(self) -> int:
-        if self.energy > 0:
-            return round(self.energy * 100 / 19200)
-        else:
-            return 0
+        percent = 0 if self.energy <= 0 else round(self.energy * 100 / 1920)   # max capacity is 1920
+        return 100 if percent >= 100 else percent
 
     @property
     def power_upstream(self) -> int:
