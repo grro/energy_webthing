@@ -14,13 +14,13 @@ from utils import BufferedValue
 class Battery:
 
     RESET_HOUR = 5
+    IDLE_CONSUMPTION = 2
 
     def __init__(self, addr: str):
         self.__listeners = set()
         self.__is_running = True
         self.__meter = ShellyMeter.auto_select(addr, "Battery")
         self.latest_measurement_date = datetime.now(UTC)
-        self.__idle_consumption = 4
         self.__power_discharging = 0
         self.__power_charging = 0
         self.__energy_charging_total = 0
@@ -136,7 +136,7 @@ class Battery:
         self.__energy_discharging_total = m.ret_energy_total
 
         self.__power_discharging = 0 if power >= 0 else (power*-1)                    # negative power -> battery discharging
-        self.__power_charging = 0 if power <= self.__idle_consumption else power      # positive power -> battery charging
+        self.__power_charging = 0 if power <= self.IDLE_CONSUMPTION else power        # positive power -> battery charging
 
         self.__power_charging_smoothen_recorder.put(self.__power_charging)
         self.__power_discharging_smoothen_recorder.put(self.__power_discharging)
