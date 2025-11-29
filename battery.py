@@ -2,7 +2,7 @@ import tornado.ioloop
 import logging
 from threading import Thread
 from time import sleep
-from datetime import UTC, datetime, time, timedelta
+from datetime import UTC, datetime
 
 from utils import WattRecorder
 from shelly import ShellyMeter
@@ -28,6 +28,7 @@ class Battery:
         self.__energy_discharging_total = 0
         self.__power_charging_smoothen_recorder = WattRecorder()
         self.__power_discharging_smoothen_recorder = WattRecorder()
+        self.__power = BufferedValue()
         self.__power_downstream_1m = BufferedValue()
         self.__power_downstream_5m = BufferedValue()
 
@@ -38,37 +39,18 @@ class Battery:
         self.__listeners.add(listener)
 
     @property
-    def __energy_uploaded_since_reset(self) -> int:
-        now = datetime.now()
-        today = now.date()
-        offset = datetime.combine(today, time(self.RESET_HOUR))
-        start = offset if now >= offset else datetime.combine(today - timedelta(days=1), time(self.RESET_HOUR))
-        elapsed_hours = (now - start).total_seconds() / 3600
-
-        # subtract idle consumption
-        idle_energy = elapsed_hours * self.__idle_consumption
-        energy_uploaded =  self.__energy_charging_total - idle_energy
-
-        if energy_uploaded < 0:
-            return 0
-        else:
-            return round(energy_uploaded * self.TRANSFORMATION_LOST)
-
-
-    @property
-    def __energy_downloaded_since_reset(self) -> int:
-        return self.__energy_discharging_total
-
-
-    @property
     def energy(self) -> int:
-        energy = self.__energy_uploaded_since_reset - self.__energy_downloaded_since_reset
+        energy = self.__energy_charging_total - self.__energy_discharging_total
         return 0 if energy < 0 else energy
 
     @property
-    def charge_level(self) -> int:
-        percent = 0 if self.energy <= 0 else round(self.energy * 100 / 1920)   # max capacity is 1920
+    def charge_level(self) -> float:
+        percent = 0 if self.energy <= 0 else round(self.energy * 100 / 1920, 1)   # max capacity is 1920
         return 100 if percent >= 100 else percent
+
+    @property
+    def power(self) -> int:
+        return self.__power.set_and_get(self.power_upstream if self.power_upstream > 0 else (self.power_downstream * -1))
 
     @property
     def power_upstream(self) -> int:
@@ -178,7 +160,7 @@ class Battery:
         else:
             state = 'idling'
 
-        return "Battery " + str(int(self.energy)) + "W (" + state + ")"
+        return "Battery level " + str(int(self.charge_level)) + "% (charged: " + str(self.__energy_charging_total) + "W, discharged: " + str(self.__energy_discharging_total) + "W)"
 
 
 
@@ -199,6 +181,18 @@ class BatteryThing(Thing):
         self.battery = battery
         self.battery.add_listener(self.on_value_changed)
 
+        self.power = Value(battery.power)
+        self.add_property(
+            Property(self,
+                     'power',
+                     self.power,
+                     metadata={
+                         'title': 'power',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the current battery power  ma be negative (discharging)',
+                         'readOnly': True,
+                     }))
 
         self.power_upstream = Value(battery.power_upstream)
         self.add_property(
@@ -353,7 +347,7 @@ class BatteryThing(Thing):
                      self.charge_level,
                      metadata={
                          'title': 'charge_level',
-                         "type": "integer",
+                         "type": "float",
                          'unit': 'percent',
                          'description': 'the battery charge level',
                          'readOnly': True,
@@ -375,6 +369,8 @@ class BatteryThing(Thing):
         self.ioloop.add_callback(self._on_value_changed)
 
     def _on_value_changed(self):
+        self.power.notify_of_external_update(self.battery.power)
+
         self.power_downstream_1m.notify_of_external_update(self.battery.power_downstream_1m)
         self.power_downstream_5m.notify_of_external_update(self.battery.power_downstream_5m)
 
