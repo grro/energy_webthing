@@ -42,7 +42,7 @@ class Battery:
         offset = datetime.combine(today, time(self.RESET_HOUR))
         start = offset if now >= offset else datetime.combine(today - timedelta(days=1), time(self.RESET_HOUR))
         elapsed_hours = (now - start).total_seconds() / 3600
-        idle_energy = round(elapsed_hours * 4)
+        idle_energy = round(elapsed_hours * 3)
         return idle_energy
 
     @property
@@ -158,7 +158,7 @@ class Battery:
         self.__power_discharging_smoothen_recorder.put(self.__power_discharging)
 
     def __info_loop(self):
-        sleep(1 * 60)
+        sleep(10)
         while self.__is_running:
             try:
                 logging.info(self.__info())
@@ -175,7 +175,7 @@ class Battery:
         else:
             state = 'idling'
 
-        return "Battery level " + str(int(self.charge_level)) + "% (charged: " + str(self.__energy_charging_total) + "W, discharged: " + str(self.__energy_discharging_total) + "W)"
+        return "Battery level " + str(int(self.charge_level)) + "% (" + state + ")"
 
 
 
