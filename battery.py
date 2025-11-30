@@ -162,7 +162,7 @@ class Battery:
         while self.__is_running:
             try:
                 logging.info(self.__info())
-                sleep(10*60)
+                sleep(5*60)
             except Exception as e:
                 logging.warning("error occurred on info " + str(e))
                 sleep(4 * 60)

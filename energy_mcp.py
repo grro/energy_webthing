@@ -131,10 +131,6 @@ class EnergyMCPServer(MCPServer):
         def get_battery_power_upstream_smoothen_5m() -> int:
             return energy.battery.power_upstream_5m
 
-        @self.mcp.resource("resource://battery_energy_wh", description="Battery energy in Wh")
-        def get_battery_energy_wh() -> int:
-            return energy.battery.energy_wh
-
         @self.mcp.resource("resource://power_consumption", description="Current power consumption")
         def get_power_consumption() -> int:
             return energy.power_consumption
