@@ -21,7 +21,8 @@ class Battery:
         self.latest_measurement_date = datetime.now(UTC)
         self.__power_discharging = 0
         self.__power_charging = 0
-        self.__energy_charging_total = 0
+        self.__power_charging = 0
+        self.__energy_total = 0
         self.__energy_discharging_total = 0
         self.__last_reset = datetime.now() - timedelta(days=2)
         self.__power_charging_smoothen_recorder = WattRecorder()
@@ -37,6 +38,10 @@ class Battery:
         self.__listeners.add(listener)
 
     @property
+    def __energy_charging_total(self) -> int:
+        return self.__energy_total - self.__energy_discharging_total  - self.__idle_consumption_since_reset
+
+    @property
     def __idle_consumption_since_reset(self) -> int:
         now = datetime.now()
         today = now.date()
@@ -48,11 +53,10 @@ class Battery:
 
     @property
     def charge_level(self) -> int:
-        charged = self.__energy_charging_total - self.__idle_consumption_since_reset
-        charged_effective = charged * 0.86              # round trip lost
+        charged = self.__energy_charging_total
         discharged = self.__energy_discharging_total
-        available_energy = charged_effective - discharged
-        percent = 0 if available_energy <= 0 else round(available_energy * 100 / 1920)   # max capacity is 1920
+        available_energy = charged - discharged
+        percent = 0 if available_energy <= 0 else round(available_energy * 100 / (1920 * .9))   # max capacity is 1920
         percent = 100 if percent >= 100 else percent
         percent = 0 if percent < 3 else percent
         return percent
@@ -68,9 +72,9 @@ class Battery:
 
     @property
     def charged_daily(self) -> int:
-        charged = self.__energy_charging_total  - self.__idle_consumption_since_reset
+        charged = self.__energy_charging_total
         if charged > 0:
-            return round(charged * 0.86)
+            return charged
         else:
             return 0
 
@@ -161,7 +165,7 @@ class Battery:
     def __measure(self):
         m = self.__meter.measure()
         power = m.total
-        self.__energy_charging_total = m.energy_total
+        self.__energy_total = m.energy_total
         self.__energy_discharging_total = m.ret_energy_total
 
         self.__power_discharging = 0 if power >= 0 else (power*-1)                    # negative power -> battery discharging
