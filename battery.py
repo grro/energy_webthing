@@ -68,7 +68,11 @@ class Battery:
 
     @property
     def charged_daily(self) -> int:
-        return self.__energy_charging_total
+        charged = self.__energy_charging_total  - self.__idle_consumption_since_reset
+        if charged > 0:
+            return round(charged * 0.86)
+        else:
+            return 0
 
     @property
     def power(self) -> int:
