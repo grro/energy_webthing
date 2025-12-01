@@ -2,9 +2,11 @@ import tornado.ioloop
 import logging
 from threading import Thread
 from time import sleep
+from typing import List
 from datetime import UTC, datetime, timedelta, time
 from utils import WattRecorder
 from shelly import ShellyMeter
+from redzoo.database.simple import SimpleDB
 from webthing import (Property, Thing, Value)
 from utils import BufferedValue
 
@@ -14,7 +16,8 @@ class Battery:
 
     RESET_HOUR = 5
 
-    def __init__(self, addr: str):
+    def __init__(self, addr: str, directory: str):
+        self.__charged_energy_per_day = SimpleDB("battery", sync_period_sec=60, directory=directory)
         self.__listeners = set()
         self.__is_running = True
         self.__meter = ShellyMeter.auto_select(addr, "Battery")
@@ -126,6 +129,24 @@ class Battery:
     def power_downstream_5m(self) -> int:
         return self.__power_downstream_5m.set_and_get(self.__power_discharging_smoothen_recorder.watt_per_hour(minute_range=5)) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
+    @property
+    def __charged_list_current_year(self) -> List[int]:
+        current_day = int(datetime.now().strftime('%j'))
+        consumption_per_day = [self.__charged_energy_per_day.get(str(day_of_year), None) for day_of_year in range(0, current_day+1)]
+        return [consumption for consumption in consumption_per_day if consumption is not None]
+
+    @property
+    def charged_current_year(self) -> int:
+        return sum(self.__charged_list_current_year)
+
+    @property
+    def charged_estimated_year(self) -> int:
+        consumptions_per_day = self.__charged_list_current_year
+        if len(consumptions_per_day) > 0:
+            return int(sum(consumptions_per_day) * 365 / len(consumptions_per_day))
+        else:
+            return 0
+
     def __on_update(self):
         for listener in self.__listeners:
             listener()
@@ -134,6 +155,8 @@ class Battery:
         Thread(target=self.__measure_loop, daemon=True).start()
         Thread(target=self.__reset_loop, daemon=True).start()
         Thread(target=self.__info_loop, daemon=True).start()
+        Thread(target=self.__history_loop, daemon=True).start()
+
 
     def stop(self):
         self.__is_running = False
@@ -174,6 +197,17 @@ class Battery:
         self.__power_charging_smoothen_recorder.put(self.__power_charging)
         self.__power_discharging_smoothen_recorder.put(self.__power_discharging)
 
+
+    def __history_loop(self):
+        sleep(15)
+        while self.__is_running:
+            try:
+                self.__charged_energy_per_day.put(str(datetime.now().timetuple().tm_yday), self.__energy_charging_total)
+                sleep(13*60)
+            except Exception as e:
+                logging.warning("error occurred on history " + str(e))
+                sleep(4 * 60)
+
     def __info_loop(self):
         sleep(10)
         while self.__is_running:
@@ -192,7 +226,7 @@ class Battery:
         else:
             state = 'idling'
 
-        return "Battery level " + str(int(self.charge_level)) + "% (" + state + ")"
+        return "Battery level " + str(int(self.charge_level)) + "% (" + state + ") - Estimated annual yield " + str(round(self.charged_estimated_year/1000, 1)) + " kWh"
 
 
 
@@ -432,3 +466,4 @@ class BatteryThing(Thing):
         self.latest_measurement_date.notify_of_external_update(self.battery.latest_measurement_date.strftime("%Y-%m-%dT%H:%M:%S"))
 
         self.charge_level.notify_of_external_update(self.battery.charge_level)
+

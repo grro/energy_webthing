@@ -21,7 +21,7 @@ def run_server(port: int,
 
     provider = Provider(meter_addr_provider)
     pv = Pv(pv_all, pv_module1, pv_module2, pv_module3, directory)
-    battery = Battery(battery)
+    battery = Battery(battery, directory)
     energy = Energy(provider, pv, battery)
 
     mcp_server = EnergyMCPServer(port+1, energy, pv)
