@@ -23,6 +23,7 @@ class Battery:
         self.__power_charging = 0
         self.__energy_charging_total = 0
         self.__energy_discharging_total = 0
+        self.__last_reset = datetime.now() - timedelta(days=2)
         self.__power_charging_smoothen_recorder = WattRecorder()
         self.__power_discharging_smoothen_recorder = WattRecorder()
         self.__power = BufferedValue()
@@ -137,10 +138,12 @@ class Battery:
     def __reset_loop(self):
         while self.__is_running:
             try:
-                if datetime.now().hour == self.RESET_HOUR:
-                    # reset uploaded energy counter at 5 am (energy should be consumed meanwhile)
-                    logging.info("counter reset")
-                    self.__meter.reset_counter()
+                if datetime.now().day != self.__last_reset.day:
+                    if datetime.now().hour == self.RESET_HOUR:
+                        # reset uploaded energy counter at 5 am (energy should be consumed meanwhile)
+                        logging.info("counter reset")
+                        self.__meter.reset_counter()
+                        self.__last_reset = datetime.now()
                 sleep(10*60)
             except Exception as e:
                 sleep(3)
