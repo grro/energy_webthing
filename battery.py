@@ -51,7 +51,7 @@ class Battery:
         offset = datetime.combine(today, time(self.RESET_HOUR))
         start = offset if now >= offset else datetime.combine(today - timedelta(days=1), time(self.RESET_HOUR))
         elapsed_hours = (now - start).total_seconds() / 3600
-        idle_energy = round(elapsed_hours * 3)
+        idle_energy = round(elapsed_hours * 4)
         return idle_energy
 
     @property
