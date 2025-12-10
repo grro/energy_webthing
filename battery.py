@@ -250,7 +250,7 @@ class Battery:
         else:
             state = 'idling'
 
-        return "Battery level " + str(int(self.charge_level)) + "% (" + state + ") - Estimated annual yield " + str(round(self.energy_down_estimated_year / 1000, 1)) + " kWh (based on data from " + self.__energy_down_start_day.strftime("%d.%b") + " to " + self.__energy_down_end_day.strftime("%d.%b") + ")"
+        return "Battery level " + str(int(self.charge_level)) + "% (" + state + ") - Estimated annual yield " + str(round(self.energy_down_estimated_year / 1000)) + " kWh (based on data from " + self.__energy_down_start_day.strftime("%d.%b") + " to " + self.__energy_down_end_day.strftime("%d.%b") + ")"
 
 
 
