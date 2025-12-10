@@ -3,7 +3,7 @@ import logging
 from threading import Thread
 from time import sleep
 from typing import List
-from datetime import UTC, datetime, timedelta, time
+from datetime import UTC, datetime, timedelta, time, date
 from utils import WattRecorder
 from shelly import ShellyMeter
 from redzoo.database.simple import SimpleDB
@@ -17,7 +17,7 @@ class Battery:
     RESET_HOUR = 5
 
     def __init__(self, addr: str, directory: str):
-        self.__charged_energy_per_day = SimpleDB("battery", sync_period_sec=60, directory=directory)
+        self.__energy_down_per_day = SimpleDB("battery_down", sync_period_sec=60, directory=directory)
         self.__listeners = set()
         self.__is_running = True
         self.__meter = ShellyMeter.auto_select(addr, "Battery")
@@ -33,6 +33,9 @@ class Battery:
         self.__power = BufferedValue()
         self.__power_downstream_1m = BufferedValue()
         self.__power_downstream_5m = BufferedValue()
+
+        print(self.__info())
+
 
     def elapsed_since_last_measurement_sec(self):
         return (datetime.now(UTC) - self.latest_measurement_date).total_seconds()
@@ -129,21 +132,41 @@ class Battery:
     def power_downstream_5m(self) -> int:
         return self.__power_downstream_5m.set_and_get(self.__power_discharging_smoothen_recorder.watt_per_hour(minute_range=5)) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
+    def __energy_down_current_year_list_raw(self, last_day:int = 365) -> List[int]:
+        return [self.__energy_down_per_day.get(str(day_of_year), None) for day_of_year in range(0, last_day)]
+
     @property
-    def __charged_list_current_year(self) -> List[int]:
+    def __energy_down_start_day(self) -> date:
+        down_per_day = self.__energy_down_current_year_list_raw(365)
+        for day in range(0,365):
+            if down_per_day[day] is not None and  down_per_day[day] >= 0:
+                return (datetime(datetime.now().year, 1, 1, tzinfo=UTC) + timedelta(days=day)).date()
+        return datetime.now().date()
+
+    @property
+    def __energy_down_end_day(self) -> date:
+        down_per_day = self.__energy_down_current_year_list_raw(365)
+        for day in range(364, -1, -1):
+            if down_per_day[day] is not None and  down_per_day[day] >= 0:
+                return (datetime(datetime.now().year, 1, 1, tzinfo=UTC) + timedelta(days=day)).date()
+        return datetime.now().date()
+
+    def __energy_down_current_year_list(self, last_day:int = 365) -> List[int]:
+        down_per_day = self.__energy_down_current_year_list_raw(last_day)
+        down_list = [green for green in down_per_day if green is not None]
+        down_list = [green for green in down_list if green >= 0]
+        return down_list
+
+    @property
+    def energy_down_current_year(self) -> int:
         current_day = int(datetime.now().strftime('%j'))
-        consumption_per_day = [self.__charged_energy_per_day.get(str(day_of_year), None) for day_of_year in range(0, current_day+1)]
-        return [consumption for consumption in consumption_per_day if consumption is not None]
+        return sum(self.__energy_down_current_year_list(current_day))
 
     @property
-    def charged_current_year(self) -> int:
-        return sum(self.__charged_list_current_year)
-
-    @property
-    def charged_estimated_year(self) -> int:
-        consumptions_per_day = self.__charged_list_current_year
-        if len(consumptions_per_day) > 0:
-            return int(sum(consumptions_per_day) * 365 / len(consumptions_per_day))
+    def energy_down_estimated_year(self) -> int:
+        down_per_day = self.__energy_down_current_year_list(365)
+        if len(down_per_day) > 0:
+            return int(sum(down_per_day) * 365 / len(down_per_day))
         else:
             return 0
 
@@ -185,6 +208,17 @@ class Battery:
             except Exception as e:
                 sleep(3)
 
+    def __history_loop(self):
+        sleep(15)
+        while self.__is_running:
+            try:
+                self.__energy_down_per_day.put(str(datetime.now().timetuple().tm_yday), self.__meter.measure().ret_energy_total)
+                self.__energy_down_per_day.put(str((datetime.now() + timedelta(days=1)).timetuple().tm_yday), -9999)
+                sleep(13*60)
+            except Exception as e:
+                logging.warning("error occurred on history " + str(e))
+                sleep(4 * 60)
+
     def __measure(self):
         m = self.__meter.measure()
         power = m.total
@@ -197,16 +231,6 @@ class Battery:
         self.__power_charging_smoothen_recorder.put(self.__power_charging)
         self.__power_discharging_smoothen_recorder.put(self.__power_discharging)
 
-
-    def __history_loop(self):
-        sleep(15)
-        while self.__is_running:
-            try:
-                self.__charged_energy_per_day.put(str(datetime.now().timetuple().tm_yday), self.__energy_charging_total)
-                sleep(13*60)
-            except Exception as e:
-                logging.warning("error occurred on history " + str(e))
-                sleep(4 * 60)
 
     def __info_loop(self):
         sleep(10)
@@ -226,7 +250,7 @@ class Battery:
         else:
             state = 'idling'
 
-        return "Battery level " + str(int(self.charge_level)) + "% (" + state + ") - Estimated annual yield " + str(round(self.charged_estimated_year/1000, 1)) + " kWh"
+        return "Battery level " + str(int(self.charge_level)) + "% (" + state + ") - Estimated annual yield " + str(round(self.energy_down_estimated_year / 1000, 1)) + " kWh (based on data from " + self.__energy_down_start_day.strftime("%d.%b") + " to " + self.__energy_down_end_day.strftime("%d.%b") + ")"
 
 
 
