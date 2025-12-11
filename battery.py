@@ -16,6 +16,7 @@ class Battery:
 
     def __init__(self, addr: str, directory: str):
         self.__energy_down_per_day = SimpleDB("battery_down", sync_period_sec=60, directory=directory)
+        self.__meter_reset = SimpleDB("battery_meter_reset", sync_period_sec=60, directory=directory)
         self.__listeners = set()
         self.__is_running = True
         self.__meter = ShellyMeter.auto_select(addr, "Battery")
@@ -25,7 +26,6 @@ class Battery:
         self.__power_charging = 0
         self.__energy_total = 0
         self.__energy_discharging_total = 0
-        self.__last_reset = datetime.now() - timedelta(days=2)
         self.__power_charging_smoothen_recorder = WattRecorder()
         self.__power_discharging_smoothen_recorder = WattRecorder()
         self.__power = BufferedValue()
@@ -43,7 +43,14 @@ class Battery:
 
     @property
     def __energy_charging_total(self) -> int:
-        return self.__energy_total - self.__energy_discharging_total
+        energy = self.__energy_total - self.__energy_discharging_total - self.__energy_idle_consumption()
+        return 0 if energy < 0 else energy
+
+    def __energy_idle_consumption(self) -> int:
+        elapsed_sec = (datetime.now() - self.__reset_date).total_seconds()
+        elapsed_hours = elapsed_sec / (60*60)
+        idle_consumption = elapsed_hours * 4    # assume 4W idle consumption
+        return round(idle_consumption)
 
     @property
     def charge_level(self) -> int:
@@ -186,14 +193,20 @@ class Battery:
     def __reset_loop(self):
         while self.__is_running:
             try:
-                if datetime.now().day != self.__last_reset.day:
-                    if datetime.now().hour == 0:
-                        logging.info("counter reset")
-                        self.__meter.reset_counter()
-                        self.__last_reset = datetime.now()
+                if datetime.now().day != self.__reset_date.day:
+                    self.__reset()
                 sleep(4*60)
             except Exception as e:
                 sleep(3)
+
+    def __reset(self):
+        logging.info("counter reset")
+        self.__meter.reset_counter()
+        self.__meter_reset.put("resetdate", datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
+
+    @property
+    def __reset_date(self) -> datetime:
+        return datetime.strptime(self.__meter_reset.get("resetdate", datetime.now().strftime("%Y-%m-%dT%H:%M:%S")), "%Y-%m-%dT%H:%M:%S")
 
     def __history_loop(self):
         sleep(15)
