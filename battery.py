@@ -14,8 +14,6 @@ from utils import BufferedValue
 
 class Battery:
 
-    RESET_HOUR = 5
-
     def __init__(self, addr: str, directory: str):
         self.__energy_down_per_day = SimpleDB("battery_down", sync_period_sec=60, directory=directory)
         self.__listeners = set()
@@ -45,17 +43,7 @@ class Battery:
 
     @property
     def __energy_charging_total(self) -> int:
-        return self.__energy_total - self.__energy_discharging_total  - self.__idle_consumption_since_reset
-
-    @property
-    def __idle_consumption_since_reset(self) -> int:
-        now = datetime.now()
-        today = now.date()
-        offset = datetime.combine(today, time(self.RESET_HOUR))
-        start = offset if now >= offset else datetime.combine(today - timedelta(days=1), time(self.RESET_HOUR))
-        elapsed_hours = (now - start).total_seconds() / 3600
-        idle_energy = round(elapsed_hours * 4)
-        return idle_energy
+        return self.__energy_total - self.__energy_discharging_total
 
     @property
     def charge_level(self) -> int:
@@ -199,12 +187,11 @@ class Battery:
         while self.__is_running:
             try:
                 if datetime.now().day != self.__last_reset.day:
-                    if datetime.now().hour == self.RESET_HOUR:
-                        # reset uploaded energy counter at 5 am (energy should be consumed meanwhile)
+                    if datetime.now().hour == 0:
                         logging.info("counter reset")
                         self.__meter.reset_counter()
                         self.__last_reset = datetime.now()
-                sleep(10*60)
+                sleep(4*60)
             except Exception as e:
                 sleep(3)
 
@@ -214,10 +201,9 @@ class Battery:
             try:
                 self.__energy_down_per_day.put(str(datetime.now().timetuple().tm_yday), self.__meter.measure().ret_energy_total)
                 self.__energy_down_per_day.put(str((datetime.now() + timedelta(days=1)).timetuple().tm_yday), -9999)
-                sleep(13*60)
             except Exception as e:
                 logging.warning("error occurred on history " + str(e))
-                sleep(4 * 60)
+            sleep(3*60)
 
     def __measure(self):
         m = self.__meter.measure()
