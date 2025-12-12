@@ -43,9 +43,10 @@ class Battery:
 
     @property
     def __energy_charging_total(self) -> int:
-        energy = self.__energy_total - self.__energy_discharging_total - self.__energy_idle_consumption()
+        energy = self.__energy_total - self.__energy_discharging_total - self.__energy_idle_consumption
         return 0 if energy < 0 else energy
 
+    @property
     def __energy_idle_consumption(self) -> int:
         elapsed_sec = (datetime.now() - self.__reset_date).total_seconds()
         elapsed_hours = elapsed_sec / (60*60)
@@ -164,6 +165,10 @@ class Battery:
             return int(sum(down_per_day) * 365 / len(down_per_day))
         else:
             return 0
+
+    @property
+    def energy_down_today(self) -> int:
+        return round(self.__energy_discharging_total)
 
     def __on_update(self):
         for listener in self.__listeners:
@@ -361,6 +366,19 @@ class BatteryThing(Thing):
                          'readOnly': True,
                      }))
 
+        self.energy_down_today = Value(battery.energy_down_today)
+        self.add_property(
+            Property(self,
+                     'energy_down_today',
+                     self.energy_down_today,
+                     metadata={
+                         'title': 'energy down today',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the downstream battery power today  (unloading)',
+                         'readOnly': True,
+                     }))
+
         self.power_downstream_5s = Value(battery.power_downstream_5s)
         self.add_property(
             Property(self,
@@ -471,6 +489,7 @@ class BatteryThing(Thing):
         self.charged_daily.notify_of_external_update(self.battery.charged_daily)
         self.status.notify_of_external_update(self.battery.status)
 
+        self.energy_down_today.notify_of_external_update(self.battery.energy_down_today)
         self.power_downstream_1m.notify_of_external_update(self.battery.power_downstream_1m)
         self.power_downstream_5m.notify_of_external_update(self.battery.power_downstream_5m)
 
