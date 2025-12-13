@@ -72,14 +72,6 @@ class Battery:
             return str(int(self.charge_level)) + "%"
 
     @property
-    def charged_daily(self) -> int:
-        charged = self.__energy_charging_total
-        if charged > 0:
-            return charged
-        else:
-            return 0
-
-    @property
     def power(self) -> int:
         return self.__power.set_and_get(self.power_upstream if self.power_upstream > 0 else (self.power_downstream * -1))
 
@@ -456,18 +448,6 @@ class BatteryThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.charged_daily = Value(battery.charged_daily)
-        self.add_property(
-            Property(self,
-                     'charged_daily',
-                     self.charged_daily,
-                     metadata={
-                         'title': 'charged_daily',
-                         "type": "integer",
-                         'description': 'the battery charged today (W)',
-                         'readOnly': True,
-                     }))
-
         self.latest_measurement_date = Value(battery.latest_measurement_date.strftime("%Y-%m-%dT%H:%M:%S"))
         self.add_property(
             Property(self,
@@ -485,7 +465,6 @@ class BatteryThing(Thing):
 
     def _on_value_changed(self):
         self.power.notify_of_external_update(self.battery.power)
-        self.charged_daily.notify_of_external_update(self.battery.charged_daily)
         self.status.notify_of_external_update(self.battery.status)
 
         self.energy_down_today.notify_of_external_update(self.battery.energy_down_today)
