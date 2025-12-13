@@ -65,11 +65,12 @@ class Battery:
     @property
     def status(self) -> str:
         if self.power_upstream > 0:
-            return str(int(self.charge_level)) + "% (laden)"
+            pwr = str(int(self.charge_level)) + "% (laden)"
         elif self.power_upstream > 0 or self.power_downstream > 0:
-            return str(int(self.charge_level)) + "% (entladen)"
+            pwr = str(int(self.charge_level)) + "% (entladen)"
         else:
-            return str(int(self.charge_level)) + "%"
+            pwr = str(int(self.charge_level)) + "%"
+        return pwr  + "\n" + str(self.energy_down_today) + " Watt/Tag"
 
     @property
     def power(self) -> int:
