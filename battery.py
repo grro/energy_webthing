@@ -70,7 +70,7 @@ class Battery:
             pwr = str(int(self.charge_level)) + "% (entladen)"
         else:
             pwr = str(int(self.charge_level)) + "%"
-        return pwr  + "\n" + str(self.energy_down_today) + " Watt/Tag"
+        return pwr
 
     @property
     def power(self) -> int:
