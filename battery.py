@@ -48,9 +48,8 @@ class Battery:
 
     @property
     def __energy_idle_consumption(self) -> int:
-        elapsed_sec = (datetime.now() - self.__reset_date).total_seconds()
-        elapsed_hours = elapsed_sec / (60*60)
-        idle_consumption = elapsed_hours * 4    # assume 4W idle consumption
+        elapsed_hours = datetime.now().hour     # reset at midnight
+        idle_consumption = elapsed_hours * 3.8  # idle consumption
         return round(idle_consumption)
 
     @property
@@ -198,7 +197,7 @@ class Battery:
     def __reset_loop(self):
         while self.__is_running:
             try:
-                if datetime.now().day != self.__reset_date.day:
+                if datetime.now().day != self.__reset_date.day:    # reset at midnight
                     self.__reset()
                 sleep(4*60)
             except Exception as e:
