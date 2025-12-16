@@ -3,7 +3,7 @@ import logging
 from threading import Thread
 from time import sleep
 from typing import List
-from datetime import UTC, datetime, timedelta, time, date
+from datetime import UTC, datetime, timedelta, date
 from utils import WattRecorder
 from shelly import ShellyMeter
 from redzoo.database.simple import SimpleDB
@@ -197,8 +197,8 @@ class Battery:
                 sleep(3)
 
     def __reset(self):
-        logging.info("counter reset")
         self.__meter.reset_counter()
+        logging.info("counter reset")
         self.__meter_reset.put("resetdate", datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
 
     @property
