@@ -58,7 +58,7 @@ class Battery:
 
     @property
     def charge_level(self) -> int:
-        available_energy_today = self.__energy_charging_today - self.__energy_discharging_today
+        available_energy_today = self.__energy_charged_today - self.__energy_discharged_today
         percent = 0 if available_energy_today <= 0 else round(available_energy_today * 100 / (1920 * .9))   # max capacity is 1920
         percent = 100 if percent >= 100 else percent
         percent = 0 if percent < 3 else percent
@@ -163,7 +163,7 @@ class Battery:
 
     @property
     def energy_down_today(self) -> int:
-        return round(self.__energy_discharging_today)
+        return round(self.__energy_discharged_today)
 
     def __on_update(self):
         for listener in self.__listeners:
@@ -193,7 +193,7 @@ class Battery:
         sleep(15)
         while self.__is_running:
             try:
-                self.__energy_down_per_day.put(self.__today, self.__energy_discharging_today)
+                self.__energy_down_per_day.put(self.__today, self.__energy_discharged_today)
                 self.__energy_down_per_day.put(self.__tomorrow, -9999)
             except Exception as e:
                 logging.warning("error occurred on history " + str(e))
@@ -213,13 +213,13 @@ class Battery:
         self.__power_discharging_smoothen_recorder.put(self.__power_discharging)
 
     @property
-    def __energy_charging_today(self) -> int:
+    def __energy_charged_today(self) -> int:
         counter_today = self.__daily_counter.get("total_" + self.__today, default_value=0)
         counter_yesterday = self.__daily_counter.get("total_" + self.__yesterday, counter_today)
         return round(counter_today - counter_yesterday)
 
     @property
-    def __energy_discharging_today(self) -> int:
+    def __energy_discharged_today(self) -> int:
         counter_today = self.__daily_counter.get("return_total_" + self.__today, default_value=0)
         counter_yesterday = self.__daily_counter.get("return_total_" + self.__yesterday, counter_today)
         return round(counter_today - counter_yesterday)
