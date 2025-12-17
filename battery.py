@@ -24,8 +24,6 @@ class Battery:
         self.__power_discharging = 0
         self.__power_charging = 0
         self.__power_charging = 0
-        self.__energy_total = 0
-        self.__energy_discharging_total = 0
         self.__power_charging_smoothen_recorder = WattRecorder()
         self.__power_discharging_smoothen_recorder = WattRecorder()
         self.__power = BufferedValue()
@@ -34,6 +32,18 @@ class Battery:
         print(self.__info())
 
 
+    @property
+    def __today(self) -> str:
+        return str(datetime.now().timetuple().tm_yday)
+
+    @property
+    def __yesterday(self) -> str:
+        return str((datetime.now() - timedelta(days=1)).timetuple().tm_yday)
+
+    @property
+    def __tomorrow(self) -> str:
+        return str((datetime.now() + timedelta(days=1)).timetuple().tm_yday)
+
     def elapsed_since_last_measurement_sec(self):
         return (datetime.now(UTC) - self.latest_measurement_date).total_seconds()
 
@@ -41,35 +51,19 @@ class Battery:
         self.__listeners.add(listener)
 
     @property
-    def __energy_charging_total(self) -> int:
-        energy = self.__energy_total - self.__energy_discharging_total - self.__energy_idle_consumption
-        return 0 if energy < 0 else energy
-
-    @property
-    def __energy_idle_consumption(self) -> int:
-        elapsed_hours = datetime.now().hour     # reset at midnight
-        idle_consumption = elapsed_hours * 3.8  # idle consumption
+    def __energy_idle_consumption_today(self) -> int:
+        elapsed_hours_today = datetime.now().hour
+        idle_consumption = elapsed_hours_today * 3.8  # idle consumption
         return round(idle_consumption)
 
     @property
     def charge_level(self) -> int:
-        available_energy = self.__energy_charging_today - self.__energy_discharging_today
-        percent = 0 if available_energy <= 0 else round(available_energy * 100 / (1920 * .9))   # max capacity is 1920
+        available_energy_today = self.__energy_charging_today - self.__energy_discharging_today
+        percent = 0 if available_energy_today <= 0 else round(available_energy_today * 100 / (1920 * .9))   # max capacity is 1920
         percent = 100 if percent >= 100 else percent
         percent = 0 if percent < 3 else percent
         return percent
 
-    @property
-    def __energy_charging_today(self) -> int:
-        counter_today = self.__daily_counter.get("total"+ str(datetime.now().timetuple().tm_yday), default_value=0)
-        counter_yesterday = self.__daily_counter.get("total"+ str((datetime.now() -timedelta(days=1)).timetuple().tm_yday), counter_today)
-        return round(counter_today - counter_yesterday)
-
-    @property
-    def __energy_discharging_today(self) -> int:
-        counter_today = self.__daily_counter.get("return_total"+ str(datetime.now().timetuple().tm_yday), default_value=0)
-        counter_yesterday = self.__daily_counter.get("return_total"+ str((datetime.now() -timedelta(days=1)).timetuple().tm_yday), counter_today)
-        return round(counter_today - counter_yesterday)
 
     @property
     def status(self) -> str:
@@ -199,26 +193,36 @@ class Battery:
         sleep(15)
         while self.__is_running:
             try:
-                self.__energy_down_per_day.put(str(datetime.now().timetuple().tm_yday), self.__meter.measure().ret_energy_total)
-                self.__energy_down_per_day.put(str((datetime.now() + timedelta(days=1)).timetuple().tm_yday), -9999)
+                self.__energy_down_per_day.put(self.__today, self.__energy_discharging_today)
+                self.__energy_down_per_day.put(self.__tomorrow, -9999)
             except Exception as e:
                 logging.warning("error occurred on history " + str(e))
             sleep(3*60)
 
     def __measure(self):
         m = self.__meter.measure()
+
+        self.__daily_counter.put("total_"+ self.__today, m.energy_total, ttl_sec=7*24*60*60)
+        self.__daily_counter.put("return_total_"+ self.__today, m.ret_energy_total, ttl_sec=7*24*60*60)
+
         power = m.total
-        self.__energy_total = m.energy_total
-        self.__energy_discharging_total = m.ret_energy_total
-
-        self.__daily_counter.put("total"+ str(datetime.now().timetuple().tm_yday), self.__energy_total, ttl_sec=7*24*60*60)
-        self.__daily_counter.put("return_total"+ str(datetime.now().timetuple().tm_yday), self.__energy_discharging_total, ttl_sec=7*24*60*60)
-
         self.__power_discharging = 0 if power >= 0 else (power*-1)                    # negative power -> battery discharging
         self.__power_charging = 0 if power <= 4 else power                            # positive power -> battery charging
 
         self.__power_charging_smoothen_recorder.put(self.__power_charging)
         self.__power_discharging_smoothen_recorder.put(self.__power_discharging)
+
+    @property
+    def __energy_charging_today(self) -> int:
+        counter_today = self.__daily_counter.get("total_" + self.__today, default_value=0)
+        counter_yesterday = self.__daily_counter.get("total_" + self.__yesterday, counter_today)
+        return round(counter_today - counter_yesterday)
+
+    @property
+    def __energy_discharging_today(self) -> int:
+        counter_today = self.__daily_counter.get("return_total_" + self.__today, default_value=0)
+        counter_yesterday = self.__daily_counter.get("return_total_" + self.__yesterday, counter_today)
+        return round(counter_today - counter_yesterday)
 
     def __info_loop(self):
         sleep(10)
