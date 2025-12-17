@@ -16,7 +16,7 @@ class Battery:
 
     def __init__(self, addr: str, directory: str):
         self.__energy_down_per_day = SimpleDB("battery_down", sync_period_sec=60, directory=directory)
-        self.__meter_reset = SimpleDB("battery_meter_reset", sync_period_sec=60, directory=directory)
+        self.__daily_counter = SimpleDB("battery_daily_counter", sync_period_sec=60, directory=directory)
         self.__listeners = set()
         self.__is_running = True
         self.__meter = ShellyMeter.auto_select(addr, "Battery")
@@ -31,7 +31,6 @@ class Battery:
         self.__power = BufferedValue()
         self.__power_downstream_1m = BufferedValue()
         self.__power_downstream_5m = BufferedValue()
-
         print(self.__info())
 
 
@@ -54,13 +53,23 @@ class Battery:
 
     @property
     def charge_level(self) -> int:
-        charged = self.__energy_charging_total
-        discharged = self.__energy_discharging_total
-        available_energy = charged - discharged
+        available_energy = self.__energy_charging_today - self.__energy_discharging_today
         percent = 0 if available_energy <= 0 else round(available_energy * 100 / (1920 * .9))   # max capacity is 1920
         percent = 100 if percent >= 100 else percent
         percent = 0 if percent < 3 else percent
         return percent
+
+    @property
+    def __energy_charging_today(self) -> int:
+        counter_today = self.__daily_counter.get("total"+ str(datetime.now().timetuple().tm_yday), default_value=0)
+        counter_yesterday = self.__daily_counter.get("total"+ str((datetime.now() -timedelta(days=1)).timetuple().tm_yday), counter_today)
+        return round(counter_today - counter_yesterday)
+
+    @property
+    def __energy_discharging_today(self) -> int:
+        counter_today = self.__daily_counter.get("return_total"+ str(datetime.now().timetuple().tm_yday), default_value=0)
+        counter_yesterday = self.__daily_counter.get("return_total"+ str((datetime.now() -timedelta(days=1)).timetuple().tm_yday), counter_today)
+        return round(counter_today - counter_yesterday)
 
     @property
     def status(self) -> str:
@@ -160,7 +169,7 @@ class Battery:
 
     @property
     def energy_down_today(self) -> int:
-        return round(self.__energy_discharging_total)
+        return round(self.__energy_discharging_today)
 
     def __on_update(self):
         for listener in self.__listeners:
@@ -168,7 +177,6 @@ class Battery:
 
     def start(self):
         Thread(target=self.__measure_loop, daemon=True).start()
-        Thread(target=self.__reset_loop, daemon=True).start()
         Thread(target=self.__info_loop, daemon=True).start()
         Thread(target=self.__history_loop, daemon=True).start()
 
@@ -187,24 +195,6 @@ class Battery:
                 #logging.warning("error occurred on battery refresh " + str(e))
                 sleep(3)
 
-    def __reset_loop(self):
-        while self.__is_running:
-            try:
-                if datetime.now().day != self.__reset_date.day:    # reset at midnight
-                    self.__reset()
-                sleep(4*60)
-            except Exception as e:
-                sleep(3)
-
-    def __reset(self):
-        self.__meter.reset_counter()
-        logging.info("counter reset")
-        self.__meter_reset.put("resetdate", datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
-
-    @property
-    def __reset_date(self) -> datetime:
-        return datetime.strptime(self.__meter_reset.get("resetdate", datetime.now().strftime("%Y-%m-%dT%H:%M:%S")), "%Y-%m-%dT%H:%M:%S")
-
     def __history_loop(self):
         sleep(15)
         while self.__is_running:
@@ -221,12 +211,14 @@ class Battery:
         self.__energy_total = m.energy_total
         self.__energy_discharging_total = m.ret_energy_total
 
+        self.__daily_counter.put("total"+ str(datetime.now().timetuple().tm_yday), self.__energy_total, ttl_sec=7*24*60*60)
+        self.__daily_counter.put("return_total"+ str(datetime.now().timetuple().tm_yday), self.__energy_discharging_total, ttl_sec=7*24*60*60)
+
         self.__power_discharging = 0 if power >= 0 else (power*-1)                    # negative power -> battery discharging
         self.__power_charging = 0 if power <= 4 else power                            # positive power -> battery charging
 
         self.__power_charging_smoothen_recorder.put(self.__power_charging)
         self.__power_discharging_smoothen_recorder.put(self.__power_discharging)
-
 
     def __info_loop(self):
         sleep(10)
@@ -487,4 +479,5 @@ class BatteryThing(Thing):
         self.latest_measurement_date.notify_of_external_update(self.battery.latest_measurement_date.strftime("%Y-%m-%dT%H:%M:%S"))
 
         self.charge_level.notify_of_external_update(self.battery.charge_level)
+
 
