@@ -66,6 +66,9 @@ class Pv:
         self.__power_per_hour = {}
         self.__surplus_daily_peeks = SimpleDB("spv_daily_peek", sync_period_sec=60, directory=directory)
 
+        logging.info("peek hours " + ",".join([str(peek) for peek in self.__peeks()]))
+
+
     def elapsed_since_last_measurement_sec(self):
         return (datetime.now(UTC) - self.latest_measurement_date).total_seconds()
 
@@ -183,7 +186,7 @@ class Pv:
         peeks = sorted(self.__peeks())
         if len(peeks) > 0:
             hour = peeks[int(len(peeks)* 0.5)]
-        if hour < 10 or hour > 14:
+        if hour < 11 or hour > 14:
             hour = 12
         return hour
 
@@ -268,7 +271,8 @@ class Pv:
                 " (module1: " + str(int(self.power_downstream_module1_1m)) + "W," + \
                 " module2: " + str(int(self.power_downstream_module2_1m)) + "W," + \
                 " module3: " + str(int(self.power_downstream_module3_1m)) + "W," + \
-                " module4: " + str(int(self.power_downstream_module4_1m)) + "W)"
+                " module4: " + str(int(self.power_downstream_module4_1m)) + "W" + \
+                ", peek hour: " + str(self.power_peek_hour_utc) + ")"
 
 
 
