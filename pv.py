@@ -66,7 +66,7 @@ class Pv:
         self.__power_per_hour = {}
         self.__surplus_daily_peeks = SimpleDB("spv_daily_peek", sync_period_sec=60, directory=directory)
 
-        logging.info("peek hours " + ",".join([str(peek) for peek in self.__peeks()]))
+        logging.info("peek hours " + ",".join([str(peek) for peek in self.__peeks()]) + " -> " + str(self.power_peek_hour_utc) + "UTC")
 
 
     def elapsed_since_last_measurement_sec(self):
