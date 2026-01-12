@@ -29,8 +29,9 @@ class Battery:
         self.__power = BufferedValue()
         self.__power_downstream_1m = BufferedValue()
         self.__power_downstream_5m = BufferedValue()
+        self.__show_total_status = True
         print(self.__info())
-
+        Thread(target=self.__auto_toggle_show_total_status, daemon=True).start()
 
     @property
     def __today(self) -> str:
@@ -64,16 +65,26 @@ class Battery:
         percent = 0 if percent < 3 else percent
         return percent
 
+    def __auto_toggle_show_total_status(self):
+        while True:
+            try:
+                self.__show_total_status = not self.__show_total_status
+            except Exception as e:
+                pass
+            sleep(10)
 
     @property
     def status(self) -> str:
-        if self.power_upstream > 0:
-            pwr = str(int(self.charge_level)) + "% (laden)"
-        elif self.power_upstream > 0 or self.power_downstream > 0:
-            pwr = str(int(self.charge_level)) + "% (entladen)"
+        if self.__show_total_status:
+            return str(self.energy_down_today)
         else:
-            pwr = str(int(self.charge_level)) + "%"
-        return pwr
+            if self.power_upstream > 0:
+                pwr = str(int(self.charge_level)) + "% (laden)"
+            elif self.power_upstream > 0 or self.power_downstream > 0:
+                pwr = str(int(self.charge_level)) + "% (entladen)"
+            else:
+                pwr = str(int(self.charge_level)) + "%"
+            return pwr
 
     @property
     def power(self) -> int:
