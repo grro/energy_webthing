@@ -76,7 +76,7 @@ class Battery:
     @property
     def status(self) -> str:
         if self.__show_total_status:
-            return str(self.energy_down_today)
+            return str(self.energy_down_today) + " Watt/Tag"
         else:
             if self.power_upstream > 0:
                 pwr = str(int(self.charge_level)) + "% (laden)"
