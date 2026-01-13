@@ -69,21 +69,16 @@ class Battery:
         toggle_time_sec = 10
         while True:
             try:
-                now = datetime.now()
-                cycle_position = now.second % (toggle_time_sec*2)
-                if cycle_position < toggle_time_sec:
-                    self.__show_total_status = True
-                else:
-                    self.__show_total_status = False
+                cycle_position = datetime.now().second % (toggle_time_sec * 2)
+                self.__show_total_status = cycle_position < toggle_time_sec
                 self.__on_update()
-            except Exception as e:
+            except Exception:
                 pass
-            sleep_time = toggle_time_sec - (self.__seconds_of_day() % toggle_time_sec)
-            sleep(sleep_time)
+            sleep(toggle_time_sec - (self.__seconds_of_day() % toggle_time_sec))
 
     def __seconds_of_day(self) -> int:
         now = datetime.now()
-        return int((now - now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds())
+        return now.hour * 3600 + now.minute * 60 + now.second
 
     @property
     def status(self) -> str:
