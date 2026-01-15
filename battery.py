@@ -90,7 +90,7 @@ class Battery:
             elif self.power_upstream > 0 or self.power_downstream > 0:
                 pwr = str(self.power_downstream) + "% (entladen)"
             else:
-                pwr = str("Bereitschaft")
+                pwr = str("verbunden")
             return pwr
 
     @property
