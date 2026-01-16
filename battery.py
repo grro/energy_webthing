@@ -92,7 +92,7 @@ class Battery:
             else:
                 pwr = str("verbunden")
             return pwr
-
+ 
     @property
     def power(self) -> int:
         return self.__power.set_and_get(self.power_upstream if self.power_upstream > 0 else (self.power_downstream * -1))
