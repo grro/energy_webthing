@@ -66,7 +66,7 @@ class Pv:
         self.__power_per_hour = {}
         self.__surplus_daily_peeks = SimpleDB("spv_daily_peek", sync_period_sec=60, directory=directory)
 
-        logging.info("peek hours " + ",".join([str(peek) for peek in self.__peeks()]) + " -> " + str(self.power_peek_hour_utc) + " UTC")
+        logging.info("peek hours " + ",".join([str(peek) for peek in self.__peaks()]) + " -> " + str(self.power_peak_hour_utc) + " UTC")
 
 
     def elapsed_since_last_measurement_sec(self):
@@ -181,16 +181,16 @@ class Pv:
         return 0 if power4 <0 else power4
 
     @property
-    def power_peek_hour_utc(self) -> int:
+    def power_peak_hour_utc(self) -> int:
         hour = 0
-        peeks = sorted(self.__peeks())
+        peeks = sorted(self.__peaks())
         if len(peeks) > 0:
             hour = peeks[int(len(peeks)* 0.5)]
         if hour < 11 or hour > 14:
             hour = 12
         return hour
 
-    def __peeks(self) -> List[int]:
+    def __peaks(self) -> List[int]:
         today = datetime.now(UTC)
         hours = [self.__surplus_daily_peeks.get((today - timedelta(days=day_offset)).strftime("%Y-%m-%d"), -1) for day_offset in range(0, 60)]
         return [hour for hour in hours if hour >= 0]
@@ -272,7 +272,7 @@ class Pv:
                 " module2: " + str(int(self.power_downstream_module2_1m)) + "W," + \
                 " module3: " + str(int(self.power_downstream_module3_1m)) + "W," + \
                 " module4: " + str(int(self.power_downstream_module4_1m)) + "W" + \
-                ", peek hour: " + str(self.power_peek_hour_utc) + ")"
+                ", peek hour: " + str(self.power_peak_hour_utc) + ")"
 
 
 
@@ -661,13 +661,25 @@ class PvThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.power_peek_hour_utc = Value(pv.power_peek_hour_utc)
+        self.power_peek_hour_utc = Value(pv.power_peak_hour_utc)
         self.add_property(
             Property(self,
                      'power_peek_hour_utc',
                      self.power_peek_hour_utc,
                      metadata={
                          'title': 'power_peek_hour_utc',
+                         "type": "integer",
+                         'description': 'The hour of the day when the highest PV yield was achieved (UTC)',
+                         'readOnly': True,
+                     }))
+
+        self.power_peak_hour_utc = Value(pv.power_peak_hour_utc)
+        self.add_property(
+            Property(self,
+                     'power_peak_hour_utc',
+                     self.power_peak_hour_utc,
+                     metadata={
+                         'title': 'power_peak_hour_utc',
                          "type": "integer",
                          'description': 'The hour of the day when the highest PV yield was achieved (UTC)',
                          'readOnly': True,
@@ -723,7 +735,8 @@ class PvThing(Thing):
         self.power_downstream_module1u2_5m.notify_of_external_update(self.pv.power_downstream_module1_5m + self.pv.power_downstream_module2_5m)
         self.power_downstream_module1u2u3_5m.notify_of_external_update(self.pv.power_downstream_module1_5m + self.pv.power_downstream_module2_5m + self.pv.power_downstream_module3_5m)
 
-        self.power_peek_hour_utc.notify_of_external_update(self.pv.power_peek_hour_utc)
+        self.power_peek_hour_utc.notify_of_external_update(self.pv.power_peak_hour_utc)
+        self.power_peak_hour_utc.notify_of_external_update(self.pv.power_peak_hour_utc)
 
         self.latest_measurement_date.notify_of_external_update(self.pv.latest_measurement_date.strftime("%Y-%m-%dT%H:%M:%S"))
 
