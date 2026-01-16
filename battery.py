@@ -86,9 +86,9 @@ class Battery:
             return str(self.energy_down_today) + " Watt/Tag"
         else:
             if self.power_upstream > 0:
-                pwr = str(self.power_upstream) + " Watt (laden)"
-            elif self.power_upstream > 0 or self.power_downstream > 0:
-                pwr = str(self.power_downstream) + " Watt (entladen)"
+                pwr = str(self.power_upstream_5s) + " Watt (laden)"
+            elif self.power_upstream_5s > 0 or self.power_downstream_5s > 0:
+                pwr = str(self.power_downstream_5s) + " Watt (entladen)"
             else:
                 pwr = str("verbunden")
             return pwr
