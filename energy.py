@@ -23,6 +23,11 @@ class Energy:
         self.__power_consumption_1m = BufferedValue()
         self.__power_green_1m = BufferedValue()
 
+
+    @property
+    def power_gray_consumption_5s(self) -> int:
+        return self.power_consumption_5s - self.battery.power_upstream_5s
+
     @property
     def power_consumption(self) -> int:
         return self.provider.provider_power + self.battery.power_downstream + self.pv.power_downstream
@@ -180,6 +185,19 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
+        self.power_gray_consumption_5s = Value(energy.power_gray_consumption_5s)
+        self.add_property(
+            Property(self,
+                     'power_gray_consumption_5s',
+                     self.power_gray_consumption_5s,
+                     metadata={
+                         'title': 'power gray consumption 5s',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the current power consumption without upstream battery smoothen over 5 seconds',
+                         'readOnly': True,
+                     }))
+
         self.power_consumption = Value(energy.power_consumption)
         self.add_property(
             Property(self,
@@ -264,5 +282,6 @@ class EnergyThing(Thing):
         self.power_consumption_1m.notify_of_external_update(self.energy.power_consumption_1m)
         self.power_consumption_5m.notify_of_external_update(self.energy.power_consumption_5m)
 
+        self.power_gray_consumption_5s.notify_of_external_update(self.energy.power_gray_consumption_5s)
 
 
