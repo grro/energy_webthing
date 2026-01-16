@@ -69,7 +69,7 @@ class Battery:
         toggle_time_sec = 10
         while True:
             try:
-                cycle_position = datetime.now().second % (toggle_time_sec * 2)
+                cycle_position = datetime.now().second % (toggle_time_sec * 4)
                 self.__show_total_status = cycle_position < toggle_time_sec
                 self.__on_update()
             except Exception:
@@ -92,7 +92,7 @@ class Battery:
             else:
                 pwr = str("verbunden")
             return pwr
- 
+
     @property
     def power(self) -> int:
         return self.__power.set_and_get(self.power_upstream if self.power_upstream > 0 else (self.power_downstream * -1))
