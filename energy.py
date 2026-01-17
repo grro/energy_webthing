@@ -22,11 +22,12 @@ class Energy:
         self.__power_consumption_15s = BufferedValue()
         self.__power_consumption_1m = BufferedValue()
         self.__power_green_1m = BufferedValue()
+        self.__power_gray_consumption_5s = BufferedValue()
 
 
     @property
     def power_gray_consumption_5s(self) -> int:
-        return self.power_consumption_5s - self.battery.power_upstream_5s
+        return self.__power_gray_consumption_5s.set_and_get(self.provider.provider_power_5s + self.battery.power_downstream_5s + self.pv.power_downstream_5s)
 
     @property
     def power_consumption(self) -> int:
