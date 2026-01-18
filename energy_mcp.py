@@ -1,4 +1,4 @@
-from mcp_server import MCPServer
+from mcplib.server import MCPServer
 from energy import Energy
 from pv import Pv
 
