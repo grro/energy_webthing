@@ -182,9 +182,9 @@ class Pv:
 
     @property
     def power_peak_hour_utc(self) -> int:
-        hour = 0
+        hour = 12
         peeks = sorted(self.__peaks())
-        if len(peeks) > 0:
+        if len(peeks) > 10:
             hour = peeks[int(len(peeks)* 0.5)]
         if hour < 11 or hour > 14:
             hour = 12
@@ -253,7 +253,7 @@ class Pv:
                     date = datetime.now(UTC).strftime("%Y-%m-%d")
                     if self.__surplus_daily_peeks.get(date, -1) != peek_hour:
                         logging.info("peek on hour " + str(peek_hour) + ", peek " + str(peek_value))
-                    self.__surplus_daily_peeks.put(date, peek_hour, ttl_sec=30*24*60*60)
+                    self.__surplus_daily_peeks.put(date, peek_hour, ttl_sec=30*24*60*60)   # ttl 30 day
             except Exception as e:
                 logging.warning("error occurred on printing peek values " + str(e))
             sleep(17*60)
