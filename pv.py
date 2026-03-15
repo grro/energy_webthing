@@ -190,11 +190,13 @@ class Pv:
             hour = 12
         return hour
 
+    def latest_peeks_hour_utc(self) -> List[int]:
+        return self.__peaks()[:8]
+
     def __peaks(self) -> List[int]:
         today = datetime.now(UTC)
         hours = [self.__surplus_daily_peeks.get((today - timedelta(days=day_offset)).strftime("%Y-%m-%d"), -1) for day_offset in range(0, 60)]
-        return [hour for hour in hours if hour >= 0]
-
+        return [hour for hour in hours if hour > 0]
 
     def add_listener(self,listener):
         self.__listeners.add(listener)
