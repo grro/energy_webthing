@@ -243,9 +243,10 @@ class Pv:
                     peek_value = 0
                     for hour in range(0, 23):
                         peek = self.__power_per_hour.get(hour, 0)
-                        if peek > peek_value:
-                            peek_hour = hour
-                            peek_value = peek
+                        if peek > 600:
+                            if peek > peek_value:
+                                peek_hour = hour
+                                peek_value = peek
 
                     date = datetime.now(UTC).strftime("%Y-%m-%d")
                     if self.__surplus_daily_peeks.get(date, -1) != peek_hour:
