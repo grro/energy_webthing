@@ -27,7 +27,7 @@ class EnergyMCPServer(MCPServer):
                     f"Real-time Energy Report:\n"
                     f"- Grid Power: {self.energy.provider.provider_power} W (Positive: Buying/Import | Negative: Exporting)\n"
                     f"- PV Production: {self.energy.pv.power_downstream} W (Current solar generation)\n"
-                    f"- PV Daily Peek hour: {self.energy.pv.power_peak_hour_utc} UTC (latest " + ", ".join([str(h) for h in self.energy.pv.latest_peeks_hour_utc()]) + " UTC)\n"
+                    f"- Expected PV Daily Peek hour: {self.energy.pv.power_peak_hour_utc} UTC (latest " + ", ".join([str(h) for h in self.energy.pv.latest_peeks_hour_utc()]) + " UTC)\n"
                     f"- Battery Discharge: {self.energy.battery.power_downstream} W (Power usage from battery)\n"
                     f"- Battery Charge: {self.energy.battery.power_upstream} W (Power flowing into battery)\n"
                     f"- Total Consumption: {self.energy.power_consumption} W (Current household load, excluding battery charging)\n"
