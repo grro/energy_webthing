@@ -66,7 +66,7 @@ class Pv:
         self.__power_per_hour = {}
         self.__surplus_daily_peeks = SimpleDB("spv_daily_peek", sync_period_sec=60, directory=directory)
 
-        logging.info("peek hours " + ",".join([str(peek) for peek in self.__peaks()]) + " -> " + str(self.power_peak_hour_utc) + " UTC")
+        logging.info("peek hours " + ",".join([str(peek) for peek in self.__cleaned_peaks()]) + " -> " + str(self.power_peak_hour_utc) + " UTC")
 
 
     def elapsed_since_last_measurement_sec(self):
@@ -182,21 +182,19 @@ class Pv:
 
     @property
     def power_peak_hour_utc(self) -> int:
-        hour = 12
-        peeks = sorted(self.__peaks())
+        peeks = sorted(self.__cleaned_peaks())
         if len(peeks) > 10:
-            hour = peeks[int(len(peeks)* 0.5)]
-        if hour < 11 or hour > 14:
-            hour = 12
-        return hour
+            return peeks[int(len(peeks)* 0.5)]
+        else:
+            return 12
 
     def latest_peeks_hour_utc(self) -> List[int]:
-        return self.__peaks()[:8]
+        return self.__cleaned_peaks()[:8]
 
-    def __peaks(self) -> List[int]:
+    def __cleaned_peaks(self) -> List[int]:
         today = datetime.now(UTC)
         hours = [self.__surplus_daily_peeks.get((today - timedelta(days=day_offset)).strftime("%Y-%m-%d"), -1) for day_offset in range(0, 60)]
-        return [hour for hour in hours if hour > 0]
+        return [hour for hour in hours if 15 > hour > 9]
 
     def add_listener(self,listener):
         self.__listeners.add(listener)
