@@ -31,7 +31,6 @@ class Battery:
         self.__power_downstream_5m = BufferedValue()
         self.__show_total_status = True
         print(self.__info())
-        Thread(target=self.__auto_toggle_show_total_status, daemon=True).start()
 
     @property
     def __today(self) -> str:
@@ -65,33 +64,19 @@ class Battery:
         percent = 0 if percent < 3 else percent
         return percent
 
-    def __auto_toggle_show_total_status(self):
-        toggle_time_sec = 10
-        while True:
-            try:
-                cycle_position = datetime.now().second % (toggle_time_sec * 4)
-                self.__show_total_status = cycle_position < toggle_time_sec
-                self.__on_update()
-            except Exception:
-                pass
-            sleep(toggle_time_sec - (self.__seconds_of_day() % toggle_time_sec))
-
     def __seconds_of_day(self) -> int:
         now = datetime.now()
         return now.hour * 3600 + now.minute * 60 + now.second
 
     @property
     def status(self) -> str:
-        if self.__show_total_status:
-            return str(self.energy_down_today) + " Watt/Tag"
+        if self.power_upstream_5s > 0:
+            pwr = str(self.power_upstream_5s) + " Watt (laden)"
+        elif self.power_upstream_5s > 0 or self.power_downstream_5s > 0:
+            pwr = str(self.power_downstream_5s) + " Watt (entladen)"
         else:
-            if self.power_upstream_5s > 0:
-                pwr = str(self.power_upstream_5s) + " Watt (laden)"
-            elif self.power_upstream_5s > 0 or self.power_downstream_5s > 0:
-                pwr = str(self.power_downstream_5s) + " Watt (entladen)"
-            else:
-                pwr = str("verbunden")
-            return pwr
+            pwr = str("verbunden")
+        return pwr
 
     @property
     def power(self) -> int:
