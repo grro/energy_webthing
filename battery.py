@@ -65,16 +65,16 @@ class Battery:
     @property
     def status(self) -> str:
         if self.power_upstream_5s > 0:
-            pwr = str(self.state_of_charge) + "% (laden)"
+            pwr = str(round(self.state_of_charge, 1)) + "% (laden)"
         elif self.power_upstream_5s > 0 or self.power_downstream_5s > 0:
-            pwr = str(self.state_of_charge) + "% (entladen)"
+            pwr = str(round(self.state_of_charge, 1)) + "% (entladen)"
         else:
-            pwr = str(self.state_of_charge) + "%"
+            pwr = str(round(self.state_of_charge, 1)) + "%"
         return pwr
 
     @property
-    def state_of_charge(self) -> int:
-        return round(self.__mqtt.state_of_charge)
+    def state_of_charge(self) -> float:
+        return self.__mqtt.state_of_charge
 
     @property
     def power(self) -> int:
