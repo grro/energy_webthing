@@ -29,8 +29,6 @@ class PvMqtt:
         self.client.subscribe("#")
         logging.info("wait for data...")
 
-        # Start the network loop in a background thread
-        # so the main thread isn't blocked and we can call stop() later.
         self.client.loop_start()
 
     def stop(self):

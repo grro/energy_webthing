@@ -64,12 +64,13 @@ class Battery:
 
     @property
     def status(self) -> str:
+        level = round(self.state_of_charge, 1)
         if self.power_upstream_5s > 0:
-            pwr = str(round(self.state_of_charge, 1)) + "% (laden)"
+            pwr = str(level) + "% (laden)"
         elif self.power_upstream_5s > 0 or self.power_downstream_5s > 0:
-            pwr = str(round(self.state_of_charge, 1)) + "% (entladen)"
+            pwr = str(level) + "% (entladen)"
         else:
-            pwr = str(round(self.state_of_charge, 1)) + "%"
+            pwr = str(level) + "%"
         return pwr
 
     @property
@@ -174,7 +175,7 @@ class Battery:
         Thread(target=self.__measure_loop, daemon=True).start()
         Thread(target=self.__info_loop, daemon=True).start()
         Thread(target=self.__history_loop, daemon=True).start()
-        Thread(target=self.__mqtt.start, daemon=True).start()
+        self.__mqtt.start()
 
     def stop(self):
         self.__is_running = False
