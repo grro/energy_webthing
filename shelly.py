@@ -347,6 +347,7 @@ class ShellyMeter(Meter):
             logging.info(description + " detected shellyPmMini running on " + addr)
             return s
         except Exception as e:
+            logging.warning(str(e))
             pass
 
         logging.warning(description + " unsupported shelly running on " + addr)

@@ -9,12 +9,13 @@ from shelly import ShellyMeter
 from redzoo.database.simple import SimpleDB
 from webthing import (Property, Thing, Value)
 from utils import BufferedValue
+from battery_mqtt import PvMqtt
 
 
 
 class Battery:
 
-    def __init__(self, addr: str, directory: str):
+    def __init__(self, addr: str, directory: str, mqtt_addr):
         self.__energy_down_per_day = SimpleDB("battery_down", sync_period_sec=60, directory=directory)
         self.__daily_counter = SimpleDB("battery_daily_counter", sync_period_sec=60, directory=directory)
         self.__listeners = set()
@@ -30,7 +31,7 @@ class Battery:
         self.__power_downstream_1m = BufferedValue()
         self.__power_downstream_5m = BufferedValue()
         self.__show_total_status = True
-        print(self.__info())
+        self.__mqtt = PvMqtt(mqtt_addr)
 
     @property
     def __today(self) -> str:
@@ -71,12 +72,16 @@ class Battery:
     @property
     def status(self) -> str:
         if self.power_upstream_5s > 0:
-            pwr = str(self.power_upstream_5s) + " Watt (laden)"
+            pwr = str(self.state_of_charge) + "% (" + str(self.power_upstream_5s) + " Watt laden)"
         elif self.power_upstream_5s > 0 or self.power_downstream_5s > 0:
-            pwr = str(self.power_downstream_5s) + " Watt (entladen)"
+            pwr = str(self.state_of_charge) + "% (" + str(self.power_downstream_5s) + " Watt entladen)"
         else:
-            pwr = str("verbunden")
+            pwr = str(self.state_of_charge) + "%"
         return pwr
+
+    @property
+    def state_of_charge(self) -> int:
+        return self.__mqtt.level
 
     @property
     def power(self) -> int:
@@ -176,10 +181,11 @@ class Battery:
         Thread(target=self.__measure_loop, daemon=True).start()
         Thread(target=self.__info_loop, daemon=True).start()
         Thread(target=self.__history_loop, daemon=True).start()
-
+        Thread(target=self.__mqtt.start, daemon=True).start()
 
     def stop(self):
         self.__is_running = False
+        self.__mqtt.stop()
 
     def __measure_loop(self):
         while self.__is_running:
@@ -239,11 +245,11 @@ class Battery:
 
     def __info(self) -> str:
         if self.power_upstream > 3:
-            state = 'charging with ' + str(int(self.power_upstream)) + 'W'
+            state =  str(self.state_of_charge) + '% charging with ' + str(int(self.power_upstream)) + 'W'
         elif self.power_downstream > 3:
-            state = 'discharging with ' + str(int(self.power_downstream)) + 'W'
+            state =  str(self.state_of_charge) + '% discharging with ' + str(int(self.power_downstream)) + 'W'
         else:
-            state = 'idling'
+            state =  str(self.state_of_charge) + "% (idling)"
 
         return "Battery level " + str(int(self.charge_level)) + "% (" + state + ")"
 
@@ -487,4 +493,10 @@ class BatteryThing(Thing):
 
         self.charge_level.notify_of_external_update(self.battery.charge_level)
 
+
+
+
+
+#Battery('http://10.1.33.100', r"C:\temp",  '192.168.1.99').start()
+#sleep(444444)
 

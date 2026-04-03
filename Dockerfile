@@ -8,6 +8,7 @@ ENV pv_module2 http://noexists.example.org
 ENV pv_module3 http://noexists.example.org
 ENV battery http://noexists.example.org
 ENV directory /app/energy
+ENV mqtt_addr 192.168.1.99
 
 
 RUN cd /etc
@@ -17,7 +18,7 @@ ADD *.py /etc/app/
 ADD requirements.txt /etc/app/.
 RUN pip install -r requirements.txt
 
-CMD python /etc/app/energy_webthing.py $port $provider $pv_all $pv_module1 $pv_module2 $pv_module3 $battery $directory
+CMD python /etc/app/energy_webthing.py $port $provider $pv_all $pv_module1 $pv_module2 $pv_module3 $battery $directory $mqtt_addr
 
 
 
