@@ -56,6 +56,7 @@ class PvMqtt:
                 if soc != self.state_of_charge:
                     self.last_update = datetime.now()
                     self.state_of_charge = soc
+                    logging.info("level " + str(self.state_of_charge) + " %")
                     self.__notify_listeners()
 
         except json.JSONDecodeError:
