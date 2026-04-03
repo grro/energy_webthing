@@ -6,7 +6,7 @@ from datetime import datetime
 
 class PvMqtt:
 
-    def __init__(self, host: str = "0.0.0.0", port: int = 1883):
+    def __init__(self, host: str, port: int = 1883):
         self.host = host
         self.port = port
         self.client = mqtt.Client()
@@ -14,7 +14,6 @@ class PvMqtt:
         self.last_update = datetime.now()
         self.__level = 0
         self.__listeners = set()
-
 
     @property
     def state_of_charge(self) -> int:
@@ -29,6 +28,8 @@ class PvMqtt:
 
     def start(self):
         self.client.connect(self.host, self.port)
+        logging.info("MQTT client started (server " + self.host + ":" + str(self.port) +")")
+
         self.client.subscribe("#")
         logging.info("wait for data...")
 
@@ -52,8 +53,12 @@ class PvMqtt:
             payload = msg.payload.decode("utf-8")
             data = json.loads(payload)
 
-            soc = data.get("soc")
-            if soc is not None:
+            if 'device' in data:
+                if 'command_topic' not in data:
+                    logging.info(str(data['device']))
+
+            if 'soc' in data:
+                soc = data.get("soc")
                 if soc != self.__level:
                     self.last_update = datetime.now()
                     self.__level = soc
