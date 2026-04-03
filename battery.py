@@ -72,9 +72,9 @@ class Battery:
     @property
     def status(self) -> str:
         if self.power_upstream_5s > 0:
-            pwr = str(self.state_of_charge) + "% (" + str(self.power_upstream_5s) + " Watt laden)"
+            pwr = str(self.state_of_charge) + "% (laden)"
         elif self.power_upstream_5s > 0 or self.power_downstream_5s > 0:
-            pwr = str(self.state_of_charge) + "% (" + str(self.power_downstream_5s) + " Watt entladen)"
+            pwr = str(self.state_of_charge) + "% (entladen)"
         else:
             pwr = str(self.state_of_charge) + "%"
         return pwr
