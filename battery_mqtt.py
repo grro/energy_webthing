@@ -47,6 +47,8 @@ class PvMqtt:
             payload = msg.payload.decode("utf-8")
             data = json.loads(payload)
 
+            logging.info(data)
+
             if 'device' in data:
                 if 'command_topic' not in data:
                     logging.info(str(data['device']))

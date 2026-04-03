@@ -71,7 +71,6 @@ class Battery:
             pwr = str(level) + "% (entladen)"
         else:
             pwr = str(level) + "%"
-        logging.info("status " + pwr)
         return pwr
 
     @property
