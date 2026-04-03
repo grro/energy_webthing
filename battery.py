@@ -422,11 +422,11 @@ class BatteryThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.charge_level = Value(battery.state_of_charge)
+        self.state_of_charge = Value(battery.state_of_charge)
         self.add_property(
             Property(self,
                      'charge_level',
-                     self.charge_level,
+                     self.state_of_charge,
                      metadata={
                          'title': 'charge_level',
                          "type": "integer",
@@ -484,7 +484,7 @@ class BatteryThing(Thing):
 
         self.latest_measurement_date.notify_of_external_update(self.battery.latest_measurement_date.strftime("%Y-%m-%dT%H:%M:%S"))
 
-        self.charge_level.notify_of_external_update(self.battery.state_of_charge)
+        self.state_of_charge.notify_of_external_update(self.battery.state_of_charge)
 
 
 
