@@ -32,6 +32,7 @@ class Battery:
         self.__power_downstream_5m = BufferedValue()
         self.__show_total_status = True
         self.__mqtt = PvMqtt(mqtt_addr)
+        self.__mqtt.add_listener(self.__notify_listeners)
 
     @property
     def __today(self) -> str:
@@ -173,7 +174,7 @@ class Battery:
     def energy_down_today(self) -> int:
         return round(self.__energy_discharged_today)
 
-    def __on_update(self):
+    def __notify_listeners(self):
         for listener in self.__listeners:
             listener()
 

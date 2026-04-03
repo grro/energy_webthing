@@ -13,6 +13,14 @@ class PvMqtt:
         self.client.on_message = self.on_message
         self.last_update = datetime.now()
         self.level = 0
+        self.__listeners = set()
+
+    def add_listener(self,listener):
+        self.__listeners.add(listener)
+
+    def __notify_listeners(self):
+        for listener in self.__listeners:
+            listener()
 
     def start(self):
         self.client.connect(self.host, self.port)
@@ -41,8 +49,10 @@ class PvMqtt:
 
             soc = data.get("soc")
             if soc is not None:
-                self.last_update = datetime.now()
-                self.level = soc
+                if soc != self.level:
+                    self.last_update = datetime.now()
+                    self.level = soc
+                    self.__notify_listeners()
 
         except json.JSONDecodeError:
             logging.info("Fehler beim Parsen der JSON-Daten.")
