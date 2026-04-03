@@ -12,8 +12,13 @@ class PvMqtt:
         self.client = mqtt.Client()
         self.client.on_message = self.on_message
         self.last_update = datetime.now()
-        self.level = 0
+        self.__level = 0
         self.__listeners = set()
+
+
+    @property
+    def state_of_charge(self) -> int:
+        return self.__level
 
     def add_listener(self,listener):
         self.__listeners.add(listener)
@@ -49,9 +54,9 @@ class PvMqtt:
 
             soc = data.get("soc")
             if soc is not None:
-                if soc != self.level:
+                if soc != self.__level:
                     self.last_update = datetime.now()
-                    self.level = soc
+                    self.__level = soc
                     self.__notify_listeners()
 
         except json.JSONDecodeError:

@@ -74,7 +74,7 @@ class Battery:
 
     @property
     def state_of_charge(self) -> int:
-        return round(self.__mqtt.level)
+        return round(self.__mqtt.state_of_charge)
 
     @property
     def power(self) -> int:
