@@ -81,7 +81,7 @@ class Battery:
 
     @property
     def state_of_charge(self) -> int:
-        return self.__mqtt.level
+        return round(self.__mqtt.level)
 
     @property
     def power(self) -> int:
@@ -251,7 +251,7 @@ class Battery:
         else:
             state =  str(self.state_of_charge) + "% (idling)"
 
-        return "Battery level " + str(int(self.charge_level)) + "% (" + state + ")"
+        return "Battery level " + state
 
 
 
