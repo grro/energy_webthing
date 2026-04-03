@@ -58,14 +58,6 @@ class Battery:
         idle_consumption = elapsed_hours_today * 3.8  # idle consumption
         return round(idle_consumption)
 
-    @property
-    def charge_level(self) -> int:
-        available_energy_today = self.__energy_charged_today - self.__energy_discharged_today
-        percent = 0 if available_energy_today <= 0 else round(available_energy_today * 100 / (1920 * .9))   # max capacity is 1920
-        percent = 100 if percent >= 100 else percent
-        percent = 0 if percent < 3 else percent
-        return percent
-
     def __seconds_of_day(self) -> int:
         now = datetime.now()
         return now.hour * 3600 + now.minute * 60 + now.second
@@ -194,7 +186,7 @@ class Battery:
                 self.__measure()
                 [listener() for listener in self.__listeners]
                 self.latest_measurement_date = datetime.now(UTC)
-                sleep(1.03)
+                sleep(3.03)
             except Exception as e:
                 #logging.warning("error occurred on battery refresh " + str(e))
                 sleep(3)
@@ -495,9 +487,4 @@ class BatteryThing(Thing):
         self.charge_level.notify_of_external_update(self.battery.charge_level)
 
 
-
-
-
-#Battery('http://10.1.33.100', r"C:\temp",  '192.168.1.99').start()
-#sleep(444444)
 
