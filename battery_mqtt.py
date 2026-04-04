@@ -6,11 +6,14 @@ from datetime import datetime
 
 class PvMqtt:
 
-    def __init__(self, host: str, port: int = 1883):
+    def __init__(self, host: str, port: int = 1883, topic: str = 'homeassistant/sensor/MSA-280425340053/quick/state'):
+        self.is_running = True
         self.host = host
         self.port = port
+        self.topic = topic
         self.client = mqtt.Client()
         self.client.on_message = self.on_message
+        self.client.on_connect = self.on_connect
         self.last_update = datetime.now()
         self.state_of_charge = 0
         self.__listeners = set()
@@ -23,36 +26,30 @@ class PvMqtt:
             listener()
 
     def start(self):
-        self.client.connect(self.host, self.port)
-        logging.info("MQTT client started (server " + self.host + ":" + str(self.port) +")")
+        try:
+            self.client.connect(self.host, self.port)
+            self.client.loop_start()
+            logging.info("MQTT client started.")
+        except Exception as e:
+            logging.error(f"MQTT connection error: {e}", exc_info=True)
 
-        self.client.subscribe("#")
-        logging.info("wait for data...")
-
-        self.client.loop_start()
 
     def stop(self):
-        """
-        Gracefully stops the MQTT client and disconnects from the broker.
-        """
-        # Stop the background network loop
+        self.client.disconnect()
         self.client.loop_stop()
 
-        # Disconnect from the MQTT broker cleanly
-        self.client.disconnect()
-        logging.info("MQTT connection stopped.")
+    def on_connect(self, client, userdata, flags, rc):
+        if rc == 0:
+            logging.info(f"Connected to MQTT broker at {self.host}:{self.port}")
+            self.client.subscribe(self.topic)
+            logging.info(f"topic {self.topic} subscribed")
+        else:
+            logging.warning(f"Failed to connect, return code {rc}")
 
     def on_message(self, client, userdata, msg):
         try:
             payload = msg.payload.decode("utf-8")
             data = json.loads(payload)
-
-            logging.info(data)
-
-            if 'device' in data:
-                if 'command_topic' not in data:
-                    logging.info(str(data['device']))
-
             if 'soc' in data:
                 soc = data.get("soc")
                 if soc != self.state_of_charge:
