@@ -68,7 +68,7 @@ class Battery:
     def status(self) -> str:
         if datetime.now() + timedelta(seconds=5) > self.last_status_update:
             self.last_status_update = datetime.now()
-            level = round(self.state_of_charge, 1)
+            level = round(self.state_of_charge)
             if self.power_upstream_5s > 0:
                 self.__status = str(level) + "% (+" + str(round(self.power_upstream)) + "W)"
             elif self.power_downstream_5s > 0:
