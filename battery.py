@@ -66,7 +66,7 @@ class Battery:
 
     @property
     def status(self) -> str:
-        if datetime.now() + timedelta(seconds=3) > self.last_status_update:
+        if datetime.now() + timedelta(seconds=5) > self.last_status_update:
             self.last_status_update = datetime.now()
             level = round(self.state_of_charge, 1)
             if self.power_upstream_5s > 0:
