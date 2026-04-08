@@ -66,12 +66,13 @@ class Battery:
     def status(self) -> str:
         level = round(self.state_of_charge, 1)
         if self.power_upstream_5s > 0:
-            pwr = str(level) + "% (laden)"
-        elif self.power_upstream_5s > 0 or self.power_downstream_5s > 0:
-            pwr = str(level) + "% (entladen)"
+            pwr = str(level) + "% (*" + str(round(self.power_upstream)) + "W)"
+        elif self.power_downstream_5s > 0:
+            pwr = str(level) + "% (-" + str(round(self.power_downstream)) + "W)"
         else:
             pwr = str(level) + "%"
         return pwr
+
 
     @property
     def state_of_charge(self) -> float:
@@ -239,9 +240,9 @@ class Battery:
 
     def __info(self) -> str:
         if self.power_upstream > 3:
-            state =  str(self.state_of_charge) + '% charging with ' + str(int(self.power_upstream)) + 'W'
+            state =  str(self.state_of_charge) + '% charging with ' + str(round(self.power_upstream)) + 'W'
         elif self.power_downstream > 3:
-            state =  str(self.state_of_charge) + '% discharging with ' + str(int(self.power_downstream)) + 'W'
+            state =  str(self.state_of_charge) + '% discharging with ' + str(round(self.power_downstream)) + 'W'
         else:
             state =  str(self.state_of_charge) + "% (idling)"
 
