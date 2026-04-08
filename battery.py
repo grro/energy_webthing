@@ -31,6 +31,8 @@ class Battery:
         self.__power_downstream_1m = BufferedValue()
         self.__power_downstream_5m = BufferedValue()
         self.__show_total_status = True
+        self.last_status_update = datetime.now()
+        self.__status = ''
         self.__mqtt = PvMqtt(mqtt_addr)
         self.__mqtt.add_listener(self.__notify_listeners)
 
@@ -64,15 +66,16 @@ class Battery:
 
     @property
     def status(self) -> str:
-        level = round(self.state_of_charge, 1)
-        if self.power_upstream_5s > 0:
-            pwr = str(level) + "% (+" + str(round(self.power_upstream)) + "W)"
-        elif self.power_downstream_5s > 0:
-            pwr = str(level) + "% (-" + str(round(self.power_downstream)) + "W)"
-        else:
-            pwr = str(level) + "%"
-        return pwr
-
+        if datetime.now() + timedelta(seconds=3) > self.last_status_update:
+            self.last_status_update = datetime.now()
+            level = round(self.state_of_charge, 1)
+            if self.power_upstream_5s > 0:
+                self.__status = str(level) + "% (+" + str(round(self.power_upstream)) + "W)"
+            elif self.power_downstream_5s > 0:
+                self.__status = str(level) + "% (-" + str(round(self.power_downstream)) + "W)"
+            else:
+                self.__status = str(level) + "%"
+        return self.__status
 
     @property
     def state_of_charge(self) -> float:
