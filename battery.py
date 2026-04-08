@@ -66,7 +66,7 @@ class Battery:
     def status(self) -> str:
         level = round(self.state_of_charge, 1)
         if self.power_upstream_5s > 0:
-            pwr = str(level) + "% (" + str(round(self.power_upstream)) + "W)"
+            pwr = str(level) + "% (+" + str(round(self.power_upstream)) + "W)"
         elif self.power_downstream_5s > 0:
             pwr = str(level) + "% (-" + str(round(self.power_downstream)) + "W)"
         else:
