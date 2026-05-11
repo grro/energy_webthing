@@ -6,7 +6,7 @@ from threading import Thread
 from time import sleep
 from typing import List, Dict, Any, Optional, Callable
 
-from fastmcp import FastMCP, Context
+from fastmcp import FastMCP
 from pydantic import AnyUrl, TypeAdapter
 from zeroconf import IPVersion, ServiceInfo, Zeroconf
 
@@ -175,7 +175,7 @@ class EnergyMCPServer:
 
 
         @self.mcp.resource("sensor://metrics/{name}")
-        def get_metric(name: str) -> str:
+        def get_single_metric(name: str) -> str:
             """
             Retrieves the current value and description for a specific energy metric.
 
