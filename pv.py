@@ -48,13 +48,14 @@ class Module:
 
 class Pv:
 
-    def __init__(self, meter_addr_pv_all: str, meter_addr_pv_channel1: str, meter_addr_pv_channel2: str, meter_addr_pv_channel3: str, directory: str):
+    def __init__(self, meter_addr_pv_all: str, meter_addr_pv_channel1: str, meter_addr_pv_channel2: str, meter_addr_pv_channel3: str, meter_addr_pv_channel4: str, directory: str):
         self.__is_running = True
         self.__listeners = set()
         self.__all = Module(meter_addr_pv_all, "PV all")
         self.__module1 = Module(meter_addr_pv_channel1, "PV module1")
         self.__module2 = Module(meter_addr_pv_channel2, "PV module2")
         self.__module3 = Module(meter_addr_pv_channel3,"PV module3")
+        self.__module4 = Module(meter_addr_pv_channel4,"PV module4")
 
         self.latest_measurement_date = datetime.now(UTC)
 
@@ -157,28 +158,49 @@ class Pv:
 
     @property
     def power_downstream_module4(self) -> int:
-        power4 = self.power_downstream - (self.power_downstream_module1 + self.power_downstream_module2 + self.power_downstream_module3)
-        return 0 if power4 <0 else power4
+        return self.__module4.power
 
     @property
     def power_downstream_module4_5s(self) -> int:
-        power4 = self.power_downstream_5s - (self.power_downstream_module1_5s + self.power_downstream_module2_5s + self.power_downstream_module3_5s)
-        return 0 if power4 <0 else power4
+        return self.__module4.power_5s
 
     @property
     def power_downstream_module4_15s(self) -> int:
-        power4 = self.power_downstream_15s - (self.power_downstream_module1_15s + self.power_downstream_module2_15s + self.power_downstream_module3_15s)
-        return 0 if power4 <0 else power4
+        return self.__module4.power_15s
 
     @property
     def power_downstream_module4_1m(self) -> int:
-        power4 = self.power_downstream_1m - (self.power_downstream_module1_1m + self.power_downstream_module2_1m + self.power_downstream_module3_1m)
-        return 0 if power4 <0 else power4
+        return self.__module4.power_1m
 
     @property
     def power_downstream_module4_5m(self) -> int:
-        power4 = self.power_downstream_5m - (self.power_downstream_module1_5m + self.power_downstream_module2_5m + self.power_downstream_module3_5m)
+        return self.__module4.power_5m
+
+    @property
+    def power_downstream_module5(self) -> int:
+        power4 = self.power_downstream - (self.power_downstream_module1 + self.power_downstream_module2 + self.power_downstream_module3 + self.power_downstream_module4)
         return 0 if power4 <0 else power4
+
+    @property
+    def power_downstream_module5_5s(self) -> int:
+        power4 = self.power_downstream_5s - (self.power_downstream_module1_5s + self.power_downstream_module2_5s + self.power_downstream_module3_5s + self.power_downstream_module4_5s)
+        return 0 if power4 <0 else power4
+
+    @property
+    def power_downstream_module5_15s(self) -> int:
+        power4 = self.power_downstream_15s - (self.power_downstream_module1_15s + self.power_downstream_module2_15s + self.power_downstream_module3_15s + self.power_downstream_module4_15s)
+        return 0 if power4 <0 else power4
+
+    @property
+    def power_downstream_module5_1m(self) -> int:
+        power4 = self.power_downstream_1m - (self.power_downstream_module1_1m + self.power_downstream_module2_1m + self.power_downstream_module3_1m + self.power_downstream_module4_1m)
+        return 0 if power4 <0 else power4
+
+    @property
+    def power_downstream_module5_5m(self) -> int:
+        power4 = self.power_downstream_5m - (self.power_downstream_module1_5m + self.power_downstream_module2_5m + self.power_downstream_module3_5m + self.power_downstream_module4_5m)
+        return 0 if power4 <0 else power4
+
 
     @property
     def power_peak_hour_utc(self) -> int:
@@ -223,6 +245,7 @@ class Pv:
         self.__module1.measure()
         self.__module2.measure()
         self.__module3.measure()
+        self.__module4.measure()
         power_all = self.__all.measure()
         self.power_downstream = 0 if power_all <0 else power_all
         self.__pv_power_smoothen_recorder.put(self.power_downstream)
@@ -261,18 +284,19 @@ class Pv:
         sleep(1 * 60)
         while self.__is_running:
             try:
-                logging.info(self.__info())
+                logging.info(self.info())
                 sleep(10*60)
             except Exception as e:
                 logging.warning("error occurred on info " + str(e))
                 sleep(3 * 60)
 
-    def __info(self) -> str:
+    def info(self) -> str:
         return "PV " + str(int(self.power_downstream_1m)) + "W" + \
                 " (module1: " + str(int(self.power_downstream_module1_1m)) + "W," + \
                 " module2: " + str(int(self.power_downstream_module2_1m)) + "W," + \
                 " module3: " + str(int(self.power_downstream_module3_1m)) + "W," + \
                 " module4: " + str(int(self.power_downstream_module4_1m)) + "W" + \
+                " module5: " + str(int(self.power_downstream_module5_1m)) + "W" + \
                 ", peek hour: " + str(self.power_peak_hour_utc) + ")"
 
 
@@ -636,6 +660,85 @@ class PvThing(Thing):
                          'readOnly': True,
                      }))
 
+
+        self.power_downstream_module5 = Value(pv.power_downstream_module5)
+        self.add_property(
+            Property(self,
+                     'module5_power_downstream',
+                     self.power_downstream_module5,
+                     metadata={
+                         'title': 'module5 power downstream',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the current power of the module 5',
+                         'readOnly': True,
+                     }))
+
+        self.power_downstream_module5_5s = Value(pv.power_downstream_module5_5s)
+        self.add_property(
+            Property(self,
+                     'module5_power_downstream_5s',
+                     self.power_downstream_module5_5s,
+                     metadata={
+                         'title': 'module5 power downstream 5s',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the power of the module 5 (smoothen 5 sec)',
+                         'readOnly': True,
+                     }))
+
+        self.power_downstream_module5_15s = Value(pv.power_downstream_module5_15s)
+        self.add_property(
+            Property(self,
+                     'module5_power_downstream_15s',
+                     self.power_downstream_module5_15s,
+                     metadata={
+                         'title': 'module5 power downstream 15s',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the power of the module 5 (smoothen 15 sec)',
+                         'readOnly': True,
+                     }))
+
+        self.power_downstream_module5_15s = Value(pv.power_downstream_module5_15s)
+        self.add_property(
+            Property(self,
+                     'module5_power_downstream_15s',
+                     self.power_downstream_module5_15s,
+                     metadata={
+                         'title': 'module5 power downstream 15 sec',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the power of the module 5 (smoothen 15 sec)',
+                         'readOnly': True,
+                     }))
+
+        self.power_downstream_module5_1m = Value(pv.power_downstream_module5_1m)
+        self.add_property(
+            Property(self,
+                     'module5_power_downstream_1m',
+                     self.power_downstream_module5_1m,
+                     metadata={
+                         'title': 'module5 power downstream 1 min',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the power of the module 5 (smoothen 1 min)',
+                         'readOnly': True,
+                     }))
+
+        self.power_downstream_module5_5m = Value(pv.power_downstream_module5_5m)
+        self.add_property(
+            Property(self,
+                     'module5_power_downstream_5m',
+                     self.power_downstream_module5_5m,
+                     metadata={
+                         'title': 'module5 power downstream 5 min',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the power of the module 5 (smoothen 5 min)',
+                         'readOnly': True,
+                     }))
+
         self.power_downstream_module1u2_5m = Value(pv.power_downstream_module1_5m + pv.power_downstream_module2_5m)
         self.add_property(
             Property(self,
@@ -659,6 +762,19 @@ class PvThing(Thing):
                          "type": "integer",
                          'unit': 'watt',
                          'description': 'the current power of the module1 + module2 + module3 (smoothen 5 min)',
+                         'readOnly': True,
+                     }))
+
+        self.power_downstream_module1u2u3u4_5m = Value(pv.power_downstream_module1_5m + pv.power_downstream_module2_5m + pv.power_downstream_module3_5m + pv.power_downstream_module4_5m)
+        self.add_property(
+            Property(self,
+                     'module1u2u3u4_power_downstream_5m',
+                     self.power_downstream_module1u2u3u4_5m,
+                     metadata={
+                         'title': 'module1 + module2 + module3 + module4 power downstream 5 min',
+                         "type": "integer",
+                         'unit': 'watt',
+                         'description': 'the current power of the module1 + module2 + module3 + module4 (smoothen 5 min)',
                          'readOnly': True,
                      }))
 
@@ -733,16 +849,18 @@ class PvThing(Thing):
         self.power_downstream_module4_1m.notify_of_external_update(self.pv.power_downstream_module4_1m)
         self.power_downstream_module4_5m.notify_of_external_update(self.pv.power_downstream_module4_5m)
 
+        self.power_downstream_module5.notify_of_external_update(self.pv.power_downstream_module5)
+        self.power_downstream_module5_5s.notify_of_external_update(self.pv.power_downstream_module5_5s)
+        self.power_downstream_module5_15s.notify_of_external_update(self.pv.power_downstream_module5_15s)
+        self.power_downstream_module5_1m.notify_of_external_update(self.pv.power_downstream_module5_1m)
+        self.power_downstream_module5_5m.notify_of_external_update(self.pv.power_downstream_module5_5m)
+
         self.power_downstream_module1u2_5m.notify_of_external_update(self.pv.power_downstream_module1_5m + self.pv.power_downstream_module2_5m)
         self.power_downstream_module1u2u3_5m.notify_of_external_update(self.pv.power_downstream_module1_5m + self.pv.power_downstream_module2_5m + self.pv.power_downstream_module3_5m)
+        self.power_downstream_module1u2u3u4_5m.notify_of_external_update(self.pv.power_downstream_module1_5m + self.pv.power_downstream_module2_5m + self.pv.power_downstream_module3_5m + self.pv.power_downstream_module4_5m)
 
         self.power_peek_hour_utc.notify_of_external_update(self.pv.power_peak_hour_utc)
         self.power_peak_hour_utc.notify_of_external_update(self.pv.power_peak_hour_utc)
 
         self.latest_measurement_date.notify_of_external_update(self.pv.latest_measurement_date.strftime("%Y-%m-%dT%H:%M:%S"))
 
-'''        
-pv = Pv('http://10.1.33.53', "http://10.1.33.94", "http://10.1.33.95", "http://10.1.33.93", "c:\\temp")
-pv.start()
-sleep(4000)
-'''

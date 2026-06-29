@@ -163,6 +163,7 @@ class EnergyMCPServer:
             sleep(2)
 
     def _setup_mcp(self):
+        
         @self.mcp.resource("sensor://metrics")
         def get_metric_names() -> list[str]:
             """
