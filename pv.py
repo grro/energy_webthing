@@ -178,29 +178,28 @@ class Pv:
 
     @property
     def power_downstream_module5(self) -> int:
-        power4 = self.power_downstream - (self.power_downstream_module1 + self.power_downstream_module2 + self.power_downstream_module3 + self.power_downstream_module4)
-        return 0 if power4 <0 else power4
+        power5 = self.power_downstream - (self.power_downstream_module1 + self.power_downstream_module2 + self.power_downstream_module3 + self.power_downstream_module4)
+        return 0 if power5 <0 else power5
 
     @property
     def power_downstream_module5_5s(self) -> int:
-        power4 = self.power_downstream_5s - (self.power_downstream_module1_5s + self.power_downstream_module2_5s + self.power_downstream_module3_5s + self.power_downstream_module4_5s)
-        return 0 if power4 <0 else power4
+        power5 = self.power_downstream_5s - (self.power_downstream_module1_5s + self.power_downstream_module2_5s + self.power_downstream_module3_5s + self.power_downstream_module4_5s)
+        return 0 if power5 <0 else power5
 
     @property
     def power_downstream_module5_15s(self) -> int:
-        power4 = self.power_downstream_15s - (self.power_downstream_module1_15s + self.power_downstream_module2_15s + self.power_downstream_module3_15s + self.power_downstream_module4_15s)
-        return 0 if power4 <0 else power4
+        power5 = self.power_downstream_15s - (self.power_downstream_module1_15s + self.power_downstream_module2_15s + self.power_downstream_module3_15s + self.power_downstream_module4_15s)
+        return 0 if power5 <0 else power5
 
     @property
     def power_downstream_module5_1m(self) -> int:
-        power4 = self.power_downstream_1m - (self.power_downstream_module1_1m + self.power_downstream_module2_1m + self.power_downstream_module3_1m + self.power_downstream_module4_1m)
-        return 0 if power4 <0 else power4
+        power5 = self.power_downstream_1m - (self.power_downstream_module1_1m + self.power_downstream_module2_1m + self.power_downstream_module3_1m + self.power_downstream_module4_1m)
+        return 0 if power5 <0 else power5
 
     @property
     def power_downstream_module5_5m(self) -> int:
-        power4 = self.power_downstream_5m - (self.power_downstream_module1_5m + self.power_downstream_module2_5m + self.power_downstream_module3_5m + self.power_downstream_module4_5m)
-        return 0 if power4 <0 else power4
-
+        power5 = self.power_downstream_5m - (self.power_downstream_module1_5m + self.power_downstream_module2_5m + self.power_downstream_module3_5m + self.power_downstream_module4_5m)
+        return 0 if power5 <0 else power5
 
     @property
     def power_peak_hour_utc(self) -> int:
