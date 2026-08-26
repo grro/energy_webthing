@@ -146,6 +146,7 @@ class EnergyMCPServer:
         self.sessions = Sessions()
         self.notifiers = [Notifier(self.sessions, self.loop, 'grid_power', lambda : self.energy.provider.provider_power),
                           Notifier(self.sessions, self.loop, 'pv_production', lambda : self.energy.pv.power_downstream),
+                          Notifier(self.sessions, self.loop, 'battery_power', lambda : self.energy.battery.power),
                           Notifier(self.sessions, self.loop, 'available_surplus', lambda : self.energy.power_surplus)]
 
         self._setup_mcp()
@@ -172,7 +173,7 @@ class EnergyMCPServer:
             This resource provides the valid keys that can be dynamically
             queried using the 'sensor://metrics/{name}' endpoint.
             """
-            return ['grid_power', 'pv_production', 'available_surplus']
+            return ['grid_power', 'pv_production', 'available_surplus', 'battery_power']
 
 
         @self.mcp.resource("sensor://metrics/{name}")
@@ -210,6 +211,8 @@ class EnergyMCPServer:
                 return f"PV Production: {self.energy.pv.power_downstream} W (Current solar generation)"
             elif name == 'available_surplus':
                 return f"Available Surplus: {self.energy.power_surplus} W (Excess solar energy)"
+            elif name == 'battery_power':
+                return f"Battery Power: {self.energy.battery.power} W (Positive: Charging | Negative: Discharging)"
 
             # Fallback for unknown metrics
             return f"Error: Metric '{name}' is not recognized or not available."
@@ -243,6 +246,7 @@ class EnergyMCPServer:
     
                     "### Battery\n"
                     f"- **State of Charge:** {self.energy.battery.state_of_charge}% (Total capacity: 1.92 kWh | Minimum reserve: 10%)\n"
+                    f"- **Battery Power:** {self.energy.battery.power} W (Positive: Charging | Negative: Discharging)\n"
                     f"- **Charging Power:** {self.energy.battery.power_upstream} W (Power flowing into battery)\n"
                     f"- **Discharging Power:** {self.energy.battery.power_downstream} W (Power usage from battery)\n"
                 )

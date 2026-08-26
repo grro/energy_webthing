@@ -26,8 +26,10 @@ class Energy:
 
 
     @property
-    def power_gray_consumption_5s(self) -> int:
-        return self.__power_gray_consumption_5s.set_and_get(self.provider.provider_power_5s + self.battery.power_downstream_5s + self.pv.power_downstream_5s)
+    def power_core_consumption_5s(self) -> int:
+        downstream = self.provider.provider_power_5s + self.pv.power_downstream_5s + self.battery.power_downstream_5s
+        upstream = self.provider.provider_power_upstream_5s + self.battery.power_upstream_5s
+        return downstream - upstream
 
     @property
     def power_consumption(self) -> int:
@@ -39,7 +41,7 @@ class Energy:
 
     @property
     def power_consumption_15s(self) -> int:
-        return self.__power_consumption_15s.set_and_get(self.provider.provider_power_5s + self.battery.power_downstream_15s + self.pv.power_downstream_15s)
+        return self.__power_consumption_15s.set_and_get(self.provider.provider_power_15s + self.battery.power_downstream_15s + self.pv.power_downstream_15s)
 
     @property
     def power_consumption_1m(self) -> int:
@@ -186,16 +188,16 @@ class EnergyThing(Thing):
                          'readOnly': True,
                      }))
 
-        self.power_gray_consumption_5s = Value(energy.power_gray_consumption_5s)
+        self.power_core_consumption_5s = Value(energy.power_core_consumption_5s)
         self.add_property(
             Property(self,
-                     'power_gray_consumption_5s',
-                     self.power_gray_consumption_5s,
+                     'power_core_consumption_5s',
+                     self.power_core_consumption_5s,
                      metadata={
-                         'title': 'power gray consumption 5s',
+                         'title': 'power core consumption 5s',
                          "type": "integer",
                          'unit': 'watt',
-                         'description': 'the current power consumption without upstream battery smoothen over 5 seconds',
+                         'description': 'the current power consumption without upstream provider + battery smoothen over 5 seconds',
                          'readOnly': True,
                      }))
 
@@ -283,6 +285,6 @@ class EnergyThing(Thing):
         self.power_consumption_1m.notify_of_external_update(self.energy.power_consumption_1m)
         self.power_consumption_5m.notify_of_external_update(self.energy.power_consumption_5m)
 
-        self.power_gray_consumption_5s.notify_of_external_update(self.energy.power_gray_consumption_5s)
+        self.power_core_consumption_5s.notify_of_external_update(self.energy.power_core_consumption_5s)
 
 
