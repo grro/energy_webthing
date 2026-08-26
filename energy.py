@@ -27,9 +27,7 @@ class Energy:
 
     @property
     def power_core_consumption_5s(self) -> int:
-        downstream = self.provider.provider_power_5s + self.pv.power_downstream_5s + self.battery.power_downstream_5s
-        upstream = self.provider.provider_power_upstream_5s + self.battery.power_upstream_5s
-        return downstream - upstream
+        return self.power_consumption_5s - self.battery.power_upstream_5s
 
     @property
     def power_consumption(self) -> int:
