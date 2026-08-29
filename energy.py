@@ -18,11 +18,11 @@ class Energy:
         self.provider.add_listener(self.__on_update)
         self.pv.add_listener(self.__on_update)
         self.battery.add_listener(self.__on_update)
-        self.__power_consumption_5s = BufferedValue()
-        self.__power_consumption_15s = BufferedValue()
-        self.__power_consumption_1m = BufferedValue()
-        self.__power_green_1m = BufferedValue()
-        self.__power_gray_consumption_5s = BufferedValue()
+        self.__power_consumption_5s = BufferedValue(5)
+        self.__power_consumption_15s = BufferedValue(15)
+        self.__power_consumption_1m = BufferedValue(60)
+        self.__power_green_1m = BufferedValue(60)
+        self.__power_gray_consumption_5s = BufferedValue(5)
 
 
     @property

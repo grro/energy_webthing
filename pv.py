@@ -60,8 +60,8 @@ class Pv:
         self.latest_measurement_date = datetime.now(UTC)
 
         self.power_downstream = 0
-        self.__power_downstream_5s = BufferedValue()
-        self.__power_downstream_1m = BufferedValue()
+        self.__power_downstream_5s = BufferedValue(5)
+        self.__power_downstream_1m = BufferedValue(60)
 
         self.__pv_power_smoothen_recorder = WattRecorder()
         self.__power_per_hour = {}
