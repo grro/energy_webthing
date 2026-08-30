@@ -1,5 +1,4 @@
-from fastmcp.server.middleware import logging
-
+import logging
 from provider import Provider
 from pv import Pv
 from battery import Battery
