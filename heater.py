@@ -32,5 +32,6 @@ class Heater:
     @property
     def power(self) -> int:
         self.fetch()
-        return self.__data.get("power", 0)
+        power = self.__data.get("power", 0)
+        return power
 
