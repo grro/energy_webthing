@@ -31,7 +31,7 @@ class Energy:
     def power_core_consumption_5s(self) -> int:
         downstream = self.provider.provider_power_downstream_5s + self.pv.power_downstream_5s + self.battery.power_downstream_5s
         upstream = self.provider.provider_power_upstream_5s + self.battery.power_upstream_5s + self.heater.power
-        logging.debug(f"power_core_consumption_5s: downstream={downstream}, upstream={upstream} (provider={self.provider.provider_power_downstream_5s}, pv={self.pv.power_downstream_5s}, battery={self.battery.power_downstream_5s}, provider_upstream={self.provider.provider_power_upstream_5s}, battery_upstream={self.battery.power_upstream_5s}, heater={self.heater.power})")
+        logging.info(f"power_core_consumption_5s: downstream={downstream}, upstream={upstream} (provider={self.provider.provider_power_downstream_5s}, pv={self.pv.power_downstream_5s}, battery={self.battery.power_downstream_5s}, provider_upstream={self.provider.provider_power_upstream_5s}, battery_upstream={self.battery.power_upstream_5s}, heater={self.heater.power})")
         return downstream - upstream
 
     @property
