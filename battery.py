@@ -6,7 +6,6 @@ from datetime import UTC, datetime, timedelta, date
 from utils import WattRecorder
 from shelly import ShellyMeter
 from redzoo.database.simple import SimpleDB
-from utils import BufferedValue
 from battery_mqtt import PvMqtt
 
 
@@ -25,9 +24,6 @@ class Battery:
         self.__power_charging = 0
         self.__power_charging_smoothen_recorder = WattRecorder()
         self.__power_discharging_smoothen_recorder = WattRecorder()
-        self.__power = BufferedValue()
-        self.__power_downstream_1m = BufferedValue()
-        self.__power_downstream_5m = BufferedValue()
         self.__show_total_status = True
         self.last_status_update = datetime.now()
         self.__status = ''
@@ -81,7 +77,7 @@ class Battery:
 
     @property
     def power(self) -> int:
-        return self.__power.set_and_get(self.power_upstream if self.power_upstream > 0 else (self.power_downstream * -1))
+        return self.power_upstream if self.power_upstream > 0 else (self.power_downstream * -1)
 
     @property
     def power_upstream(self) -> int:

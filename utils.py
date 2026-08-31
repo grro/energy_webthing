@@ -2,33 +2,6 @@ from datetime import datetime, timedelta
 from typing import Tuple, List, Dict, Optional
 
 
-class BufferedValue:
-
-    def __init__(self, window_sec: int = 5, threshold: int = 50):
-        self.__window_sec = window_sec
-        self._threshold = threshold
-        self.__value = 0
-        self.__buffered_value = 0
-        self.__buffer_date = datetime.now()
-
-    def set_and_get(self, new_value: int):
-        self.__value = new_value
-        now = datetime.now()
-
-        delta = abs(self.__value - self.__buffered_value)
-        if delta < self._threshold:
-            expired = (self.__buffer_date + timedelta(seconds = self.__window_sec)) < now
-        else:
-            expired = (self.__buffer_date + timedelta(seconds = int(self.__window_sec/5))) < now
-
-        if expired:
-            self.__buffer_date = now
-            self.__buffered_value = self.__value
-
-        return self.__buffered_value
-
-
-
 
 
 class WattRecorder:

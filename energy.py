@@ -1,9 +1,7 @@
-import logging
 from provider import Provider
 from pv import Pv
 from battery import Battery
 from heater import Heater
-from utils import BufferedValue
 
 
 
@@ -19,11 +17,6 @@ class Energy:
         self.provider.add_listener(self.__on_update)
         self.pv.add_listener(self.__on_update)
         self.battery.add_listener(self.__on_update)
-        self.__power_consumption_5s = BufferedValue(5)
-        self.__power_consumption_15s = BufferedValue(15)
-        self.__power_consumption_1m = BufferedValue(60)
-        self.__power_green_1m = BufferedValue(60)
-        self.__power_gray_consumption_5s = BufferedValue(5)
 
 
     @property
@@ -38,15 +31,15 @@ class Energy:
 
     @property
     def power_consumption_5s(self) -> int:
-        return self.__power_consumption_5s.set_and_get(self.provider.provider_power_5s + self.battery.power_downstream_5s + self.pv.power_downstream_5s)
+        return self.provider.provider_power_5s + self.battery.power_downstream_5s + self.pv.power_downstream_5s
 
     @property
     def power_consumption_15s(self) -> int:
-        return self.__power_consumption_15s.set_and_get(self.provider.provider_power_15s + self.battery.power_downstream_15s + self.pv.power_downstream_15s)
+        return self.provider.provider_power_15s + self.battery.power_downstream_15s + self.pv.power_downstream_15s
 
     @property
     def power_consumption_1m(self) -> int:
-        return self.__power_consumption_1m.set_and_get(self.provider.provider_power_1m + self.battery.power_downstream_1m + self.pv.power_downstream_1m)
+        return self.provider.provider_power_1m + self.battery.power_downstream_1m + self.pv.power_downstream_1m
 
     @property
     def power_consumption_5m(self) -> int:
@@ -54,7 +47,7 @@ class Energy:
 
     @property
     def power_green_1m(self) -> int:
-        return self.__power_green_1m.set_and_get(self.pv.power_downstream_1m + self.battery.power_downstream_1m)
+        return self.pv.power_downstream_1m + self.battery.power_downstream_1m
 
     @property
     def power_surplus(self) -> int:

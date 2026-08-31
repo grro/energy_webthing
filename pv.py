@@ -4,7 +4,7 @@ from typing import List
 from time import sleep
 from datetime import datetime, timedelta, UTC
 from shelly import ShellyMeter
-from utils import WattRecorder, BufferedValue
+from utils import WattRecorder
 from redzoo.database.simple import SimpleDB
 
 
@@ -58,8 +58,6 @@ class Pv:
         self.latest_measurement_date = datetime.now(UTC)
 
         self.power_downstream = 0
-        self.__power_downstream_5s = BufferedValue(5)
-        self.__power_downstream_1m = BufferedValue(60)
 
         self.__pv_power_smoothen_recorder = WattRecorder()
         self.__power_per_hour = {}
@@ -76,7 +74,7 @@ class Pv:
 
     @property
     def power_downstream_5s(self) -> int:
-        return self.__power_downstream_5s.set_and_get(self.__pv_power_smoothen_recorder.watt_per_hour(second_range=5)) if self.elapsed_since_last_measurement_sec() < 60 else 0
+        return self.__pv_power_smoothen_recorder.watt_per_hour(second_range=5) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def power_downstream_15s(self) -> int:
@@ -84,7 +82,7 @@ class Pv:
 
     @property
     def power_downstream_1m(self) -> int:
-        return self.__power_downstream_1m.set_and_get(self.__pv_power_smoothen_recorder.watt_per_hour(minute_range=1)) if self.elapsed_since_last_measurement_sec() < 60 else 0
+        return self.__pv_power_smoothen_recorder.watt_per_hour(minute_range=1) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def power_downstream_5m(self) -> int:
