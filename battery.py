@@ -117,11 +117,11 @@ class Battery:
 
     @property
     def power_downstream_1m(self) -> int:
-        return self.__power_downstream_1m.set_and_get(self.__power_discharging_smoothen_recorder.watt_per_hour(minute_range=1)) if self.elapsed_since_last_measurement_sec() < 60 else 0
+        return self.__power_discharging_smoothen_recorder.watt_per_hour(minute_range=1) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     @property
     def power_downstream_5m(self) -> int:
-        return self.__power_downstream_5m.set_and_get(self.__power_discharging_smoothen_recorder.watt_per_hour(minute_range=5)) if self.elapsed_since_last_measurement_sec() < 60 else 0
+        return self.__power_discharging_smoothen_recorder.watt_per_hour(minute_range=5) if self.elapsed_since_last_measurement_sec() < 60 else 0
 
     def __energy_down_current_year_list_raw(self, last_day:int = 365) -> List[int]:
         return [self.__energy_down_per_day.get(str(day_of_year), None) for day_of_year in range(0, last_day)]

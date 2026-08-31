@@ -1,4 +1,4 @@
-# energy_webthing
+# energy
 A webthing service that provides the energy values including photovoltaic power using shelly 3em pro (provider values) and shelly pro 1pm (PV values)
 
 
